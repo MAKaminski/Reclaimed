@@ -233,7 +233,7 @@ export async function buildRecoveryAgreement(
     requestedFeePct: input.feePct,
     feeCapPct,
   })
-  assertFeeAgreementEligible(fee, feeCapPct)
+  assertFeeAgreementEligible(fee, feeCapPct, 'GA')
 
   const usePathB = fee.requiresPathB
   const pathBSplit = usePathB

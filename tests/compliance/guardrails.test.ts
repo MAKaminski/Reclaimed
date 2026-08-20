@@ -431,3 +431,46 @@ describe('§4 RULES ENGINE — unverified rules must throw, never default silent
     expect(threw, 'MD has NO statutory cap; a silent default would be catastrophic').toBe(true)
   })
 })
+
+describe('§1.5 the cap is not a caller preference — O.C.G.A. § 44-12-224(d)(1)', () => {
+  it('REFUSES an agreement computed against a fee cap above the statutory one', () => {
+    // feeCapPct has to be a parameter, because the cap is per-state. That means
+    // a wrong value would propagate through BOTH the clamp and the check meant
+    // to validate it — the agreement would look internally consistent while
+    // being over the statutory cap. The gate re-derives the cap from the rules.
+    const permissive = computeFee({
+      claimedAmount: dollarsToCents(10_000),
+      propertyValue: dollarsToCents(10_000),
+      costs: cents(0),
+      requestedFeePct: 60,
+      feeCapPct: 60,          // <- a caller inventing its own ceiling
+    })
+    // computeFee itself is happy: 60% of 10,000, clamped to its own 60% cap.
+    expect(permissive.capBinding).toBe(false)
+    expect(permissive.feeDollars).toBe(dollarsToCents(6_000))
+
+    // The agreement gate is not.
+    expect(() => assertFeeAgreementEligible(permissive, 60, 'GA'))
+      .toThrow(/statutory cap for GA is 30/)
+  })
+
+  it('accepts a cap at or below the statutory one', () => {
+    const conservative = computeFee({
+      claimedAmount: dollarsToCents(10_000),
+      propertyValue: dollarsToCents(10_000),
+      costs: cents(0),
+      requestedFeePct: 15,
+      feeCapPct: 20,
+      })
+    expect(() => assertFeeAgreementEligible(conservative, 20, 'GA')).not.toThrow()
+    expect(() => assertFeeAgreementEligible(conservative, 30, 'GA')).not.toThrow()
+  })
+
+  it('throws on an unverified state rather than reading its cap', () => {
+    const anything = computeFee({
+      claimedAmount: dollarsToCents(1_000), propertyValue: dollarsToCents(1_000),
+      costs: cents(0), feeCapPct: 10,
+    })
+    expect(() => assertFeeAgreementEligible(anything, 10, 'CA')).toThrow(UnverifiedStateRulesError)
+  })
+})

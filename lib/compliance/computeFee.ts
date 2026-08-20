@@ -20,6 +20,18 @@
  */
 
 import { type Cents, ZERO, add, cents, min, percentOf, subtract } from './money'
+import { getStateRules } from './stateRules'
+
+/**
+ * The statutory cap for a state, from the rules engine. Null where the state
+ * has NO percentage cap — which is materially different from zero and must
+ * never be coerced to one.
+ */
+function getStatutoryCapPct(stateCode: string): number | null {
+  const rules = getStateRules(stateCode)
+  const cap = rules.feeCapPct
+  return typeof cap === 'number' ? cap : null
+}
 
 export interface ComputeFeeInput {
   /** Amount being claimed from DOR. */
@@ -112,11 +124,27 @@ export function computeFee(input: ComputeFeeInput): FeeComputation {
  * computeFee() clamps so the UI can explain itself. This throws, because
  * § 44-12-224(b) voids the representative's claim on a defective agreement and
  * § 44-12-239.2(b) reaches "willful imposition of illegal or excessive charges."
+ *
+ * `stateCode` is not optional decoration. `feeCapPct` is a caller-supplied
+ * parameter — it has to be, because the cap is per-state — which means a wrong
+ * value would propagate through BOTH the clamp and the check that is supposed to
+ * validate it, and the agreement would look internally consistent while being
+ * over the statutory cap. Passing the state code makes this verify the cap
+ * against the rules engine rather than trusting its own input.
  */
 export function assertFeeAgreementEligible(
   computation: FeeComputation,
   feeCapPct: number,
+  stateCode = 'GA',
 ): void {
+  const statutoryCap = getStatutoryCapPct(stateCode)
+  if (statutoryCap !== null && feeCapPct > statutoryCap) {
+    throw new Error(
+      `Refusing to generate agreement: a fee cap of ${feeCapPct}% was supplied, ` +
+        `but the statutory cap for ${stateCode} is ${statutoryCap}%. The cap is ` +
+        'not a caller preference (O.C.G.A. § 44-12-224(d)(1)).',
+    )
+  }
   // Compare in integer cents, never in the derived float percentage.
   if (computation.feeDollars > computation.capCeiling) {
     throw new Error(
