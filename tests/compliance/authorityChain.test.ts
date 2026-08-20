@@ -233,3 +233,120 @@ describe('threshold', () => {
     expect(evaluateChain(weak, 0.9).submittable).toBe(false)
   })
 })
+
+describe('§7.3 REGRESSION: the chain used to FAIL OPEN on malformed input', () => {
+  // Each of these was reproduced by an adversarial review. In every case the
+  // chain reported "Chain is evidenced, reviewed, contiguous, and above
+  // threshold." — authority manufactured out of a missing field.
+
+  it('refuses a link whose confidence field is ABSENT (was: NaN < threshold is false)', () => {
+    const chain = goodChain()
+    const { confidence, ...withoutConfidence } = chain[2]!
+    void confidence
+    const result = evaluateChain([...chain.slice(0, 2), withoutConfidence as AuthorityLink, chain[3]!])
+    expect(result.submittable).toBe(false)
+    expect(result.reasons.join(' ')).toContain('no usable confidence')
+    expect(result.chainConfidence).toBeNull()
+  })
+
+  it.each([undefined, null, Number.NaN, 'high', 1.5, -0.1])(
+    'refuses confidence value %p',
+    (value) => {
+      const chain = goodChain()
+      chain[1] = { ...chain[1]!, confidence: value as unknown as number }
+      expect(evaluateChain(chain).submittable).toBe(false)
+    },
+  )
+
+  it.each([undefined, null, '', '   '])(
+    'refuses evidenceDocumentId %p (was: only === "" was checked)',
+    (value) => {
+      const chain = goodChain()
+      chain[1] = { ...chain[1]!, evidenceDocumentId: value as unknown as string }
+      const result = evaluateChain(chain)
+      expect(result.submittable).toBe(false)
+      expect(result.reasons.join(' ')).toContain('without an evidence document')
+    },
+  )
+
+  it('refuses a NaN or out-of-range threshold rather than passing everything', () => {
+    for (const threshold of [Number.NaN, 0, -1, 2, Infinity, 'high' as unknown as number]) {
+      expect(evaluateChain(goodChain(), threshold).submittable, `threshold ${threshold}`).toBe(false)
+    }
+  })
+
+  it('an explicitly-undefined threshold correctly falls back to the default', () => {
+    // undefined means "not supplied" to a JS default parameter, so this is the
+    // 0.75 default rather than a missing gate.
+    const result = evaluateChain(goodChain(), undefined)
+    expect(result.threshold).toBe(DEFAULT_MINIMUM_CONFIDENCE)
+    expect(result.submittable).toBe(true)
+  })
+
+  it('refuses a link that records no asserting staff member', () => {
+    const chain = goodChain()
+    chain[0] = { ...chain[0]!, assertedBy: '' }
+    expect(evaluateChain(chain).submittable).toBe(false)
+  })
+})
+
+describe('§7.3 REGRESSION: self-review satisfied the second-person requirement', () => {
+  it('refuses a link reviewed by the person who asserted it', () => {
+    const chain = goodChain().map((l) => ({ ...l, assertedBy: 'staff-1', reviewedBy: 'staff-1' }))
+    const result = evaluateChain(chain)
+    expect(result.submittable).toBe(false)
+    expect(result.reasons.join(' ')).toContain('Self-review does not satisfy')
+  })
+
+  it('refuses a link marked reviewed with no reviewer recorded', () => {
+    const chain = goodChain().map((l) => ({ ...l, reviewedBy: null }))
+    expect(evaluateChain(chain).submittable).toBe(false)
+  })
+
+  it('accepts review by a genuinely different person', () => {
+    expect(evaluateChain(goodChain()).submittable).toBe(true)
+  })
+
+  it('treats an UNRECOGNISED review status as unreviewed, never as approval', () => {
+    const chain = goodChain()
+    chain[1] = { ...chain[1]!, reviewStatus: 'approved' as unknown as 'reviewed' }
+    expect(evaluateChain(chain).submittable).toBe(false)
+  })
+})
+
+describe('§7.3 REGRESSION: requiredLinks was computed but never enforced', () => {
+  it('refuses a lone individual_identity link on an ENTITY-owned claim', () => {
+    // The exact bypass: an entity claim needs owner_name_to_entity →
+    // entity_status → authorized_signer → signer_identity. One individual
+    // identity link used to satisfy it.
+    const lone = [link({ linkType: 'individual_identity', entityStatus: 'active' })]
+    const result = evaluateChain(lone, DEFAULT_MINIMUM_CONFIDENCE, {
+      ownerClass: 'entity', ownerDeceased: false, entityStatus: 'active',
+    })
+    expect(result.submittable).toBe(false)
+    expect(result.reasons.join(' ')).toContain('Chain is incomplete')
+    expect(result.reasons.join(' ')).toContain('owner_name_to_entity')
+  })
+
+  it('accepts a complete entity chain', () => {
+    expect(evaluateChain(goodChain(), DEFAULT_MINIMUM_CONFIDENCE, {
+      ownerClass: 'entity', ownerDeceased: false, entityStatus: 'active',
+    }).submittable).toBe(true)
+  })
+
+  it('demands the heir links on a deceased-owner claim', () => {
+    const result = evaluateChain(goodChain(), DEFAULT_MINIMUM_CONFIDENCE, {
+      ownerClass: 'individual', ownerDeceased: true,
+    })
+    expect(result.submittable).toBe(false)
+    expect(result.reasons.join(' ')).toContain('heir_enumeration')
+  })
+
+  it('demands successor_entity on a MERGED entity — the chain of title', () => {
+    const merged = goodChain().map((l) => ({ ...l, entityStatus: 'merged' as const }))
+    const result = evaluateChain(merged, DEFAULT_MINIMUM_CONFIDENCE, {
+      ownerClass: 'entity', ownerDeceased: false, entityStatus: 'merged',
+    })
+    expect(result.reasons.join(' ')).toContain('successor_entity')
+  })
+})

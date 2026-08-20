@@ -58,11 +58,23 @@ export function assertHostAllowed(url: string | URL): void {
  * The ONLY HTTP entry point in this codebase. Every outbound request goes
  * through here so the blocklist cannot be bypassed by reaching for global fetch.
  */
+const MAX_REDIRECTS = 5
+
 export async function safeFetch(
   input: string | URL,
   init?: RequestInit,
+  redirectsFollowed = 0,
 ): Promise<Response> {
   assertHostAllowed(input)
+
+  // An unbounded redirect chain is a denial-of-service against our own ingest,
+  // and a server that redirects in a loop is not one to keep talking to.
+  if (redirectsFollowed > MAX_REDIRECTS) {
+    throw new Error(
+      `Refusing request: more than ${MAX_REDIRECTS} redirects from ${String(input)}.`,
+    )
+  }
+
   const response = await fetch(input, { ...init, redirect: 'manual' })
 
   // A redirect could otherwise walk us onto a blocked host.
@@ -71,7 +83,7 @@ export async function safeFetch(
     if (location !== null) {
       const next = new URL(location, typeof input === 'string' ? input : input.href)
       assertHostAllowed(next)
-      return safeFetch(next, init)
+      return safeFetch(next, init, redirectsFollowed + 1)
     }
   }
   return response

@@ -31,7 +31,7 @@ function submission(overrides: Partial<SubmitClaimInput> = {}): SubmitClaimInput
     propertyIds: ['GA0004821993'],
     attachments: [{ filename: 'UP-CDR2.pdf', bytes: new Uint8Array([1, 2, 3]), contentType: 'application/pdf' }],
     authorityLinks: CHAIN,
-    isPurchaseAgreement: false,
+    agreementForm: 'UP-CDR2',
     proofOfPaymentAttached: false,
     registration: ACTIVE,
     ...overrides,
@@ -56,11 +56,24 @@ describe('§6.4 submission is an email pipeline, not an API', () => {
 
   it('refuses a UP-CDR4 purchase without proof of payment — § 44-12-224(d)(2)', () => {
     expect(() => buildSubmission(submission({
-      isPurchaseAgreement: true, proofOfPaymentAttached: false,
+      agreementForm: 'UP-CDR4', proofOfPaymentAttached: false,
     }))).toThrow(/VOID without it/)
 
     expect(() => buildSubmission(submission({
-      isPurchaseAgreement: true, proofOfPaymentAttached: true,
+      agreementForm: 'UP-CDR4', proofOfPaymentAttached: true,
+    }))).not.toThrow()
+  })
+
+  it('REGRESSION: the gate keys off the FORM, not a caller-declared boolean', () => {
+    // It previously took `isPurchaseAgreement: boolean`. Passing false on a
+    // claim that was in fact a UP-CDR4 purchase skipped § 44-12-224(d)(2)
+    // entirely, and nothing cross-checked the agreement.
+    expect(() => buildSubmission(submission({
+      agreementForm: 'UP-CDR4', proofOfPaymentAttached: false,
+    }))).toThrow()
+    // A UP-CDR2 recovery genuinely does not need proof of payment.
+    expect(() => buildSubmission(submission({
+      agreementForm: 'UP-CDR2', proofOfPaymentAttached: false,
     }))).not.toThrow()
   })
 

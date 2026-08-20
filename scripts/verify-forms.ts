@@ -43,6 +43,7 @@ async function main(): Promise<void> {
 
   const drift: string[] = []
   const next: Record<string, Pin> = {}
+  let fetchFailed = false
 
   for (const form of FORMS) {
     let bytes: Buffer
@@ -52,14 +53,28 @@ async function main(): Promise<void> {
       bytes = Buffer.from(await res.arrayBuffer())
     } catch (error) {
       console.error(`✗ ${form.id}: could not fetch — ${(error as Error).message}`)
+      // CARRY THE EXISTING PIN FORWARD. Dropping it on a fetch failure meant the
+      // next successful run saw no pin, logged "newly pinned", recorded no
+      // drift, and exited 0 — re-pinning whatever DOR was serving with no diff,
+      // no field re-discovery, and no golden-file regeneration.
+      const existing = pins[form.id]
+      if (existing !== undefined) next[form.id] = existing
+      fetchFailed = true
       process.exitCode = 1
       continue
     }
 
     const sha256 = createHash('sha256').update(bytes).digest('hex')
-    writeFileSync(join(CACHE_DIR, `${form.id}.pdf`), bytes)
-
     const existing = pins[form.id]
+
+    // Only overwrite the cached copy when the form is UNCHANGED or newly pinned.
+    // Writing the live bytes before the drift decision destroyed the very copy a
+    // human needs to diff against, and mutated the working tree from CI.
+    if (existing === undefined || existing.sha256 === sha256 || updateMode) {
+      writeFileSync(join(CACHE_DIR, `${form.id}.pdf`), bytes)
+    } else {
+      writeFileSync(join(CACHE_DIR, `${form.id}.live.pdf`), bytes)
+    }
     next[form.id] = {
       sha256,
       byteLength: bytes.byteLength,
@@ -96,7 +111,22 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
+  // Never write a pin file that is missing a form we already knew about.
+  for (const [id, pin] of Object.entries(pins)) {
+    if (next[id] === undefined) next[id] = pin
+  }
+
   writeFileSync(PIN_PATH, `${JSON.stringify(next, null, 2)}\n`)
+
+  if (fetchFailed) {
+    console.error(
+      '\n✗ One or more forms could not be fetched. Existing pins were CARRIED ' +
+      'FORWARD, not dropped —\n  a network failure must never silently disarm ' +
+      'the § 44-12-224(b) tripwire.\n',
+    )
+    process.exit(1)
+  }
+
   if (drift.length > 0) console.log('\n⚠ Hashes UPDATED. Re-verify the form layout before shipping.')
   console.log(`\n✓ §6.2 form hashes verified against ${FORMS.length} live DOR PDFs`)
 }

@@ -22,9 +22,23 @@ const PROTECTED = [
   'work_queue', 'property_scores', 'property_scores_latest', 'owners', 'entities',
 ]
 
-/** Evidence that a request is authenticated as staff. */
+/**
+ * Evidence that a request is authenticated as staff.
+ *
+ * `createClient()` was originally in this list, which made the whole gate
+ * TAUTOLOGICAL: you cannot query Supabase without calling it, so every file
+ * that reads `properties` necessarily contained the marker and the check could
+ * never fire. An adversarial review dropped in an unauthenticated public
+ * lookup route — the exact "search your name" tool § 44-12-239.1(b)
+ * forecloses — and this gate passed it green.
+ *
+ * A marker must now be evidence that the CALLER'S IDENTITY was checked, not
+ * merely that a database connection was opened.
+ */
 const AUTH_MARKERS = [
-  'auth.getUser', 'getUser()', 'createClient()', 'is_active_staff', 'requireStaff',
+  'auth.getUser',      // Supabase session lookup
+  'requireStaff',      // our own guard
+  'assertStaff',
 ]
 
 /**
@@ -35,7 +49,18 @@ const SERVICE_KEY_MARKERS = [
   'SUPABASE_SERVICE_ROLE_KEY', 'service_role', 'SUPABASE_SECRET_KEY',
 ]
 
-const SCAN_DIRS = ['app', 'components']
+// `lib` is included: a data-access module there is reachable from a route and
+// was previously never scanned at all.
+const SCAN_DIRS = ['app', 'components', 'lib']
+
+/** Modules permitted to read protected data without a session of their own. */
+const EXEMPT = [
+  // The ingest CLI runs on a workstation over a direct connection, by design —
+  // the >1GB weekly file cannot go through PostgREST.
+  'lib/ingest/', 'lib/db/client.ts',
+  // The Supabase client factory itself; routes that USE it still need a check.
+  'lib/db/supabase.ts',
+]
 const SOURCE_EXT = /\.(ts|tsx)$/
 
 interface Failure { file: string; reason: string }
@@ -60,10 +85,27 @@ function main(): void {
       const rel = relative(ROOT, file)
       const source = readFileSync(file, 'utf8')
 
+      if (EXEMPT.some((prefix) => rel.startsWith(prefix))) continue
+
       const readsProtected = PROTECTED.filter((table) =>
-        new RegExp(`\\.from\\(['"\`]${table}['"\`]\\)`).test(source) ||
-        new RegExp(`\\brpc\\(['"\`][^'"\`]*${table}`).test(source),
+        // Literal table name in .from() / .rpc(), quoted any way.
+        new RegExp(`\\.(from|rpc)\\(\\s*['"\`]${table}['"\`]`).test(source) ||
+        // Raw SQL against the table.
+        new RegExp(`\\bfrom\\s+${table}\\b`, 'i').test(source),
       )
+
+      // A dynamic table name defeats every name-based check above, so it is
+      // itself the finding — the gate cannot verify what it cannot see.
+      const dynamicTable = /\.(from|rpc)\(\s*[^'"\`)\s]/.test(source)
+      if (dynamicTable && !AUTH_MARKERS.some((m) => source.includes(m))) {
+        failures.push({
+          file: rel,
+          reason:
+            'queries a DYNAMIC table name without an authenticated staff session. ' +
+            'A computed table name cannot be checked statically, so it must carry ' +
+            'its own auth check.',
+        })
+      }
 
       if (readsProtected.length > 0) {
         const authenticated = AUTH_MARKERS.some((marker) => source.includes(marker))

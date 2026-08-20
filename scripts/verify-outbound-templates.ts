@@ -14,7 +14,26 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, resolve, relative } from 'node:path'
 
 const ROOT = resolve(import.meta.dirname, '..')
-const TEMPLATE_DIR = join(ROOT, 'templates/outbound')
+
+/**
+ * Every directory that could hold a solicitation.
+ *
+ * Originally only `templates/outbound` was scanned, which made the gate trivial
+ * to sidestep: a solicitation at `emails/reminder.tsx` passed with no legend at
+ * all. `email` is an ENABLED channel and there is no email template in the
+ * original tree, so the first one written was likely to land outside it.
+ */
+const SCAN_DIRS = ['templates', 'emails', 'mail', 'app', 'components']
+
+/** The primitives themselves, and the gate. Not solicitations. */
+const NOT_SOLICITATIONS = [
+  'components/SolicitationLegend.tsx',
+  'lib/compliance/legend.ts',
+  'lib/compliance/legendPdf.ts',
+]
+
+/** Filename or path fragments that mark a file as owner-facing. */
+const SOLICITATION_HINTS = /(outbound|solicit|letter|mailer|campaign|firsttouch|first-touch|reminder|postcard|envelope)/i
 
 /** The only sanctioned render paths. */
 const REACT_PRIMITIVE = '<SolicitationLegend'
@@ -37,14 +56,29 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 function main(): void {
-  const files = walk(TEMPLATE_DIR)
-
-  if (files.length === 0) {
-    console.log('✓ §1.2 no outbound templates present yet (gate armed)')
-    return
-  }
+  const files = SCAN_DIRS.flatMap((dir) => walk(join(ROOT, dir)))
+    .filter((file) => {
+      const rel = relative(ROOT, file)
+      if (NOT_SOLICITATIONS.includes(rel)) return false
+      // Anything under templates/ is in scope regardless of name; elsewhere,
+      // only files whose path suggests owner-facing content.
+      return rel.startsWith('templates/') || SOLICITATION_HINTS.test(rel)
+    })
 
   const failures: Failure[] = []
+
+  // An empty templates/ directory used to return success ("gate armed"), which
+  // meant deleting or renaming the folder made this gate permanently green.
+  const templatesDir = join(ROOT, 'templates/outbound')
+  if (walk(templatesDir).length === 0) {
+    failures.push({
+      file: 'templates/outbound/',
+      reason:
+        'directory is missing or empty. Direct mail is the PRIMARY channel — an ' +
+        'empty template tree means this gate is verifying nothing, which is how ' +
+        'it silently stops protecting anything.',
+    })
+  }
 
   for (const file of files) {
     const rel = relative(ROOT, file)
@@ -82,6 +116,49 @@ function main(): void {
           'does not pass maxBodyPointSize. § 44-12-239(f) requires 12pt OR larger ' +
           'than the body font, WHICHEVER IS LARGER — a computed value.',
       })
+      continue
+    }
+
+    // The declared body size must match the largest font ACTUALLY used.
+    //
+    // Without this the whole §1.2 size rule is self-certified: a template could
+    // declare maxBodyPointSize={1} while setting 20pt body copy, ship a 12pt
+    // legend against 20pt text, and pass. That defeats "whichever is larger"
+    // exactly, at $2,000 per piece mailed under § 44-12-239.2(a)(5).
+    const declared = /maxBodyPointSize=\{?\s*([A-Za-z_$][\w$]*|\d+(?:\.\d+)?)/.exec(source)
+    if (declared !== null) {
+      const raw = declared[1]!
+      // Resolve a constant reference to its literal, if it is defined here.
+      let declaredPt = Number(raw)
+      if (Number.isNaN(declaredPt)) {
+        const constant = new RegExp(`${raw}\\s*(?::\\s*number)?\\s*=\\s*(\\d+(?:\\.\\d+)?)`).exec(source)
+        declaredPt = constant === null ? Number.NaN : Number(constant[1]!)
+      }
+
+      const used = [...source.matchAll(/fontSize:\s*[`'"]?\$?\{?\s*([\d.]+)\s*\}?pt/g)]
+        .map((m) => Number(m[1]))
+        .filter((n) => Number.isFinite(n))
+
+      if (Number.isNaN(declaredPt)) {
+        failures.push({
+          file: rel,
+          reason:
+            `declares maxBodyPointSize={${raw}}, which this check cannot resolve to ` +
+            'a number. § 44-12-239(f) sizing must be verifiable, so declare a ' +
+            'literal or a constant defined in the same file.',
+        })
+      } else if (used.length > 0) {
+        const largest = Math.max(...used)
+        if (largest > declaredPt) {
+          failures.push({
+            file: rel,
+            reason:
+              `declares maxBodyPointSize={${declaredPt}} but sets font sizes up to ` +
+              `${largest}pt. The legend would be sized against the wrong body font — ` +
+              '§ 44-12-239(f) requires 12pt OR LARGER THAN THE FONT USED.',
+          })
+        }
+      }
     }
   }
 

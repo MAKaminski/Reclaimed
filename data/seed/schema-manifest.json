@@ -1,0 +1,39 @@
+{
+  "_note": "Every database object the migrations must create. Generated from the deployed schema of project cuaeplfeignnlptfugcv and checked by scripts/verify-migrations.ts. Supabase's own storage/auth objects are excluded. Regenerate deliberately when the schema changes — this file is what makes the repo's claim to reproduce the database checkable.",
+  "tables": [
+    "agreements","audit_log","authority_links","chain_thresholds","claim_submissions",
+    "claims","data_egress_log","entities","evidence_documents","expected_receipts",
+    "heir_claims","heirs","ingest_runs","outreach_campaigns","outreach_sends",
+    "properties","properties_staging","property_events","property_holds",
+    "property_scores","staff","state_rules","suppressions"
+  ],
+  "views": [
+    "authority_chain_state","claim_clocks","properties_priority","properties_workable",
+    "property_scores_latest","work_queue"
+  ],
+  "functions": [
+    "apply_ingest_diff","chain_submittable","classify_owner","derive_delivery_precision",
+    "enforceable_on","freeze_agreement_after_send","freeze_evidence_content",
+    "halt_on_disappearance","has_staff_role","heir_claim_ready","is_active_staff",
+    "is_material_non_cash","log_agreement_change","log_authority_link_change",
+    "log_state_rule_change","may_send","set_claim_clocks"
+  ],
+  "types": [
+    "agreement_form","agreement_status","authority_link_type","campaign_status",
+    "claim_status","delivery_date_precision","entity_status","evidence_kind",
+    "hold_reason","ingest_status","link_review_status","outreach_channel",
+    "property_event_kind","property_owner_class","rule_status","signature_mode",
+    "staff_role","suppression_reason"
+  ],
+  "triggers": [
+    "agreements_audit","agreements_freeze","authority_links_audit","claims_clocks",
+    "evidence_immutable","property_events_halt","state_rules_audit"
+  ],
+  "rules": [
+    "agreements_no_delete","audit_log_no_delete","audit_log_no_update","claims_no_delete",
+    "egress_no_delete","egress_no_update","evidence_no_delete","links_no_delete",
+    "sends_no_delete","sends_no_update","submissions_no_delete","submissions_no_update",
+    "suppressions_no_delete","suppressions_no_update"
+  ],
+  "policyCount": 47
+}

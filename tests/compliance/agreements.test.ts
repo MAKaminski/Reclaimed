@@ -39,7 +39,7 @@ function chain(): AuthorityLink[] {
 
 function agreement(overrides: Partial<BuildAgreementInput> = {}): BuildAgreementInput {
   return {
-    properties: [{ propertyId: 'GA0000001', reportedValueCents: dollarsToCents(48_500) }],
+    properties: [{ propertyId: 'GA0000001', reportedValueCents: dollarsToCents(48_500), delivery: DELIVERED }],
     claimant: {
       name: 'PEACHTREE VENTURES, LLC',
       phone: '404-555-0100',
@@ -63,6 +63,13 @@ function agreement(overrides: Partial<BuildAgreementInput> = {}): BuildAgreement
   }
 }
 
+/**
+ * Delivery well outside the § 44-12-220(d.1)(4) 120-day window.
+ * Agreement generation refuses a property inside it, and an unknown delivery
+ * date resolves conservatively as inside — so a fixture must state one.
+ */
+const DELIVERED = { precision: 'exact' as const, date: new Date('2020-01-15T00:00:00Z') }
+
 describe('§6.1 the form limits are physical, and enforced', () => {
   it('mirrors the statutory 15 / 5 property limits', () => {
     expect(MAX_PROPERTIES_RECOVERY).toBe(15)
@@ -73,6 +80,7 @@ describe('§6.1 the form limits are physical, and enforced', () => {
     const properties = Array.from({ length: 15 }, (_, i) => ({
       propertyId: `GA${String(i).padStart(7, '0')}`,
       reportedValueCents: dollarsToCents(1_000),
+      delivery: DELIVERED,
     }))
     expect(() => assertAgreementPermitted(agreement({ properties }))).not.toThrow()
   })
@@ -81,6 +89,7 @@ describe('§6.1 the form limits are physical, and enforced', () => {
     const properties = Array.from({ length: 16 }, (_, i) => ({
       propertyId: `GA${String(i).padStart(7, '0')}`,
       reportedValueCents: dollarsToCents(1_000),
+      delivery: DELIVERED,
     }))
     expect(() => assertAgreementPermitted(agreement({ properties })))
       .toThrow(/15-property limit/)
@@ -95,8 +104,8 @@ describe('§6.1 the form limits are physical, and enforced', () => {
     expect(() => assertAgreementPermitted(agreement({ properties: [] }))).toThrow(/no properties/)
     expect(() => assertAgreementPermitted(agreement({
       properties: [
-        { propertyId: 'GA1', reportedValueCents: dollarsToCents(100) },
-        { propertyId: 'GA1', reportedValueCents: dollarsToCents(100) },
+        { propertyId: 'GA1', reportedValueCents: dollarsToCents(100), delivery: DELIVERED },
+        { propertyId: 'GA1', reportedValueCents: dollarsToCents(100), delivery: DELIVERED },
       ],
     }))).toThrow(/duplicate/)
   })
@@ -143,7 +152,7 @@ describe('§1.9 the claimant address is what DOR pays to', () => {
 describe('§6.2 custom terms and the $2,000 threshold', () => {
   it('HARD BLOCKS custom terms at or below $2,000 — permission, not just a trigger', () => {
     const small = agreement({
-      properties: [{ propertyId: 'GA1', reportedValueCents: dollarsToCents(2_000) }],
+      properties: [{ propertyId: 'GA1', reportedValueCents: dollarsToCents(2_000), delivery: DELIVERED }],
       customTerms: 'Additional term.',
     })
     expect(() => assertAgreementPermitted(small)).toThrow(/not permitted at or below \$2,000/)
@@ -151,7 +160,7 @@ describe('§6.2 custom terms and the $2,000 threshold', () => {
 
   it('permits custom terms above $2,000', () => {
     const large = agreement({
-      properties: [{ propertyId: 'GA1', reportedValueCents: dollarsToCents(2_000.01) }],
+      properties: [{ propertyId: 'GA1', reportedValueCents: dollarsToCents(2_000.01), delivery: DELIVERED }],
       customTerms: 'Additional term.',
     })
     expect(() => assertAgreementPermitted(large)).not.toThrow()
@@ -159,7 +168,7 @@ describe('§6.2 custom terms and the $2,000 threshold', () => {
 
   it('refuses custom terms when the total value is unknown', () => {
     const unknown = agreement({
-      properties: [{ propertyId: 'GA1', reportedValueCents: null }],
+      properties: [{ propertyId: 'GA1', reportedValueCents: null, delivery: DELIVERED }],
       customTerms: 'Additional term.',
     })
     expect(() => assertAgreementPermitted(unknown)).toThrow(/\$2,000 threshold/)
@@ -199,7 +208,8 @@ describe('§6.2 Path A and Path B', () => {
 
   it('uses Path B when the holder reported NO value — § 44-12-224(c)(3)', async () => {
     const artifact = await buildRecoveryAgreement(agreement({
-      properties: [{ propertyId: 'GA1', reportedValueCents: null }],
+      properties: [{ propertyId: 'GA1', reportedValueCents: null, delivery: DELIVERED }],
+      costsCents: cents(0),
     }))
     expect(artifact.snapshot.path).toBe('B')
     expect(artifact.snapshot.pathBSplit).not.toBeNull()
@@ -208,7 +218,8 @@ describe('§6.2 Path A and Path B', () => {
   it('Path B percentages sum to exactly 100, as the form requires', async () => {
     for (const feePct of [10, 22.5, 29.99, 30]) {
       const artifact = await buildRecoveryAgreement(agreement({
-        properties: [{ propertyId: 'GA1', reportedValueCents: null }],
+        properties: [{ propertyId: 'GA1', reportedValueCents: null, delivery: DELIVERED }],
+        costsCents: cents(0),
         feePct,
       }))
       const split = artifact.snapshot.pathBSplit!
@@ -219,8 +230,8 @@ describe('§6.2 Path A and Path B', () => {
   it('treats a mixed set with ANY unvalued property as Path B', () => {
     // A Path A total that silently omitted a property would misstate it.
     expect(totalReportedValue([
-      { propertyId: 'A', reportedValueCents: dollarsToCents(100) },
-      { propertyId: 'B', reportedValueCents: null },
+      { propertyId: 'A', reportedValueCents: dollarsToCents(100), delivery: DELIVERED },
+      { propertyId: 'B', reportedValueCents: null, delivery: DELIVERED },
     ])).toBeNull()
   })
 })
@@ -237,6 +248,7 @@ describe('§6.2 the generated PDF is the real DOR form, filled correctly', () =>
     const properties = Array.from({ length: 3 }, (_, i) => ({
       propertyId: `GA000000${i + 1}`,
       reportedValueCents: dollarsToCents(1_000 * (i + 1)),
+      delivery: DELIVERED,
     }))
     const artifact = await buildRecoveryAgreement(agreement({ properties }))
 
@@ -296,5 +308,131 @@ describe('§6.2 the generated PDF is the real DOR form, filled correctly', () =>
       .toBe(artifact.snapshot.feeComputation.capCeiling)
     const form = (await PDFDocument.load(artifact.pdfBytes)).getForm()
     expect(form.getTextField(UP_CDR2_FIELDS.pathA.feePercent).getText()).toBe('30.00')
+  })
+})
+
+describe('§6.2 REGRESSION: Path B dropped costs out of the disclosed percentage', () => {
+  it('REFUSES a Path B agreement that intends to recover costs', async () => {
+    // Path A used the cost-inclusive fee.feePct. Path B used the RAW requested
+    // percentage, so a CDR recovering costs on top disclosed a percentage lower
+    // than it meant to take — and the frozen snapshot recorded costs as zero,
+    // so the audit record actively hid the discrepancy.
+    //
+    // § 44-12-224(c)(2) requires the disclosure to state the total percentage of
+    // all authorized fees AND costs. Where the holder reported no value there is
+    // no dollar basis to express a cost percentage against, so costs cannot be
+    // folded in — they must be waived, or the property valued first.
+    await expect(buildRecoveryAgreement(agreement({
+      properties: [{ propertyId: 'GA1', reportedValueCents: null, delivery: DELIVERED }],
+      costsCents: dollarsToCents(600),
+    }))).rejects.toThrow(/no dollar basis/)
+  })
+
+  it('permits Path B with costs waived', async () => {
+    const artifact = await buildRecoveryAgreement(agreement({
+      properties: [{ propertyId: 'GA1', reportedValueCents: null, delivery: DELIVERED }],
+      costsCents: cents(0),
+      feePct: 30,
+    }))
+    expect(artifact.snapshot.path).toBe('B')
+    expect(artifact.snapshot.pathBSplit).toEqual({ cdrPct: 30, claimantPct: 70 })
+  })
+
+  it('Path A still discloses the COST-INCLUSIVE percentage', async () => {
+    // $1,000 claim, $50 costs, 30% requested: the cap binds at $300 total, so
+    // the disclosed percentage is 30.00 and it covers the costs.
+    const artifact = await buildRecoveryAgreement(agreement({
+      properties: [{ propertyId: 'GA1', reportedValueCents: dollarsToCents(1_000), delivery: DELIVERED }],
+      costsCents: dollarsToCents(50),
+    }))
+    const form = (await PDFDocument.load(artifact.pdfBytes)).getForm()
+    expect(form.getTextField(UP_CDR2_FIELDS.pathA.feePercent).getText()).toBe('30.00')
+    expect(form.getTextField(UP_CDR2_FIELDS.pathA.feesAndCosts).getText()).toBe('300.00')
+    expect(artifact.snapshot.feeComputation.costs).toBe(dollarsToCents(50))
+  })
+})
+
+describe('§6.2 REGRESSION: a MISSING form pin silently disabled the hash check', () => {
+  it('refuses to generate against an unpinned form', async () => {
+    // `if (expected !== undefined && expected !== sha256)` meant no pin = no
+    // check, and the generator filled whatever PDF was on disk. Combined with
+    // verify-forms dropping a pin after a failed fetch, one flaky network call
+    // turned the § 44-12-224(b) tripwire into a silent auto-accept.
+    const { readFileSync, writeFileSync } = await import('node:fs')
+    const { resolve } = await import('node:path')
+    const pinPath = resolve(import.meta.dirname, '../../data/seed/form-hashes.json')
+    const original = readFileSync(pinPath, 'utf8')
+
+    try {
+      const pins = JSON.parse(original) as Record<string, unknown>
+      delete pins['UP-CDR2']
+      writeFileSync(pinPath, JSON.stringify(pins, null, 2))
+
+      await expect(buildRecoveryAgreement(agreement()))
+        .rejects.toThrow(/no pinned hash for UP-CDR2/)
+    } finally {
+      writeFileSync(pinPath, original)
+    }
+  })
+
+  it('generates normally once the pin is present', async () => {
+    await expect(buildRecoveryAgreement(agreement())).resolves.toBeTruthy()
+  })
+})
+
+describe('§1.6 REGRESSION: the 120-day window was computed but never enforced', () => {
+  it('REFUSES an agreement on a property inside the window — § 44-12-220(d.1)(4)', async () => {
+    // computeEnforceability() and windowAppliesToAgreement() existed in
+    // lib/compliance/windows.ts and were referenced ONLY from tests. The
+    // workable view filtered on the window, but nothing on the agreement path
+    // re-checked — so an agreement could be generated against a property whose
+    // agreement SB 403 makes unenforceable for 120 days. Unenforceable means
+    // the entire claim is worked for nothing.
+    const recent = new Date()
+    recent.setDate(recent.getDate() - 30)
+    await expect(buildRecoveryAgreement(agreement({
+      properties: [{
+        propertyId: 'GA-RECENT',
+        reportedValueCents: dollarsToCents(10_000),
+        delivery: { precision: 'exact', date: recent },
+      }],
+    }))).rejects.toThrow(/120-day unenforceability window/)
+  })
+
+  it('REFUSES when the delivery date is UNKNOWN — resolves conservatively', async () => {
+    await expect(buildRecoveryAgreement(agreement({
+      properties: [{ propertyId: 'GA-UNKNOWN', reportedValueCents: dollarsToCents(10_000) }],
+    }))).rejects.toThrow(/120-day unenforceability window/)
+  })
+
+  it('REFUSES on a year-precise date whose latest possible day is inside', async () => {
+    // The bulk file gives "year reported" at best. 31 December of the current
+    // year plus 120 days is still ahead, so this must refuse.
+    await expect(buildRecoveryAgreement(agreement({
+      properties: [{
+        propertyId: 'GA-YEAR',
+        reportedValueCents: dollarsToCents(10_000),
+        delivery: { precision: 'year', year: new Date().getUTCFullYear() },
+      }],
+    }))).rejects.toThrow(/120-day unenforceability window/)
+  })
+
+  it('names every offending property, not just the first', async () => {
+    try {
+      await buildRecoveryAgreement(agreement({
+        properties: [
+          { propertyId: 'GA-A', reportedValueCents: dollarsToCents(1_000) },
+          { propertyId: 'GA-B', reportedValueCents: dollarsToCents(1_000) },
+        ],
+      }))
+      throw new Error('should have thrown')
+    } catch (error) {
+      expect((error as Error).message).toContain('GA-A')
+      expect((error as Error).message).toContain('GA-B')
+    }
+  })
+
+  it('permits a property delivered well outside the window', async () => {
+    await expect(buildRecoveryAgreement(agreement())).resolves.toBeTruthy()
   })
 })

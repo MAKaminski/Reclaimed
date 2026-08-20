@@ -25,7 +25,9 @@ import {
 } from '@/lib/compliance/computeFee'
 import { assertRegistered, type RegistrationState } from '@/lib/compliance/registration'
 import { getStateRules } from '@/lib/compliance/stateRules'
-import { assertChainSubmittable, type AuthorityLink } from '@/lib/locate/authorityChain'
+import { assertChainSubmittable, type AuthorityLink, type ClaimShape } from '@/lib/locate/authorityChain'
+import { assertPayeeAddresses } from '@/lib/compliance/payeeAddress'
+import { computeEnforceability, windowAppliesToAgreement, type DeliveryDate } from '@/lib/compliance/windows'
 import { UP_CDR2_FIELDS, MAX_PROPERTIES_RECOVERY } from './fieldMaps'
 
 const ROOT = resolve(import.meta.dirname, '../..')
@@ -34,6 +36,12 @@ export interface AgreementProperty {
   propertyId: string
   /** Amount as reported by the holder. Null when no value was reported. */
   reportedValueCents: Cents | null
+  /**
+   * When the holder delivered the property to the commissioner, at whatever
+   * precision the bulk file provided. Drives the § 44-12-220(d.1)(4) 120-day
+   * unenforceability window.
+   */
+  delivery?: DeliveryDate
 }
 
 export interface ClaimantDetails {
@@ -71,6 +79,18 @@ export interface BuildAgreementInput {
   customTerms?: string
   /** The authority chain for these properties. */
   authorityLinks: readonly AuthorityLink[]
+  /**
+   * Shape of the claim, so the chain is checked for COMPLETENESS and not merely
+   * internal consistency. Omitting it means a lone individual_identity link can
+   * satisfy an entity-owned claim.
+   */
+  claimShape?: ClaimShape
+  /**
+   * Every other address the CDR controls — agents, offices, mail services,
+   * previously-used drops. Each is a redirect vector, so each is denylisted
+   * from any payee field. §1.9.
+   */
+  cdrControlledAddresses?: readonly string[]
   registration?: RegistrationState
 }
 
@@ -112,7 +132,20 @@ function loadForm(formId: string): { bytes: Buffer; sha256: string } {
   const sha256 = createHash('sha256').update(bytes).digest('hex')
   const expected = pinned[formId]?.sha256
 
-  if (expected !== undefined && expected !== sha256) {
+  // A MISSING pin used to mean NO CHECK — the generator would fill whatever PDF
+  // happened to be on disk. Combined with verify-forms.ts being able to drop a
+  // pin after a failed fetch, one flaky network call converted the § 44-12-224(b)
+  // tripwire into a silent auto-accept.
+  if (expected === undefined) {
+    throw new AgreementError(
+      `REFUSING TO GENERATE: no pinned hash for ${formId}. An unpinned form is an ` +
+        'unverified form, and using a superseded one VOIDS the claim ' +
+        '(§ 44-12-224(b)). Run `pnpm verify:forms` and review the layout before ' +
+        'pinning.',
+    )
+  }
+
+  if (expected !== sha256) {
     throw new AgreementError(
       `REFUSING TO GENERATE: ${formId} on disk does not match the pinned hash.\n` +
         `  pinned ${expected}\n  actual ${sha256}\n` +
@@ -152,8 +185,14 @@ export function assertAgreementPermitted(input: BuildAgreementInput): void {
     throw new AgreementError('REFUSING TO GENERATE: duplicate property IDs on the agreement.')
   }
 
-  // §7.3 — the authority chain. The most safety-critical gate here.
-  assertChainSubmittable(ids.join(','), input.authorityLinks)
+  // §7.3 — the authority chain. The most safety-critical gate here. The shape
+  // is passed so completeness is checked, not just internal consistency.
+  assertChainSubmittable(
+    ids.join(','),
+    input.authorityLinks,
+    undefined,
+    input.claimShape,
+  )
 
   // § 44-12-224(c)(6) — the CDR Identification Number.
   if (input.cdr.identificationNumber.trim() === '') {
@@ -183,23 +222,44 @@ export function assertAgreementPermitted(input: BuildAgreementInput): void {
     }
   }
 
-  // §1.9 — the claimant's address is what DOR pays to. Never ours.
-  const claimantAddress = input.claimant.mailingAddress.trim()
-  if (claimantAddress === '') {
-    throw new AgreementError('REFUSING TO GENERATE: claimant mailing address is empty.')
+  // §1.6 — the 120-day unenforceability window, § 44-12-220(d.1)(4).
+  //
+  // This was previously computed in lib/compliance/windows.ts and referenced
+  // ONLY from tests. The workable view filtered on it, but nothing on the
+  // agreement path re-checked — so an agreement could be generated against a
+  // property inside the window, which SB 403 makes unenforceable for 120 days.
+  // Unenforceable means the work is done for nothing.
+  if (windowAppliesToAgreement(new Date())) {
+    const inside = input.properties.filter((property) => {
+      const delivery = property.delivery ?? { precision: 'unknown' as const }
+      return computeEnforceability(delivery).insideWindow
+    })
+    if (inside.length > 0) {
+      throw new AgreementError(
+        `REFUSING TO GENERATE: ${inside.length} propert${inside.length === 1 ? 'y is' : 'ies are'} ` +
+          `inside the 120-day unenforceability window (§ 44-12-220(d.1)(4)): ` +
+          `${inside.map((p) => p.propertyId).join(', ')}. ` +
+          'An agreement entered into during the window is UNENFORCEABLE, so the ' +
+          'work would be done for nothing. Where the delivery date is unknown or ' +
+          'year-precise this resolves conservatively — supply an exact delivery ' +
+          'date to narrow it. TODO(DOR-CONFIRM-120).',
+      )
+    }
   }
-  if (normalise(claimantAddress) === normalise(input.cdr.address)) {
-    throw new AgreementError(
-      'REFUSING TO GENERATE: the claimant mailing address matches the CDR address. ' +
-        'DOR pays the claimant directly at this address (§ 44-12-220(d)(3)). ' +
-        'Redirecting it is the conduct behind every criminal prosecution in this ' +
-        'industry.',
-    )
-  }
-}
 
-function normalise(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, '')
+  // §1.9 — EVERY payee address is what DOR pays to. Never ours.
+  //
+  // This originally checked only the primary claimant. UP-CDR2 §III has a
+  // SECOND address block (co-claimant, form field "8 Mailing Address") which was
+  // written to the PDF unvalidated — a complete bypass of the single most
+  // safety-critical check in the system. Both blocks now go through the same
+  // gate, which also catches unit-suffix evasion ("… Ste 2") and flags PO boxes
+  // and mail drops for a named human.
+  const payees = [{ address: input.claimant.mailingAddress, label: 'Claimant' }]
+  if (input.coClaimant !== undefined) {
+    payees.push({ address: input.coClaimant.mailingAddress, label: 'Co-claimant' })
+  }
+  assertPayeeAddresses(payees, input.cdr.address, input.cdrControlledAddresses ?? [])
 }
 
 export function totalReportedValue(
@@ -236,6 +296,27 @@ export async function buildRecoveryAgreement(
   assertFeeAgreementEligible(fee, feeCapPct, 'GA')
 
   const usePathB = fee.requiresPathB
+
+  // § 44-12-224(c)(2) requires the disclosure to state the total percentage of
+  // all authorized FEES AND COSTS. Path A already used the cost-inclusive
+  // fee.feePct; Path B used the RAW requested percentage, so a CDR recovering
+  // costs on top disclosed a percentage lower than it intended to take, and the
+  // frozen snapshot recorded costs as zero — the audit record actively hid it.
+  //
+  // Where the holder reported no value there is no dollar basis to compute a
+  // cost percentage against, so costs cannot be silently folded in. They must be
+  // waived on this path, or the property valued first.
+  if (usePathB && input.costsCents > 0) {
+    throw new AgreementError(
+      `REFUSING TO GENERATE: UP-CDR2 Path B states a PERCENTAGE of net value ` +
+        `(§ 44-12-224(c)(3)) because the holder reported no value — so there is ` +
+        `no dollar basis against which ${formatUsd(input.costsCents)} of costs ` +
+        'can be expressed. § 44-12-224(c)(2) requires the disclosed percentage to ' +
+        'cover fees AND costs. Either waive costs on this claim, or establish the ' +
+        "property's value and use Path A.",
+    )
+  }
+
   const pathBSplit = usePathB
     ? computePathBSplit(input.feePct, feeCapPct)
     : null

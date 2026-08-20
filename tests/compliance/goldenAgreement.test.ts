@@ -44,12 +44,19 @@ const CHAIN: AuthorityLink[] = [1, 2, 3, 4].map((sequence) => ({
   reviewedBy: 'staff-2',
 }))
 
+/**
+ * Delivery well outside the § 44-12-220(d.1)(4) 120-day window.
+ * Agreement generation refuses a property inside it, and an unknown delivery
+ * date resolves conservatively as inside — so a fixture must state one.
+ */
+const DELIVERED = { precision: 'exact' as const, date: new Date('2020-01-15T00:00:00Z') }
+
 /** Fixed fixture. Do not randomise — the point is a stable reference. */
 const FIXTURE = {
   properties: [
-    { propertyId: 'GA0004821993', reportedValueCents: dollarsToCents(48_500) },
-    { propertyId: 'GA0004821994', reportedValueCents: dollarsToCents(12_250.5) },
-    { propertyId: 'GA0004822010', reportedValueCents: dollarsToCents(3_075) },
+    { propertyId: 'GA0004821993', reportedValueCents: dollarsToCents(48_500), delivery: DELIVERED },
+    { propertyId: 'GA0004821994', reportedValueCents: dollarsToCents(12_250.5), delivery: DELIVERED },
+    { propertyId: 'GA0004822010', reportedValueCents: dollarsToCents(3_075), delivery: DELIVERED },
   ],
   claimant: {
     name: 'PEACHTREE VENTURES, LLC',

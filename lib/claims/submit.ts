@@ -12,7 +12,7 @@
 
 import { createHash } from 'node:crypto'
 import { assertRegistered, type RegistrationState } from '@/lib/compliance/registration'
-import { assertChainSubmittable, type AuthorityLink } from '@/lib/locate/authorityChain'
+import { assertChainSubmittable, type AuthorityLink, type ClaimShape } from '@/lib/locate/authorityChain'
 import type { Cents } from '@/lib/compliance/money'
 
 export const DOR_CLAIMS_EMAIL = 'ucp.cdr.claims@dor.ga.gov'
@@ -39,8 +39,13 @@ export interface SubmitClaimInput {
   propertyIds: readonly string[]
   attachments: readonly ClaimAttachment[]
   authorityLinks: readonly AuthorityLink[]
-  /** Required on a UP-CDR4 purchase. § 44-12-224(d)(2). */
-  isPurchaseAgreement: boolean
+  /** Shape of the claim, so chain COMPLETENESS is checked. */
+  claimShape?: ClaimShape
+  /**
+   * Which form this claim is filed on. Derived from the agreement, not declared
+   * — see the proof-of-payment gate below.
+   */
+  agreementForm: 'UP-CDR2' | 'UP-CDR3' | 'UP-CDR4'
   proofOfPaymentAttached: boolean
   registration?: RegistrationState
 }
@@ -94,7 +99,11 @@ export function buildSubmission(input: SubmitClaimInput): SubmissionEnvelope {
 
   // § 44-12-224(d)(2): a Purchase Agreement claim is VOID without proof of
   // payment to the seller FILED WITH THE CLAIM. Not "on request", not "later".
-  if (input.isPurchaseAgreement && !input.proofOfPaymentAttached) {
+  //
+  // This keys off the AGREEMENT FORM rather than a caller-declared boolean.
+  // A boolean meant `isPurchaseAgreement: false` skipped the check entirely on
+  // a claim that was in fact a UP-CDR4 purchase.
+  if (input.agreementForm === 'UP-CDR4' && !input.proofOfPaymentAttached) {
     throw new SubmissionBlockedError(
       'REFUSING TO SUBMIT: a UP-CDR4 purchase claim requires proof of payment to ' +
         'the seller filed WITH the claim. § 44-12-224(d)(2) makes the claim VOID ' +
@@ -105,7 +114,12 @@ export function buildSubmission(input: SubmitClaimInput): SubmissionEnvelope {
   // "Complete" under § 44-12-220(g) means ENTITLEMENT ESTABLISHED. A fast
   // incomplete filing loses to a slower complete one, so this gate is not
   // merely defensive — it is how the conflicting-claims rule is won.
-  assertChainSubmittable(input.propertyIds.join(','), input.authorityLinks)
+  assertChainSubmittable(
+    input.propertyIds.join(','),
+    input.authorityLinks,
+    undefined,
+    input.claimShape,
+  )
 
   const payloadSha256 = hashPayload(input.attachments)
 
