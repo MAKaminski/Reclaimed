@@ -208,3 +208,78 @@ addressable question is "which claims convert", and that is answered from
 `property_scores` and `claims` in our own database — which is where the
 back-testing loop for `lib/scoring/params.ts` already points. A third-party pipe
 adds statutory exposure without answering a question we cannot already answer.
+
+---
+
+## ADR-0008 — What the adversarial review found, and the pattern in it
+
+**Date:** 2026-08-20 · **Status:** Accepted
+
+Build-spec §10.5 requires an adversarial pass before launch. It was run against
+the complete diff with the §1 guardrail list, and it found **three critical
+bypasses and eight real fail-opens** — several in code that had been reported as
+verified. Every finding was reproduced against running code, not inferred.
+
+The individual fixes are in the commit. The **pattern** is worth recording,
+because it predicts where the next defect will be.
+
+### What held, and why
+
+The pure-function compliance core survived a determined attack: `computeFee` and
+the money layer (tried against string percentages, non-integer costs, and the
+1.005 float trap), the registration kill switch, blocked-host handling including
+redirect walking, the rules-status gate, and the legend byte-attestation.
+
+These share one property: **they derive their answer from data they control.**
+`computeFee` computes the cap from the basis. `getStateRules` reads a status it
+owns. `isLegendVerified` hashes the constant it is checking.
+
+### What broke, and why
+
+Almost everything that failed depended on a **self-declared input**:
+
+| Bypass | The declared input |
+| --- | --- |
+| 12pt legend against 20pt body copy | `maxBodyPointSize` prop |
+| § 44-12-224(d)(2) proof-of-payment skipped | `isPurchaseAgreement: boolean` |
+| Chain submittable from an absent field | `confidence`, `evidenceDocumentId` |
+| Self-review passing as second-person review | `reviewStatus` without `reviewedBy` |
+
+In each case the guard was real, well-commented, and cited the right statute —
+and it validated a claim the caller made about itself. **A guard that checks an
+assertion rather than the underlying fact is a comment with a type signature.**
+
+The fixes all take the same shape: derive the fact instead. The legend size is
+compared against font sizes actually present in the file; proof-of-payment keys
+off the agreement form; link integrity is proven before any comparison; the
+reviewer is compared to the asserter.
+
+### Three specific lessons
+
+**1. Fail-open is the default failure mode of numeric guards.** `Math.min` over a
+missing field yields `NaN`, and `NaN < threshold` is `false`. The chain did not
+merely pass — it reported *"Chain is evidenced, reviewed, contiguous, and above
+threshold."* Every numeric comparison in a guard must first prove its inputs are
+numbers.
+
+**2. A CI gate can be tautological and look green forever.** The §1.8 check
+listed `createClient()` as evidence of authentication — but you cannot query
+Supabase without calling it, so the gate could never fire. It had passed on
+every run, including a deliberate negative probe that happened to trip a
+different rule. **A gate that has never failed has not been tested.** Every gate
+now has a committed negative probe.
+
+**3. The second instance of anything is where the guard is missing.** §1.9 —
+the most safety-critical check in the system, the one that separates this
+business from every prosecution in the enforcement history — was applied to the
+claimant and not to the co-claimant. The co-claimant block is fifteen lines
+below the primary one in the same function.
+
+### Standing consequence
+
+`scripts/verify-migrations.ts` exists because of finding 3: migrations 0009–0015
+contained prose instead of DDL while commit messages said they were synced. The
+database is where the claimant-address write-lock, the NOT NULL on authority
+evidence, the computed legend-size CHECK, and the append-only audit rules
+actually live. **A repo that cannot rebuild the database cannot rebuild the
+compliance posture**, and nothing was checking that it could.

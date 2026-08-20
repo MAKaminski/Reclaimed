@@ -18,7 +18,7 @@ import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { join, resolve } from 'node:path'
 
-import { type Cents, formatAmount, formatUsd } from '@/lib/compliance/money'
+import { type Cents, add, cents, formatAmount, formatUsd } from '@/lib/compliance/money'
 import {
   computeFee, computePathBSplit, assertFeeAgreementEligible,
   type FeeComputation,
@@ -205,7 +205,15 @@ export function assertAgreementPermitted(input: BuildAgreementInput): void {
   // §6.2 — custom terms. The $2,000 threshold is PERMISSION to add terms, not
   // merely a trigger for the addendum. At or below it, terms may not be added.
   if (input.customTerms !== undefined && input.customTerms.trim() !== '') {
-    const threshold = (rules.customTermsThresholdUsd as number) * 100
+    const thresholdUsd = rules.customTermsThresholdUsd
+    if (typeof thresholdUsd !== 'number' || !Number.isFinite(thresholdUsd)) {
+      throw new AgreementError(
+        'REFUSING TO GENERATE: the § 44-12-224(g)(1) custom-terms threshold is ' +
+          `missing or unreadable (${JSON.stringify(thresholdUsd)}). A NaN threshold ` +
+          'makes every comparison false, which would permit custom terms at ANY value.',
+      )
+    }
+    const threshold = thresholdUsd * 100
     const total = totalReportedValue(input.properties)
     if (total === null) {
       throw new AgreementError(
@@ -268,9 +276,11 @@ export function totalReportedValue(
   // Null if ANY property has no reported value: the form's Path A asks for a
   // total, and a total that silently omits a property would misstate it.
   if (properties.some((p) => p.reportedValueCents === null)) return null
+  // Through add(), not raw `+` with a cast: the branded constructor is what
+  // enforces "integer cents only" (§8), and a cast skips it.
   return properties.reduce(
-    (sum, p) => (sum + (p.reportedValueCents ?? 0)) as Cents,
-    0 as Cents,
+    (sum, p) => add(sum, p.reportedValueCents ?? cents(0)),
+    cents(0),
   )
 }
 
@@ -280,7 +290,13 @@ export async function buildRecoveryAgreement(
   assertAgreementPermitted(input)
 
   const rules = getStateRules('GA')
-  const feeCapPct = rules.feeCapPct as number
+  const feeCapPct = rules.feeCapPct
+  if (typeof feeCapPct !== 'number' || !Number.isFinite(feeCapPct)) {
+    throw new AgreementError(
+      `REFUSING TO GENERATE: the Georgia fee cap is missing or unreadable ` +
+        `(${JSON.stringify(feeCapPct)}). A NaN cap makes every comparison false.`,
+    )
+  }
   const { bytes, sha256 } = loadForm('UP-CDR2')
 
   const totalValue = totalReportedValue(input.properties)

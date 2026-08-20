@@ -128,7 +128,13 @@ export async function authoriseSend(
     reasons.push('Property has an active hold — it may already have been claimed.')
   }
 
-  if (!request.renderedContent.includes(SOLICITATION_LEGEND_GA)) {
+  // Compare on collapsed whitespace. stampSolicitationLegend() word-wraps the
+  // legend across lines for print, so honest text extracted from the actual PDF
+  // never matches the single-line constant. Comparing raw would make this check
+  // either unusable for the primary channel, or satisfied only by a synthetic
+  // string that proves nothing about what was mailed.
+  const collapse = (text: string) => text.replace(/\s+/g, ' ').trim()
+  if (!collapse(request.renderedContent).includes(collapse(SOLICITATION_LEGEND_GA))) {
     reasons.push(
       'Rendered content does not carry the § 44-12-239(f) legend verbatim. Every ' +
         'solicitation to an owner or apparent owner must carry it.',

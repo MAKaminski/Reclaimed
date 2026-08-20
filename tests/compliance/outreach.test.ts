@@ -165,3 +165,50 @@ describe('the authorisation records what made the send lawful', () => {
     expect(Date.parse(auth.suppressionCheckedAt)).not.toBeNaN()
   })
 })
+
+describe('§1.2 REGRESSION: the legend is word-wrapped in real printed mail', () => {
+  /** What stampSolicitationLegend() produces, then honest PDF text extraction. */
+  function wrapAt(text: string, width: number): string {
+    const words = text.split(' ')
+    const lines: string[] = []
+    let line = ''
+    for (const word of words) {
+      if ((`${line} ${word}`).trim().length > width) { lines.push(line.trim()); line = word }
+      else line = `${line} ${word}`
+    }
+    if (line.trim() !== '') lines.push(line.trim())
+    return lines.join('\n')
+  }
+
+  it('authorises a legend wrapped across multiple lines', async () => {
+    // Direct mail is the PRIMARY channel, and the PDF primitive word-wraps the
+    // legend to fit the page. A raw containment check against the single-line
+    // constant could never match extracted text — leaving the check either
+    // unusable for mail, or satisfied only by a synthetic string that proves
+    // nothing about what was actually sent.
+    const wrapped = wrapAt(SOLICITATION_LEGEND_GA, 42)
+    expect(wrapped.split('\n').length).toBeGreaterThan(3)
+
+    await expect(authoriseSend(
+      request({ channel: 'mail', renderedContent: `${wrapped}\n\nDear owner,` }),
+      never, never,
+    )).resolves.toMatchObject({ permitted: true })
+  })
+
+  it('still refuses a wrapped legend with a word CHANGED', async () => {
+    const tampered = wrapAt(
+      SOLICITATION_LEGEND_GA.replace('OFFICIAL GOVERNMENT', 'GOVERNMENT'), 42,
+    )
+    await expect(authoriseSend(
+      request({ channel: 'mail', renderedContent: `${tampered}\n\nDear owner,` }),
+      never, never,
+    )).rejects.toThrow(SendBlockedError)
+  })
+
+  it('still refuses content with no legend at all', async () => {
+    await expect(authoriseSend(
+      request({ channel: 'mail', renderedContent: 'Dear owner, we found your money.' }),
+      never, never,
+    )).rejects.toThrow(SendBlockedError)
+  })
+})
