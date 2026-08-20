@@ -95,13 +95,42 @@ function at(fields: string[], mapping: ColumnMapping, field: PropertyField): str
   return index === undefined ? undefined : fields[index]
 }
 
-export function parseRow(fields: string[], mapping: ColumnMapping): ParsedProperty | null {
+export type RowRejection = { reason: string }
+export type ParsedRow =
+  | { ok: true; row: ParsedProperty }
+  | { ok: false; rejection: RowRejection }
+
+export function parseRow(fields: string[], mapping: ColumnMapping): ParsedRow {
   const propertyId = coerceText(at(fields, mapping, 'property_id'))
   // The Property ID is the join key and is required on UP-CDR2 §I. A row
   // without one cannot be claimed, so it cannot be worked.
-  if (propertyId === null) return null
+  if (propertyId === null) {
+    return { ok: false, rejection: { reason: 'missing property_id (the join key, required on UP-CDR2 §I)' } }
+  }
 
-  return {
+  const cash = coerceCents(at(fields, mapping, 'cash_amount_cents'))
+
+  // A NEGATIVE amount is not a claim. Nobody is owed less than nothing, so this
+  // is a data error or a reversal entry in the holder's system.
+  //
+  // It must be caught HERE. `properties` carries `check (cash_amount_cents >= 0)`,
+  // so a negative reaching apply_ingest_diff aborts the whole transaction — one
+  // bad line in a weekly delivery would lose the other four million. Rejecting
+  // at parse time makes it one sampled row on the manifest instead.
+  //
+  // It would also poison the fee basis: min(claimedAmount, propertyValue) over a
+  // negative is meaningless, and § 44-12-224(d)(1) computes the cap from it.
+  if (cash !== null && cash < 0) {
+    return {
+      ok: false,
+      rejection: {
+        reason: `negative cash amount (${cash} cents) — nobody is owed less than nothing; ` +
+          'likely a reversal entry or a data error in the holder\'s report',
+      },
+    }
+  }
+
+  return { ok: true, row: {
     property_id: propertyId,
     owner_name: coerceText(at(fields, mapping, 'owner_name')),
     insured_name: coerceText(at(fields, mapping, 'insured_name')),
@@ -113,7 +142,7 @@ export function parseRow(fields: string[], mapping: ColumnMapping): ParsedProper
     last_known_postal: coerceText(at(fields, mapping, 'last_known_postal')),
     naupa_relation_code: coerceText(at(fields, mapping, 'naupa_relation_code')),
     naupa_property_type: coerceText(at(fields, mapping, 'naupa_property_type')),
-    cash_amount_cents: coerceCents(at(fields, mapping, 'cash_amount_cents')),
+    cash_amount_cents: cash,
     share_count: coerceDecimal(at(fields, mapping, 'share_count')),
     issuer_name: coerceText(at(fields, mapping, 'issuer_name')),
     cusip: coerceCusip(at(fields, mapping, 'cusip')),
@@ -122,7 +151,7 @@ export function parseRow(fields: string[], mapping: ColumnMapping): ParsedProper
     year_reported: coerceYear(at(fields, mapping, 'year_reported')),
     holder_name: coerceText(at(fields, mapping, 'holder_name')),
     holder_contact: coerceText(at(fields, mapping, 'holder_contact')),
-  }
+  } }
 }
 
 export interface ParseOptions {
@@ -207,12 +236,12 @@ export async function parseFile(
     }
 
     const parsed = parseRow(fields, mapping.mapping)
-    if (parsed === null) {
+    if (!parsed.ok) {
       rowsRejected++
       if (rejectSamples.length < MAX_REJECT_SAMPLES) {
         rejectSamples.push({
           lineNumber: rowsRead,
-          reason: 'missing property_id (the join key, required on UP-CDR2 §I)',
+          reason: parsed.rejection.reason,
           excerpt: line.slice(0, 200),
         })
       }
@@ -220,7 +249,7 @@ export async function parseFile(
     }
 
     rowsParsed++
-    batch.push(parsed)
+    batch.push(parsed.row)
     if (batch.length >= batchSize) await flush()
 
     if (options.onProgress && rowsRead % progressEvery === 0) {

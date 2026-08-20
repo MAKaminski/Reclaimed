@@ -232,8 +232,9 @@ describe('row parsing', () => {
   const mapping = { property_id: 0, owner_name: 1, cash_amount_cents: 2, year_reported: 3 }
 
   it('parses a well-formed row', () => {
-    const row = parseRow(['GA001', 'SMITH, JAMES', '1234.56', '2019'], mapping)
-    expect(row).toMatchObject({
+    const result = parseRow(['GA001', 'SMITH, JAMES', '1234.56', '2019'], mapping)
+    expect(result.ok).toBe(true)
+    expect(result.ok && result.row).toMatchObject({
       property_id: 'GA001',
       owner_name: 'SMITH, JAMES',
       cash_amount_cents: 123_456,
@@ -242,13 +243,34 @@ describe('row parsing', () => {
   })
 
   it('REJECTS a row with no property_id — it is the join key and UP-CDR2 §I requires it', () => {
-    expect(parseRow(['', 'SMITH, JAMES', '1234.56', '2019'], mapping)).toBeNull()
-    expect(parseRow(['N/A', 'SMITH, JAMES', '1234.56', '2019'], mapping)).toBeNull()
+    for (const id of ['', 'N/A']) {
+      const result = parseRow([id, 'SMITH, JAMES', '1234.56', '2019'], mapping)
+      expect(result.ok).toBe(false)
+      expect(!result.ok && result.rejection.reason).toContain('property_id')
+    }
+  })
+
+  it('REJECTS a NEGATIVE cash amount rather than letting it abort the whole load', () => {
+    // Found by running the real parser over the fixture: an accounting negative
+    // "(47,514.66)" parses to -4751466 cents. `properties` carries
+    // check (cash_amount_cents >= 0), so a negative reaching apply_ingest_diff
+    // aborts the transaction — one bad line in a weekly delivery would lose the
+    // other four million rows.
+    const result = parseRow(['GA003', 'SMITH, JAMES', '(47514.66)', '2019'], mapping)
+    expect(result.ok).toBe(false)
+    expect(!result.ok && result.rejection.reason).toContain('negative cash amount')
+  })
+
+  it('accepts a zero amount — zero is a fact, negative is an error', () => {
+    const result = parseRow(['GA004', 'SMITH, JAMES', '0.00', '2019'], mapping)
+    expect(result.ok).toBe(true)
+    expect(result.ok && result.row.cash_amount_cents).toBe(0)
   })
 
   it('keeps a sparse row — every field is "if provided by the holder"', () => {
-    const row = parseRow(['GA002', '', '', ''], mapping)
-    expect(row).toMatchObject({
+    const result = parseRow(['GA002', '', '', ''], mapping)
+    expect(result.ok).toBe(true)
+    expect(result.ok && result.row).toMatchObject({
       property_id: 'GA002',
       owner_name: null,
       cash_amount_cents: null,

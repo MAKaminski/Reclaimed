@@ -85,9 +85,11 @@ async function main(): Promise<void> {
         insert into staff_invites (
           email, full_name, role, dor_designated_agent, background_check_cleared_at, invited_by
         )
+        -- invited_by NULL means "bootstrap: no administrator existed yet".
+        -- Attributing it to a placeholder row would be a lie in the audit trail,
+        -- and the FK would reject it anyway. Exactly one such row may exist.
         select ${email}, ${fullName}, 'admin',
-               ${designatedAgent}, ${clearedAt ?? null}::timestamptz,
-               coalesce((select id from staff limit 1), '00000000-0000-0000-0000-000000000000'::uuid)
+               ${designatedAgent}, ${clearedAt ?? null}::timestamptz, null
         on conflict (email) do update set
           full_name = excluded.full_name, role = 'admin',
           dor_designated_agent = excluded.dor_designated_agent,
