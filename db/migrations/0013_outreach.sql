@@ -1,0 +1,34 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0013 — Outreach: campaigns, sends, suppression. (Applied to cuaeplfeignnlptfugcv.)
+--
+-- DIRECT MAIL IS THE PRIMARY CHANNEL. No autodialer, no SMS blast. Cold outbound
+-- with no prior express written consent is the largest UNCAPPED liability in the
+-- model — TCPA $500/violation, trebled to $1,500 willful, the classic
+-- class-action vector. Direct mail carries no TCPA exposure at all.
+--
+-- suppressions
+--     ONE table, checked by EVERY sender. There is deliberately NO channel
+--     column: an opt-out received by post suppresses email too. No update rule
+--     and no delete rule — a suppression that can be lifted is not a suppression.
+--
+-- outreach_campaigns
+--     CHECK no_sms_or_phone           channel must be mail or email
+--     CHECK legend_size_computed      legend_point_size = max(12, body + 1),
+--                                     so a 12pt legend against 14pt body is
+--                                     refused by the database (§ 44-12-239(f)
+--                                     "whichever is larger" is COMPUTED)
+--     CHECK email_requires_can_spam   physical postal address and opt-out
+--                                     mechanism required on the email channel
+--     Registration number is frozen at approval: it is the fact that made the
+--     campaign lawful to send.
+--
+-- outreach_sends
+--     Records suppression_checked_at and rendered_sha256 per send, so what the
+--     owner actually received is never in doubt. Append-only.
+--
+-- may_send(property_id, identifier, kind)
+--     Suppression + hold + retirement check in one place.
+--
+-- Verified against the live database: an SMS campaign, a 12pt legend against a
+-- 14pt body, and an email campaign lacking CAN-SPAM details were all refused;
+-- a correctly-sized mail campaign was accepted.
