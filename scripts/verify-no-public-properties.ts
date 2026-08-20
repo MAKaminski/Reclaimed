@@ -37,9 +37,21 @@ const PROTECTED = [
  */
 const AUTH_MARKERS = [
   'auth.getUser',      // Supabase session lookup
-  'requireStaff',      // our own guard
+  'getSessionState',   // lib/db/auth.ts — resolves the STAFF ROW, not just a session
+  'hasRole',           // role gate
+  'mayTouchClaims',    // § 44-12-239(d) designated-agent gate
+  'requireStaff',
   'assertStaff',
 ]
+
+/**
+ * Known limitation, stated rather than hidden: this is a STATIC check. It
+ * verifies that an identity check is present in the file, not that its result is
+ * acted upon. A route that calls getSessionState() and then ignores the answer
+ * would pass here and be caught only by RLS — which is why RLS, not this gate,
+ * is the access-control boundary. This gate exists to catch the file that never
+ * asks the question at all.
+ */
 
 /**
  * A service-role key bypasses RLS entirely. The only component permitted a

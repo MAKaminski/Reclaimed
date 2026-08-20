@@ -76,16 +76,33 @@ This step is free. Everything else in this document is wasted if it fails.
 | Brand strings | `CDR_ENTITY_NAME`, `CDR_DBA`, `CDR_DOMAINS`, `CDR_EMAIL_FROM_NAMES` | §1.3 gate, and UP-CDR1 |
 | PostHog decision | ADR-0007 | Analytics, or a documented no |
 
-### ⚠ Known gap: nobody can sign in yet
+### Staff access — built
 
-RLS is built and verified — anon is blocked at the GRANT level, non-staff sees
-zero rows, staff sees its own. **But there is no sign-in page and no code path
-creates a `staff` row**, so the queue renders "sign in required" for everyone,
-permanently. The app is correct and not yet usable.
+Magic-link sign-in, no password: this system holds owner PII from the
+§ 44-12-239.1(a) file, and a password is one more credential to phish or leak.
 
-Needs: a sign-in route, a first-admin bootstrap, and a staff invite flow that
-records `dor_designated_agent` and `background_check_cleared_at` — the two fields
-that gate who may touch a claim under § 44-12-239(d).
+**Access is granted in advance by an admin, never self-service.** An address that
+has not been invited cannot even create an account (`shouldCreateUser: false`),
+and an account with no `staff` row is a real signed-in user who sees nothing.
+
+The first admin is created by CLI, deliberately — a *route* that grants
+administrator access is a race the attacker wins by arriving first:
+
+```bash
+pnpm bootstrap:admin --email you@example.com --name "Your Name" \
+    --designated-agent --cleared-at 2026-08-01
+```
+
+`--designated-agent` marks you as named to DOR under § 44-12-239. **The database
+refuses the designation without a clearance date** — ticking that box unscreened
+IS the § 44-12-239(d) failure, and it is entity-fatal. Omit both flags until your
+PBSA check is back.
+
+After that, invite staff from `/staff`. Every invitation and every change to who
+may act writes an audit row citing § 44-12-239(d).
+
+⚠ Requires `DATABASE_URL`, and Supabase email delivery configured (the built-in
+sender is rate-limited; wire your own SMTP before onboarding a team).
 
 ### Testable today, without registration
 

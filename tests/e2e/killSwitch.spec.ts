@@ -1,61 +1,62 @@
 /**
- * E2E — the two paths that matter before registration completes.
+ * E2E — the auth boundary and the visible kill switch.
  *
- * 1. The registration kill switch is VISIBLE, not merely enforced. Staff must be
- *    able to tell at a glance whether this system may send anything at all
- *    (§ 44-12-239.2(a)(10)).
- * 2. The property data has no public surface (§ 44-12-239.1(b)).
+ * Runs with CDR_REGISTRATION_STATUS unset, so the DEFAULT state is what gets
+ * exercised. Nothing here signs in: the point is what an unauthenticated
+ * visitor can reach, which is the § 44-12-239.1(b) question.
  */
 
 import { expect, test } from '@playwright/test'
 
-test.describe('§1.4 the kill switch is visible in the running app', () => {
+test.describe('§1.4 the kill switch is visible before anyone signs in', () => {
+  // The banner lives in the root layout and therefore renders on the sign-in
+  // page too. That is deliberate: whether this system may send anything is not
+  // a secret, and staff should see it before they authenticate.
+
   test('shows OUTBOUND BLOCKED while unregistered', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/signin')
     const banner = page.locator('header')
     await expect(banner).toContainText(/outbound blocked/i)
     await expect(banner).toContainText(/unregistered/i)
   })
 
-  test('reports every gated action as blocked', async ({ page }) => {
-    await page.goto('/')
-    for (const action of [
-      'Solicit owners', 'Generate agreements', 'Submit claims', 'Receive DOR bulk data',
-    ]) {
-      const row = page.locator('tr', { hasText: action })
-      await expect(row).toContainText('blocked')
-    }
-  })
-
-  test('confirms the legend is byte-verified', async ({ page }) => {
-    await page.goto('/')
+  test('confirms the § 44-12-239(f) legend is byte-verified', async ({ page }) => {
+    await page.goto('/signin')
     await expect(page.locator('header')).toContainText(/byte-verified/i)
   })
 
-  test('shows the Georgia rules actually in force', async ({ page }) => {
-    await page.goto('/')
-    await expect(page.getByText('30% of min(claimed, value), costs included')).toBeVisible()
-    await expect(page.getByText('PROHIBITED')).toBeVisible()
-    await expect(page.getByText('state_pays_both_parties_directly')).toBeVisible()
-  })
-
-  test('shows both legally-unresolved flags OFF', async ({ page }) => {
-    await page.goto('/')
-    for (const flag of ['ENABLE_EXTERNAL_SKIPTRACE', 'ENABLE_RON_SIGNATURE']) {
-      await expect(page.locator('div', { hasText: flag }).first()).toContainText('off')
-    }
+  test('reports no legally-unresolved flag as enabled', async ({ page }) => {
+    await page.goto('/signin')
+    await expect(page.locator('header')).not.toContainText(/flag\(s\) enabled/i)
   })
 })
 
-test.describe('§1.8 there is no public view of the property data', () => {
-  test('the work queue demands a sign-in and says why', async ({ page }) => {
-    await page.goto('/queue')
-    await expect(page.getByText(/sign in required/i)).toBeVisible()
-    await expect(page.getByText(/44-12-239\.1\(b\)/)).toBeVisible()
-  })
+test.describe('§1.8 no unauthenticated route reaches the property data', () => {
+  for (const path of ['/', '/queue', '/staff']) {
+    test(`${path} redirects an unauthenticated visitor to sign in`, async ({ page }) => {
+      await page.goto(path)
+      await expect(page).toHaveURL(/\/signin/)
+      await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
+    })
+  }
 
   test('the app is marked noindex', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/signin')
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+  })
+})
+
+test.describe('sign-in is a one-time link, not a password', () => {
+  test('offers no password field', async ({ page }) => {
+    // This system holds owner PII from the § 44-12-239.1(a) file. A password is
+    // one more credential that can be reused, phished, or leaked.
+    await page.goto('/signin')
+    await expect(page.locator('input[type="password"]')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /sign-in link/i })).toBeVisible()
+  })
+
+  test('says plainly that access is granted in advance, not on request', async ({ page }) => {
+    await page.goto('/signin')
+    await expect(page.getByText(/staff only/i)).toBeVisible()
   })
 })

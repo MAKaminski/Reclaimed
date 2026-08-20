@@ -29,7 +29,8 @@
     "discover:fields": "tsx scripts/discover-form-fields.ts",
     "verify:no-public-data": "tsx scripts/verify-no-public-properties.ts",
     "verify:brand": "tsx scripts/verify-brand.ts",
-    "verify:migrations": "tsx scripts/verify-migrations.ts"
+    "verify:migrations": "tsx scripts/verify-migrations.ts",
+    "bootstrap:admin": "tsx scripts/bootstrap-admin.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

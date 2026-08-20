@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/db/supabase'
+import { getSessionState } from '@/lib/db/auth'
 import { cents, formatUsd } from '@/lib/compliance/money'
 import type { WorkQueueRow } from '@/lib/db/supabase'
 
@@ -15,16 +16,17 @@ const REASON_LABEL: Record<string, string> = {
 
 export default async function QueuePage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { staff } = await getSessionState()
 
-  if (user === null) {
+  if (staff === null) {
     return (
       <>
         <h1 style={{ fontSize: '1.5rem' }}>Work queue</h1>
         <p style={{ color: '#57534e' }}>
-          Sign in required. There is no public view of this data by design —
-          § 44-12-239.1(b) permits distribution of the CDR file only for
-          soliciting owners, and Supabase RLS denies every unauthenticated read.
+          Staff access required. There is no public view of this data by design
+          — § 44-12-239.1(b) permits distributing the CDR file only for
+          soliciting owners, and RLS denies every unauthorised read. An
+          administrator grants access in advance; it is never self-service.
         </p>
       </>
     )

@@ -10,14 +10,17 @@
 import { readRegistrationState, checkRegistration } from '@/lib/compliance/registration'
 import { collectFlagWarnings } from '@/lib/compliance/featureFlags'
 import { isLegendVerified } from '@/lib/compliance/legend'
+import { getSessionState, mayTouchClaims } from '@/lib/db/auth'
+import Link from 'next/link'
 
 const TONE: Record<string, { bg: string; fg: string }> = {
   blocked: { bg: '#7f1d1d', fg: '#fef2f2' },
   ok: { bg: '#14532d', fg: '#f0fdf4' },
 }
 
-export function RegistrationBanner() {
+export async function RegistrationBanner() {
   const state = readRegistrationState()
+  const { accountEmail, staff } = await getSessionState()
   const solicit = checkRegistration('solicit', state)
   const legendOk = isLegendVerified()
   const warnings = collectFlagWarnings()
@@ -63,6 +66,37 @@ export function RegistrationBanner() {
           ⚠ {warnings.length} legally-unresolved flag(s) enabled
         </span>
       )}
+
+      <span style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        {staff !== null ? (
+          <>
+            <Link href="/queue" style={linkStyle}>Queue</Link>
+            {staff.role === 'admin' && <Link href="/staff" style={linkStyle}>Staff</Link>}
+            <span title={mayTouchClaims(staff)
+              ? 'Designated agent under § 44-12-239, screened — may submit and process claims'
+              : 'Not a designated agent — may not submit or process claims (§ 44-12-239(d))'}>
+              {staff.full_name} · {staff.role}
+              {mayTouchClaims(staff) ? ' · agent' : ''}
+            </span>
+            <form action="/auth/signout" method="post" style={{ display: 'inline' }}>
+              <button type="submit" style={signOutStyle}>Sign out</button>
+            </form>
+          </>
+        ) : accountEmail !== null ? (
+          <span>{accountEmail} · not authorised</span>
+        ) : (
+          <Link href="/signin" style={linkStyle}>Sign in</Link>
+        )}
+      </span>
     </header>
   )
+}
+
+const linkStyle: React.CSSProperties = {
+  color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '2px',
+}
+
+const signOutStyle: React.CSSProperties = {
+  background: 'transparent', border: 0, color: 'inherit', cursor: 'pointer',
+  textDecoration: 'underline', textUnderlineOffset: '2px', font: 'inherit', padding: 0,
 }
