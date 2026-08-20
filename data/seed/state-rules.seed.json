@@ -1,0 +1,804 @@
+{
+  "$schema": "./state-rules.schema.json",
+  "_meta": {
+    "researchedAt": "2026-08-20",
+    "researchedBy": "Claude (Cowork) for Modular Equity",
+    "warning": "Rules with status != 'verified' MUST throw when a workflow touches them. Never default silently. Aggregator sites publishing 51-row finder-fee tables (themissingmint.com, moneyfinderbiz.com, ungovr.org) were spot-checked and found MATERIALLY WRONG on GA, VA, MD, IN, CA and MI. Do not reseed from them.",
+    "recheckCadence": "Every 6 months, and immediately on any legislative session close. GA changed twice in 24 months (SB 103 eff. 2024-07-01; SB 403 eff. 2026-07-01).",
+    "verifiedBy": "Adversarial re-verification pass 2026-08-20 against primary sources: 23 of 25 GA claims CONFIRMED, 6 citation corrections applied, 2 substantive gaps patched. Methodology caveat: law.justia.com is behind Cloudflare and blocks verbatim retrieval, so statutory text rests on targeted adversarial Q&A cross-checked against DOR official forms. BYTE-VERIFY the solicitation legend string against Lexis or the enrolled SB 103 act text before shipping it in code."
+  },
+  "states": {
+    "GA": {
+      "status": "verified",
+      "verifiedAt": "2026-08-20",
+      "name": "Georgia",
+      "administrator": "Georgia Department of Revenue, Unclaimed Property Program",
+      "administratorAuthority": "State Revenue Commissioner",
+      "statuteName": "Disposition of Unclaimed Property Act",
+      "statuteRange": "O.C.G.A. §§ 44-12-190 through 44-12-239.2",
+      "uupaFamily": "1990 Georgia act (1981 UUPA lineage); RUUPA 2016 NOT adopted",
+      "amendedBy": [
+        {
+          "bill": "SB 103",
+          "session": "2023",
+          "effective": "2024-07-01",
+          "note": "Struck the entire prior § 44-12-224 (24-month window + 10% cap). Created the CDR regime: §§ 44-12-239, 239.1, 239.2."
+        },
+        {
+          "bill": "SB 403",
+          "session": "2026",
+          "effective": "2026-07-01",
+          "note": "Added 120-day unenforceability, <=$500 no-claim auto-payment, <=$7,500 heir affidavit."
+        }
+      ],
+      "feeCapPct": 30,
+      "feeCapAbsolute": null,
+      "capBasis": "min(claimedAmount, propertyValue)",
+      "capCitation": "O.C.G.A. § 44-12-224(d)(1)",
+      "costsCountTowardCap": true,
+      "costsCountCitation": "§ 44-12-224(d)(1) — 'total fees AND costs'",
+      "overCapBehavior": "reduced_to_cap_and_net_remitted_to_claimant",
+      "capExceptions": [
+        "Judicial order, judgment, or decree required to document entitlement — § 44-12-224(d)(1)(A)",
+        "Unclaimed Property Purchase Agreements (UP-CDR4) — § 44-12-224(d)(1)(B)"
+      ],
+      "purchaseAgreementExemptFromCap": true,
+      "purchaseAgreementProofOfPaymentRequired": true,
+      "purchaseAgreementProofCitation": "§ 44-12-224(d)(2) — claim VOID without proof of payment filed with the claim",
+      "unenforceabilityDays": 120,
+      "unenforceabilityAnchor": "date_paid_or_delivered_to_commissioner",
+      "unenforceabilityCitation": "§ 44-12-220(d.1)(4) (SB 403, eff. 2026-07-01) — applies to agreements entered into on or after 2026-07-01 \"and reported and delivered to the commissioner under this article\"",
+      "unenforceabilityAppliesToAgreementsOnOrAfter": "2026-07-01",
+      "unenforceabilityAmbiguous": true,
+      "unenforceabilityNote": "UNRESOLVED: statute reads most naturally as running from the HOLDER's delivery to DOR, making it a cooling-off on newly-remitted property rather than aged inventory. No DOR rule or bulletin construes it. RESOLVE CONSERVATIVELY — treat property as inside the window when the date is unknown or year-precise only. Marker: TODO(DOR-CONFIRM-120).",
+      "mandatedForms": [
+        {
+          "id": "UP-CDR1",
+          "name": "CDR Registration Form",
+          "rev": "06/2024",
+          "url": "https://dor.georgia.gov/media/34076/download",
+          "notary": false
+        },
+        {
+          "id": "UP-CDR2",
+          "name": "Unclaimed Property Standard Recovery Agreement",
+          "rev": "2025-04-09",
+          "url": "https://dor.georgia.gov/document/document/cdr2-recovery-agreementpdf/download",
+          "notary": true,
+          "maxProperties": 15
+        },
+        {
+          "id": "UP-CDR3",
+          "name": "Unclaimed Property Agreement Addendum",
+          "rev": "06/2024",
+          "url": "https://dor.georgia.gov/document/document/cdr3-agreement-addendumpdf/download",
+          "notary": false,
+          "requiredWhen": "custom terms present AND total known value > 2000"
+        },
+        {
+          "id": "UP-CDR4",
+          "name": "Unclaimed Property Purchase Agreement",
+          "rev": "06/2024",
+          "url": "https://dor.georgia.gov/document/document/cdr4-purchase-agreementpdf/download",
+          "notary": true,
+          "maxProperties": 5
+        }
+      ],
+      "wrongFormVoidsClaim": true,
+      "wrongFormCitation": "§ 44-12-224(b)",
+      "staleArtifacts": [
+        {
+          "id": "UP-1061",
+          "name": "Power of Attorney for Recovery of Unclaimed Property",
+          "rev": "10/21",
+          "url": "https://dor.georgia.gov/media/32156/download",
+          "reason": "Still published on DOR FAQ page but recites the REPEALED 24-month unenforceability and 10% cap verbatim. It is a POA for DISCUSSING a claim, not a substitute for UP-CDR2/CDR4. DO NOT BUILD AGAINST IT."
+        }
+      ],
+      "maxPropertiesPerRecoveryAgreement": 15,
+      "maxPropertiesPerPurchaseAgreement": 5,
+      "propertySetImmutableAfterSend": true,
+      "customTermsThresholdUsd": 2000,
+      "customTermsMinFontPt": 10,
+      "customTermsVoidWithoutAddendum": true,
+      "addendumDisputeResolution": "DOR may file interpleader in Superior Court of Fulton County; costs split between claimant and CDR — § 44-12-224(g)(4)",
+      "requiredDisclosures": [
+        "Total dollar amount of accounts claimed or sold, if holder reported a value — § 44-12-224(c)(1)",
+        "Total percentage of all authorized fees and costs — (c)(2)",
+        "Total dollar amount of fees and costs deducted; OR, where the holder reported no value, the PERCENTAGE of net value due to the CDR — (c)(3)",
+        "Net dollar amount to be received by the claimant or seller — (c)(4)",
+        "The unclaimed property account number for EACH account claimed — (c)(5)",
+        "CDR name, address, email, phone, and REGISTRATION IDENTIFICATION NUMBER — (c)(6)",
+        "Manual signature of claimant or seller and date signed — (c)(7)",
+        "SSN or TIN of claimant or seller — (c)(8)"
+      ],
+      "ownerMustSignPersonally": true,
+      "ownerSignCitation": "§ 44-12-224(c)(7) — 'manual signature of the claimant or seller … affixed on the agreement by the claimant or seller'",
+      "requiresNotary": true,
+      "notaryRequiredBy": "form (UP-CDR2 §VI, UP-CDR4 §VII), NOT by statute",
+      "ronAvailable": false,
+      "ronNote": "Georgia has NOT enacted general remote online notarization. HB 289 (2025-2026) was favorably reported 2026-03-06 and DIED 2026-04-02 at sine die. Ga. Comp. R. & Regs. R. 560-1-1-.14 'remote notarization' is the narrow attorney-supervised model: notary must be a GA-licensed attorney or supervised by one, and physically located in Georgia.",
+      "esignPermitted": "conditional",
+      "esignCitation": "§ 44-12-224(c)(7) — sufficient if it complies with O.C.G.A. § 10-12-17 AND uses 'an electronic signature product and protocol authorized by the department'",
+      "esignApprovedProductList": null,
+      "esignApprovedProductListNote": "No published allow-list of approved e-signature products was found. Treat that as an ARGUMENT FROM ABSENCE, not a DOR statement. ADMIN-2025-03 lists four accepted forms (typed name in/attached to the document; scanned handwritten signature; signature pad; stylus on a display) plus functional criteria: intent to sign, and tamper-evidence binding the signature to THAT document. No allow-list means NO SAFE HARBOR — a rejected signature VOIDS the claim under § 44-12-224(b). Confirm in writing: DOR Office of General Counsel, (404) 417-2225.",
+      "outOfStateRonPath": {
+        "status": "unverified",
+        "basis": "ADMIN-2025-03: DOR will 'accept remote notarizations from notary publics in states where remote notarization is permitted by law.'",
+        "note": "HIGHEST-VALUE OPEN QUESTION. Determines whether a digital flow exists at all. Unverified whether the UCP Section honors an out-of-state RON on UP-CDR2/CDR4, and whether the claimant's own location matters."
+      },
+      "signatureModeV1": "wet_ink",
+      "revocationRight": "Claimant may revoke for any reason permitted by law, at any time. CDR has an affirmative duty to inform DOR of an effective revocation. — § 44-12-224(e)",
+      "assignmentProhibited": true,
+      "assignmentCitation": "§ 44-12-224(f) — agreements may not create an assignment of any portion of unclaimed property other than property described in a duly executed Purchase Agreement",
+      "advanceFeesPermitted": false,
+      "advanceFeeCitation": "§ 44-12-239.2(a)(12) — 'Receipt or SOLICITATION of consideration to be paid in advance of the approval of a claim'",
+      "advanceFeeNote": "KILLS subscriptions, setup fees, search fees, document-prep fees, and any card-on-file at signup. Contingency on approval, or outright purchase under UP-CDR4.",
+      "registrationRequired": true,
+      "registrationCitation": "§ 44-12-239",
+      "registrationFeeUsd": 1200,
+      "registrationRenewalFeeUsd": 1200,
+      "registrationTermYears": 4,
+      "registrationGates": [
+        "filing claims",
+        "receiving distribution of fees and costs",
+        "obtaining information about unclaimed property held by DOR",
+        "SOLICITING owners"
+      ],
+      "registrationBondRequired": false,
+      "registrationInsuranceRequired": false,
+      "registrationResidencyRequired": false,
+      "registrationForeignEntityMustRegisterWithSos": true,
+      "backgroundCheckRequired": true,
+      "backgroundCheckScope": "all employees/agents designated to submit or process claims; screener must be PBSA-accredited (thepbsa.org); results emailed by the screener DIRECTLY to unclaimedpropertybackgrounds@dor.ga.gov",
+      "backgroundCheckMinAgents": 1,
+      "disqualificationLookbackYears": 20,
+      "disqualificationScope": "the CDR, or any officer, owner, or employee designated to act on its behalf — conviction of a misdemeanor OR felony involving dishonesty, deceit, or fraud, or civil adjudication of breach of fiduciary duties — § 44-12-239(d)",
+      "materialChangeNotificationDays": 30,
+      "materialChangeFailurePenalty": "IMMEDIATE REVOCATION — § 44-12-239(e)",
+      "falseRegistrationInfoPenalty": "Felony false statement under O.C.G.A. § 16-10-20 — § 44-12-239(c)",
+      "registrationSubmitEmail": "ucp.cdr.registration@dor.ga.gov",
+      "claimsSubmitEmail": "ucp.cdr.claims@dor.ga.gov",
+      "backgroundsEmail": "unclaimedpropertybackgrounds@dor.ga.gov",
+      "registrationAlsoRequires": [
+        "completed IRS Form W-9",
+        "GA Secretary of State corporate registration confirmation (if incorporated)",
+        "legible copy of front and back of each agent's driver's license"
+      ],
+      "unregisteredActivityProhibited": true,
+      "unregisteredActivityCitation": "§ 44-12-239.2(a)(10)",
+      "unregisteredActivityCarveOuts": [
+        "Holder of a durable power of attorney to convey and receive ALL of the owner's real and personal property",
+        "Court-appointed guardian of the owner",
+        "Attorney or qualified representative employed to CONTEST a denial of a claim",
+        "Attorney employed to probate the estate of the owner, or of an heir or legatee"
+      ],
+      "enforcementCitation": "§ 44-12-239.2",
+      "enforcementViolationCount": 12,
+      "enforcementNotableViolations": [
+        "(a)(3) Fraudulent misrepresentation, circumvention, or concealment — 'REGARDLESS OF RELIANCE BY OR DAMAGE TO the owner' (no injury requirement)",
+        "(a)(5) False, deceptive, or misleading solicitation or advertising",
+        "(a)(10) Acting as a CDR — including SOLICITING — while unregistered",
+        "(a)(12) Advance fees",
+        "Willful imposition of illegal or excessive charges"
+      ],
+      "enforcementSanctions": [
+        "cease and desist",
+        "corrective action",
+        "revocation with bar on reapplying",
+        "probation",
+        "permanent conditions on registration",
+        "administrative fine up to $2,000 PER ACT",
+        "prohibition on being a director, officer, agent, employee, or >=10% ultimate equitable owner of a CDR employer",
+        "civil action by DOR",
+        "referral to the Attorney General"
+      ],
+      "vicariousLiability": "Registrant liable where it 'knew or should have known' an agent was violating the article — § 44-12-239.2(c)",
+      "solicitationLegendRequired": true,
+      "solicitationLegendCitation": "§ 44-12-239(f)",
+      "solicitationLegendText": "THIS IS A SOLICITATION. THIS IS NOT A BILL OR OFFICIAL GOVERNMENT DOCUMENT AND HAS NOT BEEN SENT BY THE STATE OF GEORGIA. YOU ARE NOT REQUIRED TO USE THE SERVICES OFFERED IN THIS SOLICITATION.",
+      "solicitationLegendAllCaps": true,
+      "solicitationLegendMinPt": 12,
+      "solicitationLegendRule": "max(12, largestFontUsedInSolicitation + 1)",
+      "solicitationLegendRuleNote": "Statute says 'at least 12 point type OR in a font larger than the font utilized in the solicitation, WHICHEVER IS LARGER'. This is a COMPUTED value, not a constant.",
+      "solicitationLegendChannels": [
+        "mail",
+        "email",
+        "sms",
+        "landing_page",
+        "pdf"
+      ],
+      "brandNameRestriction": true,
+      "brandNameCitation": "§ 44-12-239(g)",
+      "brandNameRule": "May not register under or use a business name that might lead a reasonable person to conclude the representative is an agent of the United States, or an agency thereof, or a state or an agency or political subdivision of a state.",
+      "brandDenylistSeed": [
+        "georgia",
+        "state of",
+        "bureau",
+        "division",
+        "department",
+        "official",
+        "agency",
+        "treasury",
+        "revenue",
+        "federal",
+        "national",
+        "commission",
+        "authority",
+        "gov"
+      ],
+      "payeeModel": "state_pays_both_parties_directly",
+      "payeeCitation": "§ 44-12-220",
+      "payeeNote": "DOR pays the CDR directly, but ONLY pursuant to the agreement terms AND only if the CDR is registered under § 44-12-239. Payment by paper check or other approved means. Payment to BOTH claimant and CDR within 60 days of approval, each to their own registered/stated address. NO ESCROW, NO TRUST ACCOUNT, NO MONEY-TRANSMITTER EXPOSURE — provided the claimant's check is never redirected.",
+      "custodyOfClaimantFundsPermitted": false,
+      "safeDepositContentsGoDirectlyToClaimant": true,
+      "safeDepositCitation": "§ 44-12-220(e) — never to the CDR",
+      "decisionWindowDays": 90,
+      "paymentWindowDays": 60,
+      "burdenOfProof": "preponderance of the evidence — § 44-12-222(b)",
+      "appealPath": "Superior Court of Fulton County, de novo without jury, within 90 days of decision or 180 days of filing if DOR fails to act — § 44-12-221",
+      "conflictingClaimRule": [
+        {
+          "rank": 1,
+          "rule": "First COMPLETE claim received wins. 'Complete' = entitlement to the property has been established."
+        },
+        {
+          "rank": 2,
+          "rule": "Same day, claimant vs CDR — CLAIMANT wins."
+        },
+        {
+          "rank": 3,
+          "rule": "Same day, buyer vs claimant or CDR — BUYER wins."
+        },
+        {
+          "rank": 4,
+          "rule": "Buyer vs buyer — earliest executed agreement."
+        },
+        {
+          "rank": 5,
+          "rule": "CDR vs CDR — LOWEST FEE WINS; tie broken by earliest executed agreement."
+        }
+      ],
+      "conflictingClaimCitation": "§ 44-12-220(g)",
+      "conflictingClaimStrategyNote": "Two consequences: (1) 'complete' means entitlement established, not submitted — optimize the evidence step, not the submit button. (2) Fee level is literally determinative against a competing CDR, so fee_pct must be a per-claim strategic variable with a documented floor, not pinned at 30.",
+      "dataAccessMode": "statutory_bulk_file_for_registered_cdrs",
+      "dataAccessCitation": "§ 44-12-239.1(a) — commissioner SHALL provide a downloadable or deliverable, searchable and sortable database for ALL unclaimed accounts",
+      "dataAccessConfidentialityOverride": "§ 44-12-239.1(c) — notwithstanding § 44-12-225, this information is NOT confidential as to registered CDRs",
+      "dataFields": [
+        "Property ID (first field; join key; required on UP-CDR2 §I)",
+        "Apparent owner name (and insured/beneficiary for insurance property)",
+        "Last known address of the apparent owner",
+        "NAUPA owner-account relation code",
+        "Amount of cash, if applicable (EXACT dollar figure — this is where the $500 filter lives)",
+        "Unliquidated securities/mutual funds: number of shares, issuer name, CUSIP",
+        "Safe-deposit box contents descriptions (NAUPA-style)",
+        "NAUPA property-type description",
+        "Date of last activity",
+        "Year property was reported to the commissioner",
+        "Holder name and contact information"
+      ],
+      "dataDeliveryFormat": ">1GB delimited text, refreshed WEEKLY, emailed to the registration's primary contact",
+      "dataDeliverySupport": "NONE — DOR states it 'cannot offer any assistance in using this database'",
+      "dataUnknowns": [
+        "delimiter",
+        "encoding",
+        "header row present?",
+        "one file or several",
+        "transport (SFTP vs HTTPS link vs attachment)",
+        "whether date-of-last-activity is full-date or year-precise",
+        "whether 'year reported' means holder report year or DOR receipt year (determines the 120-day anchor)"
+      ],
+      "dataRedistributionPermitted": false,
+      "dataRedistributionCitation": "§ 44-12-239.1(b) — prohibited from distributing 'except for the purpose of soliciting owners of unclaimed property to offer claim services'; violations referred to the Attorney General",
+      "dataRedistributionNote": "FORECLOSES: data resale, B2B lookup API, enrichment-as-a-service, a public 'search your name' tool built on the CDR file, and partner sharing.",
+      "publicSearchSite": "https://gaclaims.unclaimedproperty.com/",
+      "publicSearchScrapingPermitted": false,
+      "publicSearchScrapingNote": "Server-side-enforced Google reCAPTCHA v2 (sitekey 6Lfldx0TAAAAADWOGNUBVxBpsGcELIH3AoiEnWxY). No robots.txt (404) and no published ToS, but the CAPTCHA is an explicit technical access control — defeating it creates CFAA/state computer-crime exposure and would be fatal to the § 44-12-239(d) fitness standard. UNNECESSARY: the statutory bulk file is better data.",
+      "publicSearchAmountColumnFormat": "unverified",
+      "publicSearchAmountColumnNote": "Could not retrieve a rendered results table (reCAPTCHA). Unknown whether the public UI shows an exact figure or a bucket. MOOT for the CDR workflow — the bulk file carries exact amounts per UP-CDR2 instructions and § 44-12-239.1(a)(4).",
+      "blockedHosts": [
+        "gaclaims.unclaimedproperty.com",
+        "ecorp.sos.ga.gov"
+      ],
+      "autoPaymentWithoutClaim": {
+        "effective": "2026-07-01",
+        "citation": "§ 44-12-220(d.1)(1) (SB 403)",
+        "maxUsdPerProperty": 500,
+        "conditions": [
+          "property is CASH",
+          "apparent owner is a NATURAL PERSON and the SOLE owner",
+          "identity verified by the commissioner",
+          "amount does not exceed $500 per property"
+        ],
+        "mechanism": "DOR may review state tax records to verify identity (O.C.G.A. § 48-2-15(b) amended to waive confidentiality) and pays per the owner's most recent income-tax refund instructions, net of unpaid state tax liability.",
+        "commercialImplication": "Georgia is systematically draining the sub-$500 sole-owner cash tier with no finder involvement. The $500 floor is now the DEFINITION of the addressable market, not a preference. Residual opportunity skews to: multi-owner property, business/entity-owned property, deceased owners/heirs, securities, and safe-deposit contents — all categories auto-pay cannot reach."
+      },
+      "heirAffidavitPath": {
+        "effective": "2026-07-01",
+        "citation": "§ 44-12-220(i) (SB 403)",
+        "maxAggregateUsd": 7500,
+        "requirements": [
+          "affidavit signed by ALL heirs",
+          "statement of amicable division",
+          "statement that funeral, last-illness, and lawful claims are paid",
+          "will attached if testate",
+          "NO proceeding in any Georgia probate court is pending OR has ever been filed"
+        ],
+        "heirDefinition": "adult surviving spouse, child, parent, or sibling of a deceased owner — § 44-12-192(7.1)",
+        "liability": "Recipients are personally liable to estate creditors up to the value received.",
+        "commercialImplication": "Removes the main cost driver on small estate claims. Build an all-heir enumeration workflow with a completeness gate."
+      },
+      "cdrWillTrustRetrievalRight": "A registered CDR may obtain certified copies of a decedent's will, codicil, or trust instrument on presenting evidence of death — an entitlement-documentation channel unique to registered CDRs (SB 103, § 44-12-216-adjacent).",
+      "businessClaimDocumentation": {
+        "published": [
+          "An Authorization Letter authorizing the Claimant to contract with the CDR for asset recovery services",
+          "A copy of the Claimant's work ID card",
+          "Proof of FEIN",
+          "Copy of front and back of the claimant's government-issued ID"
+        ],
+        "estateClaimsAlso": [
+          "Decedent's death certificate",
+          "Probate documents"
+        ],
+        "catchAll": "'Documentation requirements vary from claim to claim. The Unclaimed Property Section may request additional documentation to confirm the claimant's interest in this property.'",
+        "gap": "GA publishes NOTHING on dissolved or merged entities — no successor-entity documentation matrix like FL/TX publish. This gap is simultaneously the moat and the risk: every forged-POA prosecution in this industry targeted business owners. UNVERIFIED and must be asked of DOR: dissolved-entity requirements; merged-entity chain-of-title; whether a corporate resolution / secretary's certificate / EIN CP-575 substitutes for a 'work ID card'."
+      },
+      "sosBulkData": {
+        "provider": "Georgia Office of Data Innovations (GTA), not SOS directly",
+        "url": "https://georgia.gov/bulk-corporations-data",
+        "contact": "odi@gta.georgia.gov, (404) 463-2300",
+        "oneTimeFullDatabaseUsd": 1000,
+        "ftpAccountSetupUsd": 100,
+        "monthlySubscriptionUsd": 500,
+        "format": "plain text, tab-space separated",
+        "requires": [
+          "signed Bulk Corporations Data Agreement",
+          "IRS W-9"
+        ],
+        "refundable": false,
+        "apiAvailable": false,
+        "officerFieldsIncluded": "unverified",
+        "officerFieldsNote": "VERIFY BEFORE PURCHASE. The product page does not enumerate the layout. GA annual registrations (O.C.G.A. §§ 14-2-1622 / 14-11-1103) require registered agent name/office, principal office address, and for corporations the CEO, CFO and Secretary names/addresses; LLCs disclose at least one manager or member. Whether those fields are IN the bulk file is unconfirmed and determines whether officer matching is one pass or two.",
+        "entityStatusValues": [
+          "active",
+          "admin_dissolved",
+          "terminated",
+          "merged",
+          "withdrawn"
+        ],
+        "scrapingAlternativeBlocked": "ecorp.sos.ga.gov is behind a Cloudflare managed challenge (HTTP 403). Buy the file."
+      },
+      "outboundChannels": {
+        "mail": {
+          "enabled": true,
+          "note": "Primary channel. Lowest risk. What the statute plainly contemplates."
+        },
+        "email": {
+          "enabled": true,
+          "note": "CAN-SPAM: valid physical postal address, functioning opt-out honored within 10 business days, no deceptive subject lines, clear ad identification. Legend required."
+        },
+        "phone": {
+          "enabled": false,
+          "note": "Manual-dial only if ever enabled. Federal DNC scrub required — Georgia folded its state list into the federal registry (GA PSC directs consumers to donotcall.gov), so the federal scrub IS the Georgia scrub. O.C.G.A. § 46-5-27 remains on the books; whether it imposes independent GA penalties is UNVERIFIED. 8am-8pm recipient local time."
+        },
+        "sms": {
+          "enabled": false,
+          "note": "Not implemented. TCPA statutory damages $500/violation, trebled to $1,500 willful — the classic class-action vector against cold outbound."
+        }
+      },
+      "consumerProtectionOverlay": "Georgia Fair Business Practices Act, O.C.G.A. § 10-1-390 et seq., enforced by the GA Dept. of Law Consumer Protection Division. Private right of action under § 10-1-399 with TREBLE damages for intentional violations plus attorney's fees, subject to a 30-day pre-suit written demand. Layered ON TOP of § 44-12-239.2 — the same mailer can draw both DOR and AG action.",
+      "privateDetectiveLicenseQuestion": {
+        "status": "unresolved",
+        "riskLevel": "material",
+        "forRequiring": "O.C.G.A. § 43-38-3(3)(C) defines 'private detective business' to include obtaining information about 'the location, disposition, or recovery of LOST or stolen property'; (3)(B) covers a person's 'assets … whereabouts.' § 43-38-14 contains NO public-records exemption. The Board has read the definition broadly before (its FAQ says computer forensics requires a license).",
+        "againstRequiring": "§ 44-12-239 is later and specific, creates a bespoke registration regime for exactly this activity with its own fitness standards, and never mentions Title 43 Ch. 38. DOR's own Program Overview calls CDRs 'finders' or 'locators' with no reference to a PI license.",
+        "riskAmplifier": "The risk sharpens the moment you skip-trace living owners beyond matching DOR's own file. A pure 'match the DOR file to a mailing address and mail a solicitation' model is a much weaker fit for (3)(C).",
+        "action": "Request a written position from the Georgia Board of Private Detective and Security Agencies (via SOS Professional Licensing Boards) AND obtain a Georgia opinion letter before enabling external skip-trace. Feature-flag: ENABLE_EXTERNAL_SKIPTRACE, default off."
+      },
+      "sizeOfPrize": {
+        "totalHeldUsd": 3300000000,
+        "asOf": "2026-05",
+        "source": "Gov. Kemp SB 403 signing coverage",
+        "propertyCount": null,
+        "annualReturnedUsd": null,
+        "note": "Georgia publishes NO dedicated unclaimed property annual report. The only 'annual report' hits are the holder-side filing form. Get real numbers via a Georgia Open Records Act request to DOR for UP Section performance metrics — aggregate operational statistics are not owner-identifying, so § 44-12-225 should not shield them, and § 50-18-71 makes it cheap (first quarter hour free, 10c/page).",
+        "sourceQuality": "SECONDARY ONLY. No primary DOR page states a total; dor.georgia.gov/unclaimed-property-program publishes no figure. The $3.3B appears across 2026 coverage of the SB 403 signing. Treat as approximate and undated."
+      },
+      "openRecordsPath": {
+        "statute": "O.C.G.A. § 50-18-70 et seq.",
+        "fullDatabaseObtainable": false,
+        "reason": "§ 44-12-225 makes information furnished to the commissioner confidential, which plugs into the § 50-18-72(a)(1) exemption. A NON-CDR request for the full database should be refused. Georgia deliberately made registration — not ORA — the door (§ 44-12-239.1(c) overrides § 44-12-225 for registered CDRs).",
+        "commercialUseSurcharge": false,
+        "feeSchedule": "Production within 3 business days; copying <=10c/page letter/legal; search/retrieval/redaction capped at the prorated hourly salary of the lowest-paid full-time employee with the first quarter hour free; written estimate required over $25; prepayment may be demanded over $500; electronic records at actual media cost.",
+        "usefulFor": "aggregate program statistics, not the property database"
+      },
+      "openQuestionsForDor": [
+        "Will the UCP Section honor an OUT-OF-STATE remote online notarization on UP-CDR2/UP-CDR4, per ADMIN-2025-03? Does the claimant's own physical location matter? [HIGHEST VALUE]",
+        "Does the 120-day unenforceability window under § 44-12-220(d.1)(4) run from the agreement date or the holder's delivery/payment to the commissioner?",
+        "What documentation does DOR require for a claim by a DISSOLVED entity? A MERGED entity? Is an unbroken chain-of-title through name changes required?",
+        "Does a corporate resolution, secretary's certificate, or EIN letter (CP-575) satisfy the 'work ID card' requirement?",
+        "Bulk file mechanics: exact delimiter, encoding, header row, file count, and transport?",
+        "Will DOR confirm in writing that a specific named e-signature product satisfies Rule 560-1-1-.14(1)(a)?"
+      ],
+      "sources": [
+        "https://law.justia.com/codes/georgia/title-44/chapter-12/article-5/section-44-12-224/",
+        "https://www.legis.ga.gov/api/legislation/document/20232024/219683",
+        "https://gov.georgia.gov/document/2026-signed-legislation/sb-403/download",
+        "https://dor.georgia.gov/claimant-designated-representative",
+        "https://dor.georgia.gov/claimant-designated-representative-faqs",
+        "https://dor.georgia.gov/media/31231/download",
+        "https://dor.georgia.gov/admin-2025-03-acceptance-e-signatures-remote-notaries-and-electronic-filings",
+        "https://www.law.cornell.edu/regulations/georgia/Ga-Comp-R-Regs-R-560-1-1-.14",
+        "https://law.justia.com/codes/georgia/title-43/chapter-38/section-43-38-3/",
+        "https://law.justia.com/codes/georgia/title-43/chapter-38/section-43-38-14/",
+        "https://georgia.gov/bulk-corporations-data",
+        "https://www.billtrack50.com/billdetail/1821232",
+        "https://consumer.georgia.gov/document/document/fbpa-february-2024pdf/download",
+        "https://psc.ga.gov/about-the-psc/consumer-corner/telephone/consumer-rights/telephone-solicitation/"
+      ],
+      "enforcementFineCitation": "§ 44-12-239.2(b)(5) — up to $2,000.00 for each such act",
+      "decisionWindowCitation": "§ 44-12-220(b)",
+      "paymentWindowCitation": "§ 44-12-220(d)(3)",
+      "paymentMethod": "electronic or check, FIRST OFFSET against unpaid Georgia state tax liability — § 44-12-220(c)(2) (added by SB 403)",
+      "customTermsVoidWithoutAddendumCitation": "§ 44-12-224(g)(3)",
+      "customTermsThresholdCitation": "§ 44-12-224(g)(1)",
+      "customTermsProhibitedAtOrBelowThreshold": true,
+      "customTermsThresholdNote": "The $2,000 threshold is PERMISSION to add terms, not merely a trigger for the addendum. At or below $2,000, custom terms may not be added at all. Enforce as a hard block.",
+      "dataFieldsQualifier": "Every field in § 44-12-239.1(a) is qualified \"if provided by the holder\"; cash amount is further qualified \"if applicable.\" The file is guaranteed to exist; it is NOT guaranteed complete per field. Treat every field as nullable.",
+      "esignGoverningAuthority": "DOR Rule 560-1-1-.14(1)(a) — this is what UP-CDR2/CDR4 actually cite. Policy Bulletin ADMIN-2025-03 is what accepts OUT-OF-STATE remote notarization. Cite the rule for signature validity, the bulletin for notary acceptance.",
+      "wrongFormVoidsClaimNote": "Voids the REPRESENTATIVE’s claim, not the claimant’s own right to the property. Still total loss to us.",
+      "solicitationLegendVerification": "BYTE-VERIFY before shipping. Justia and similar publishers are behind Cloudflare and resist verbatim retrieval. Check against Lexis GA Code or the enrolled SB 103 (2023) act text. Store as a single exported constant with a verifiedAgainst comment and a test asserting byte length. One wrong word makes the notice non-compliant."
+    },
+    "CA": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "capCitation": "Cal. Civ. Proc. Code § 1582(a)(2)",
+      "advanceFeesPermitted": false,
+      "advanceFeeNote": "§ 1582 — agreement invalid if it requires prepayment before the Controller approves and delivers",
+      "unenforceabilityNote": "No fixed period; agreement invalid if made between report filing and payment/delivery to the Controller",
+      "dataAccessMode": "free_public_bulk_csv_weekly",
+      "dataUrl": "https://www.sco.ca.gov/upd_download_property_records.html",
+      "note": "Best data in the country: exact amounts, weekly, pre-bucketed by value, includes pending/paid claim counts for dedupe. 3.2M properties / ~$9.09B at >=$500. SCO explicitly invites outreach. Natural state 2."
+    },
+    "TX": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "capCitation": "Tex. Prop. Code § 74.507(a)",
+      "agentMayFileClaim": false,
+      "blocker": "§ 74.507(b) — a person taking a percentage 'may not file or receive a form to claim on behalf of a claimant.' Owner-files-only, invoice model.",
+      "licenseRequired": "PI license (Class A or C) unless work is strictly review of public information — Tex. Occ. Code § 1702.104 / § 1702.324(b)(5)",
+      "dataAccessMode": "email_request_gated_on_pi_license"
+    },
+    "FL": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 30,
+      "capCitation": "Fla. Stat. § 717.135(2)(j)",
+      "capIncludesCosts": true,
+      "licenseRequired": "Florida Bar member, FL-certified CPA, or Class 'C' licensed PI (Ch. 493) — AND registration with DFS — Fla. Stat. § 717.1400",
+      "note": "30% legal but hard professional gate. Mandated exclusive forms; any other agreement is VOID. Conflicting claims: lowest fee wins between two representatives filing the same day (§ 717.1241)."
+    },
+    "AZ": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 30,
+      "capCitation": "AZ DOR Heir Finder page (A.R.S. text not retrieved)",
+      "note": "Third of the three 30% states. Owner data released only with authorization from the legal owner."
+    },
+    "NY": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 15,
+      "capCitation": "N.Y. Aband. Prop. Law § 1416(4)",
+      "requiresNotary": true,
+      "ownerMustSignPersonally": true,
+      "disclosureFontPt": 12,
+      "note": "Agreement must be on a Comptroller-prescribed form, notarized. Search UI shows NO amount at all — deliberate anti-fraud policy. Free 'Owner Name File' on request but amounts and SSNs are withheld by law."
+    },
+    "PA": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 15,
+      "registrationRequired": true,
+      "registrationTermYears": 2,
+      "payeeModel": "state_pays_owner_only",
+      "note": "Notarized application, sworn no-felony attestation. Violation = 3rd-degree misdemeanor. Treasury pays claimants directly; redirecting payment is grounds for revocation."
+    },
+    "IL": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "capCitation": "765 ILCS 1026/15-1302",
+      "registrationRequired": true,
+      "registrationFeeUsd": 500,
+      "bondMaxUsd": 100000,
+      "dataAccessMode": "none",
+      "note": "Treasurer explicitly provides NO bulk files, exports, or API; database is FOIA-exempt. Agreement must be filed unredacted with the administrator."
+    },
+    "OH": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "capCitation": "ORC § 169.13",
+      "requiresNotary": true,
+      "ownerMustSignPersonally": true,
+      "unenforceabilityMonths": 24,
+      "unenforceabilityAnchor": "date_holder_report_filed",
+      "registrationRequired": true,
+      "maxPropertiesPerAgreement": 25,
+      "payeeModel": "state_pays_owner_only",
+      "note": "Unusual anchor — runs from the REPORT date, not delivery. Tiny registered field (~19 new + 28 renewals in FY2022)."
+    },
+    "NJ": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 20,
+      "feeCapPctPreAbandonment": 35,
+      "capCitation": "N.J.S.A. 46:30B-106"
+    },
+    "NC": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 20,
+      "feeCapAbsolute": 1000,
+      "capNote": "For non-NC-estate property: 20% OR $1,000, WHICHEVER IS LESS. The absolute cap binds on any large claim.",
+      "licenseRequired": "licensed private investigator (NC Private Protective Services Board), annual registration $100",
+      "requiresNotary": true,
+      "onlineAgreementsProhibited": true
+    },
+    "VA": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "capCitation": "Va. Code § 55.1-2542(B)",
+      "unenforceabilityMonths": 36,
+      "unenforceabilityNote": "LONGEST FOUND — 36 months from required delivery by holder to administrator",
+      "poaHonored": false,
+      "penalty": "misdemeanor, fine up to $1,000"
+    },
+    "MA": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "capBasis": "amount ORIGINALLY REMITTED to the Division, not the amount paid out",
+      "capCitation": "960 CMR 4.00",
+      "requiresNotary": true,
+      "poaHonored": false,
+      "handwrittenAgreementsRejected": true,
+      "note": "Requires a separate notarized 'Notice to Claimant'. Original notarized copy filed with the initial claim."
+    },
+    "MN": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "capCitation": "Minn. Stat. § 345.515",
+      "capExceptionNote": ">10% permitted only if the agreement is in writing, signed by the owner, and discloses nature+value of property and holder name/address",
+      "licenseRequired": "private detective license — Board of Private Detectives determined 1988-04-28 that locating unclaimed funds for a fee IS private-detective business"
+    },
+    "IN": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "feeCapAbsolute": 5000,
+      "capCitation": "Ind. Code § 32-34-1.5-75",
+      "capNote": ">10% is 'unconscionable' AND compensation may not exceed $5,000 absolute"
+    },
+    "TN": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "capNote": "10% of recoverable value OR $50, WHICHEVER IS GREATER",
+      "capCitation": "Tenn. Code § 66-29-176(b)(4)"
+    },
+    "WI": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "capCitation": "Wis. Stat. § 177.1301(2)(d)",
+      "ownerMustSignPersonally": false,
+      "note": "RUUPA family — 'by the apparent owner or by an agent'"
+    },
+    "SC": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 15,
+      "capCitation": "S.C. Code § 27-18-360",
+      "penalty": "misdemeanor",
+      "ronAvailable": false
+    },
+    "NV": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": 10,
+      "feeCapPctIfHeld5Years": 20,
+      "requiresNotary": "for claims >= $500",
+      "poaHonored": false,
+      "registrationRequired": false
+    },
+    "MI": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": null,
+      "capNote": "No cap found in MCL 567.256/.256a",
+      "unenforceabilityMonths": 24,
+      "registrationRequired": true,
+      "registrationFeeUsd": 1200,
+      "registrationTermYears": 4,
+      "dataAccessMode": "registered_locator_feed",
+      "dataScope": "accounts unclaimed 24+ months AND valued >= $10,000",
+      "dataRedistributionPermitted": false
+    },
+    "MD": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": null,
+      "capNote": "NO statutory cap — Md. Code Com. Law § 17-325. Only a 24-month unenforceability window. Aggregator sites claiming a 10% MD cap are WRONG.",
+      "unenforceabilityMonths": 24
+    },
+    "WA": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": null,
+      "capNote": "No cap found in RUUPA ch. 63.30. The old 5% cap lived in repealed ch. 63.29. CONFIRM WITH WA DOR before relying on 'no cap.'",
+      "unenforceabilityMonths": 24,
+      "ownerMustSignPersonally": false
+    },
+    "CO": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": null,
+      "capNote": "No statutory %; Treasurer sets the max by rule — C.R.S. 38-13-1302(3). THE CURRENT RULE PERCENTAGE WAS NOT LOCATED. Verify with CO Treasury.",
+      "unenforceabilityMonths": 24,
+      "ownerMustSignPersonally": false
+    },
+    "OR": {
+      "status": "researched_not_verified_for_build",
+      "feeCapPct": null,
+      "capNote": "Not verified. Or. Admin. Code 170-140-0020 covers the paid Finder's List, not fees.",
+      "dataAccessMode": "paid_finders_list",
+      "dataCostUsd": 150,
+      "dataHoldDays": 20,
+      "dataRepublishProhibited": true
+    },
+    "_UNVERIFIED_NO_DATA": {
+      "status": "blocked",
+      "states": [
+        "AL",
+        "AK",
+        "AR",
+        "CT",
+        "DE",
+        "DC",
+        "HI",
+        "ID",
+        "IA",
+        "KS",
+        "KY",
+        "LA",
+        "ME",
+        "MS",
+        "MO",
+        "MT",
+        "NE",
+        "NH",
+        "NM",
+        "ND",
+        "OK",
+        "RI",
+        "SD",
+        "UT",
+        "VT",
+        "WV",
+        "WY"
+      ],
+      "note": "No primary-source confirmation of caps, waiting periods, or licensing. KY, ME, ND, UT, VT, WV and DE are RUUPA-family states, so the § 1301/§ 1302 structure (record, signature, before/after value, 24-month void) is the likely default — but the PERCENTAGE is state-added and must be checked individually. Any workflow touching these MUST throw."
+    }
+  },
+  "federalOverlay": {
+    "ruupa2016": {
+      "hasOwnFeeCap": false,
+      "s1301": "Agreement enforceable only if it (a) is in a record clearly stating the nature of the property and services; (b) is signed by or ON BEHALF OF the apparent owner; (c) states the value reasonably expected to be recovered, computed BEFORE AND AFTER the fee.",
+      "s1302": "Void if entered into during the period beginning on the date the property was paid or delivered by the holder to the administrator and ending 24 MONTHS after. Mineral-proceeds provisions void regardless of timing. Unconscionable compensation challengeable in court.",
+      "s1303": "An agent designated in a signed record is entitled to receive from the administrator the same information the apparent owner could get, INCLUDING information otherwise confidential under the Act.",
+      "draftingFamilies": {
+        "modern_ruupa": {
+          "signature": "by or on behalf of",
+          "agentSignatureOk": true,
+          "states": [
+            "CO",
+            "WA",
+            "WI",
+            "TX"
+          ]
+        },
+        "legacy_1981_uupa": {
+          "signature": "signed by the owner",
+          "agentSignatureOk": false,
+          "states": [
+            "MN",
+            "OH",
+            "NY",
+            "NC",
+            "MA",
+            "GA"
+          ]
+        }
+      }
+    },
+    "esign": {
+      "statute": "15 U.S.C. § 7001",
+      "s7001a": "A signature/record may not be denied legal effect solely because it is electronic — makes the finder<->owner CONTRACT enforceable electronically everywhere.",
+      "s7001g": "A notarization requirement IS satisfied electronically if the authorized notary's electronic signature plus all required info is attached or logically associated with the record. 'Notarized' != 'wet ink' as a matter of federal law.",
+      "s7001b2_CARVEOUT": "ESIGN 'does not require any person to agree to use or accept electronic records or electronic signatures, other than a GOVERNMENTAL AGENCY with respect to a record OTHER THAN A CONTRACT TO WHICH IT IS A PARTY.' A state UP administrator is not a party to your finder agreement or the owner's claim form — so THE STATE IS FREE TO REFUSE AN E-SIGNED CLAIM FORM. ESIGN does not save you here.",
+      "ronNotEnacted": [
+        "AL",
+        "CT",
+        "GA",
+        "MS",
+        "SC"
+      ],
+      "ronDelayed": {
+        "CA": "enacted 2023 but does not authorize RON until January 2030 pending a technology implementation process"
+      }
+    },
+    "tcpa": {
+      "statute": "47 U.S.C. § 227; 47 C.F.R. § 64.1200",
+      "damages": "$500/violation, trebled to $1,500 for willful",
+      "oneToOneConsentRule": "VACATED — 11th Cir., Insurance Marketing Coalition v. FCC, January 2025. FCC did not appeal and reinstated the prior consent definition by August 2025.",
+      "revocationRule": "Second one-year waiver extended compliance to April 2026 — that deadline has PASSED. Cross-channel, any-reasonable-method revocation handling is a hard requirement.",
+      "stateMiniTcpas": [
+        "TX SB 140 (eff. 2025-09-01) — covers texts/images, private right of action up to $5,000/violation",
+        "OR HB 3865 (eff. 2026-01-01) — 8am-8pm only, max 3 calls/consumer/day, covers texts",
+        "FL FTSA (Fla. Stat. § 501.059)",
+        "OK Telephone Solicitation Act",
+        "MD Stop the Spam Calls Act",
+        "WA CEMA"
+      ],
+      "structuralProblem": "You are cold-contacting people with NO prior express written consent and NO established business relationship. There is no TCPA exemption for 'I'm calling to tell you good news.' Direct mail carries no TCPA exposure. Do not build an autodialer or SMS blast."
+    },
+    "canSpam": {
+      "statute": "15 U.S.C. §§ 7701-7713; 16 C.F.R. Part 316",
+      "requirements": [
+        "no false/misleading header or From info",
+        "no deceptive subject line",
+        "clear identification as an advertisement",
+        "valid physical postal address",
+        "functioning opt-out honored within 10 business days",
+        "liability for messages sent by affiliates on your behalf"
+      ],
+      "preemption": "Preempts state spam laws EXCEPT as to falsity/deception — state statutes can still bite on deceptive subject lines."
+    },
+    "fcra": {
+      "statute": "15 U.S.C. § 1681",
+      "permissiblePurposeExists": false,
+      "analysis": "Your use fits NONE of the § 1681b(a) permissible purposes. § 1681b(a)(3)(A) ('review or collection of an account of the consumer') is about a creditor collecting a debt the consumer OWES — here the consumer is OWED money. The consumer did not initiate the transaction; you did. Obtaining a consumer report without a permissible purpose violates § 1681b(f) with civil AND criminal liability (§§ 1681n, 1681o, 1681q).",
+      "architecture": "Use ONLY vendor products explicitly sold as non-FCRA locate/identity products. Never a credit report. Never use output for any FCRA-covered decision. Get the 'this is not a consumer reporting agency product' representation in writing."
+    },
+    "glba": {
+      "statute": "15 U.S.C. § 6802; Reg P, 12 C.F.R. § 1016.11",
+      "note": "Most commercial 'locate' products are built on credit header data sourced from financial institutions — GLBA nonpublic personal information. 'Locating a person to sell them a recovery service' is NOT obviously a § 6802(e) exception. Expect vendors to gate you."
+    },
+    "dppa": {
+      "statute": "18 U.S.C. § 2721",
+      "note": "Locating an unclaimed-property owner to solicit them is NOT an enumerated permissible use. § 2721(b)(8) covers licensed private investigative agencies but only 'for a purpose permitted under this subsection' — a PI licence does not by itself create a permissible use. ASSUME DMV DATA IS UNAVAILABLE."
+    }
+  },
+  "enforcementHistory": {
+    "note": "Every criminal case found follows the SAME pattern: identity/authority fraud, not fee abuse. The crime is always claiming AS the owner rather than ON BEHALF OF the owner with a signed agreement. Mail/address redirection is the recurring tell. Forged POA is the specific instrument used against BUSINESS owners. Prosecutors are state AGs and DOJ — there is no soft landing.",
+    "cases": [
+      {
+        "case": "Commonwealth v. Shaka Stayman (MA AG)",
+        "date": "arraigned 2025-11-07",
+        "amount": "$1.1M obtained, $2.2M stopped",
+        "method": "impersonated rightful claimants, forged documents, call-forwarding to mask number, PO boxes + mail forwarding to intercept checks, fake-ID bank accounts",
+        "bail": "$2M"
+      },
+      {
+        "case": "People v. Maria Michaud (IL AG)",
+        "date": "charged 2024-04",
+        "amount": "$247,760",
+        "method": "used 4 victims' identities, opened bank accounts in their names, CHANGED THEIR POSTAL ADDRESSES"
+      },
+      {
+        "case": "US v. Doukoure, Tunkara, Sylla (NY/OSC)",
+        "date": "arrests 2022-07",
+        "method": "PURCHASED PERSONAL INFORMATION FROM PUBLIC-RECORDS DATABASES to identify victims, then filed claims with forged IDs. ~170 checks to ~120 payees into ~8 controlled accounts.",
+        "lesson": "Buying PII from public-records databases to source targets was cited as scheme conduct. Lawful on its own; becomes evidence when paired with impersonation. Document permissible purpose religiously."
+      },
+      {
+        "case": "US v. Badea & Gal (D. Nev.)",
+        "date": "sentenced 2021-06-01",
+        "amount": "$185,872",
+        "sentence": "5 years 10 months",
+        "method": "mined the Nevada Treasurer's UP website for targets, 143 false claims impersonating 100+ people"
+      },
+      {
+        "case": "US v. Pendergrass & McQueen (N.D. Ga.)",
+        "date": "indicted 2017-06-27",
+        "amount": ">$100,000",
+        "method": "8 shell 'asset recovery' companies, FORGED POWER-OF-ATTORNEY FORMS to take money owed to local BUSINESSES and residents",
+        "lesson": "Targeted businesses specifically because dissolved entities have no one to object. This is the exact segment we are entering."
+      }
+    ]
+  }
+}

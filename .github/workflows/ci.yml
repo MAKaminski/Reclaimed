@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  compliance:
+    name: Compliance gates (O.C.G.A. § 44-12-239.2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+
+      # §1.1 — advance fees. Runs first: it is the cheapest and the most fatal.
+      - name: "§1.1 no payment SDK — § 44-12-239.2(a)(12)"
+        run: pnpm verify:no-payments
+
+      # §1.2 — every outbound template carries the legend.
+      - name: "§1.2 solicitation legend present — § 44-12-239(f)"
+        run: pnpm verify:templates
+
+      # §1.2 — the legend still matches the enrolled act, byte for byte.
+      - name: "§1.2 legend byte-verified against enrolled SB 103"
+        run: pnpm verify:legend
+
+      # §6.2 — a DOR form revision must break the build, not ship silently.
+      - name: "§6.2 DOR form hashes unchanged — § 44-12-224(b)"
+        run: pnpm verify:forms
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # The named-test-per-guardrail suite.
+      - name: "Compliance suite"
+        run: pnpm test:compliance
+
+      - name: "Unit tests (incl. fee-cap property tests)"
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

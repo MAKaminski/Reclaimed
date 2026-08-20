@@ -1,0 +1,46 @@
+{
+  "name": "reclaimed",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Georgia Unclaimed Property CDR platform — compliance-first",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:compliance": "vitest run tests/compliance",
+    "test:e2e": "playwright test",
+    "verify:forms": "tsx scripts/verify-forms.ts",
+    "verify:legend": "tsx scripts/verify-legend.ts",
+    "verify:no-payments": "tsx scripts/verify-no-payments.ts",
+    "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:forms && pnpm verify:legend",
+    "verify:templates": "tsx scripts/verify-outbound-templates.ts"
+  },
+  "dependencies": {
+    "next": "^16.3.1",
+    "pdf-lib": "^1.17.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "jsdom": "^30.0.1",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2",
+    "unpdf": "^1.8.1",
+    "vitest": "^4.1.11"
+  }
+}

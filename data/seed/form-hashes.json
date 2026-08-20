@@ -1,0 +1,26 @@
+{
+  "UP-CDR1": {
+    "sha256": "a926b2d51f83255e1aecbdceb12bee04b69fd3eb0850c1581a449282bce1d02d",
+    "byteLength": 204980,
+    "pinnedAt": "2026-08-20T18:06:29.391Z",
+    "rev": "unknown"
+  },
+  "UP-CDR2": {
+    "sha256": "2ba06b30bf0f814560ef565fcc4d9b6b8eb5cf5af41bd0b60d0d0300e4711c2f",
+    "byteLength": 210930,
+    "pinnedAt": "2026-08-20T18:06:29.586Z",
+    "rev": "unknown"
+  },
+  "UP-CDR3": {
+    "sha256": "778d32a51d88fd817e0c491c80a3674038d80c78823dde89ab3162448a9211b0",
+    "byteLength": 102273,
+    "pinnedAt": "2026-08-20T18:06:29.775Z",
+    "rev": "unknown"
+  },
+  "UP-CDR4": {
+    "sha256": "a264acf84fae93ea7bd8c841f5fec65d076ddb78cfbb2a9ef4263f0f9f653b68",
+    "byteLength": 242470,
+    "pinnedAt": "2026-08-20T18:06:29.956Z",
+    "rev": "unknown"
+  }
+}
