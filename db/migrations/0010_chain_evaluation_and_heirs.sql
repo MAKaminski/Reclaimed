@@ -1,0 +1,26 @@
+-- Applied to project cuaeplfeignnlptfugcv. See supabase migration history for the
+-- authoritative text; this file records intent and rationale.
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0010 — Chain evaluation and the § 44-12-220(i) heir affidavit path.
+--
+-- authority_chain_state view
+--     chain_confidence = MIN(link confidence). NOT the mean — one weak link is
+--     a weak chain. Also surfaces invalidated evidence, rejected and unreviewed
+--     links, non-active entity status, and sequence contiguity.
+--
+-- chain_submittable(property_id)
+--     The gate. Returns submittable + reasons. A claim below threshold cannot be
+--     submitted, only escalated to a NAMED human reviewer. Verified: a chain that
+--     passed at 0.880 became non-submittable the moment one of its documents was
+--     marked forged.
+--
+-- heir_claims / heirs + heir_claim_ready(claim_id)
+--     SB 403 § 44-12-220(i): aggregate ≤ $7,500, affidavit signed by ALL heirs,
+--     amicable division, funeral and lawful claims paid, will attached if
+--     testate, and NO Georgia probate pending or EVER filed.
+--
+--     The completeness gate refuses a partial heir set. Three signatures out of
+--     four is not an all-heir affidavit — it is a document the fourth heir can
+--     act against, and recipients are personally liable to estate creditors up
+--     to the value received.

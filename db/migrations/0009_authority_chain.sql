@@ -1,0 +1,33 @@
+-- Applied to project cuaeplfeignnlptfugcv. See supabase migration history for the
+-- authoritative text; this file records intent and rationale.
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0009 — Entities, evidence, and THE AUTHORITY CHAIN.
+--
+-- The most safety-critical subsystem in the codebase. Every criminal
+-- prosecution in this industry turned on forged authority, not fee abuse:
+-- US v. Pendergrass & McQueen (N.D. Ga., 2017) ran eight shell "asset recovery"
+-- companies on FORGED POWER-OF-ATTORNEY FORMS against local BUSINESSES —
+-- targeted specifically because a dissolved entity has nobody left to object.
+-- That is the exact segment this platform enters.
+--
+-- Design rules, each enforced by the DATABASE rather than by application code a
+-- future refactor could drop:
+--
+--   authority_links.evidence_document_id  NOT NULL
+--       No link may be asserted without an uploaded document.
+--
+--   evidence_immutable trigger
+--       storage_path, sha256, byte_size, kind, uploaded_by are frozen after
+--       insert. To correct a document you upload a new one and INVALIDATE the
+--       old — the trail of what we relied on, and when, IS the defence.
+--
+--   evidence_no_delete / links_no_delete rules
+--       Nothing in the chain is ever removed.
+--
+--   authority_links_audit trigger
+--       Every insert and update writes an immutable audit_log row citing
+--       § 44-12-224(b).
+--
+-- Tables: entities, evidence_documents, authority_links.
+-- Enums:  entity_status, evidence_kind, authority_link_type, link_review_status.

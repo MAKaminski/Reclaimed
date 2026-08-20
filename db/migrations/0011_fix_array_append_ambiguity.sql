@@ -1,0 +1,15 @@
+-- Applied to project cuaeplfeignnlptfugcv. See supabase migration history for the
+-- authoritative text; this file records intent and rationale.
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0011 — Fix `text[] || 'literal'` ambiguity in chain_submittable and
+--        heir_claim_ready.
+--
+-- Postgres resolves an untyped string literal on the right of || against
+-- anyarray || anyarray BEFORE anyarray || anyelement, so a bare literal is
+-- parsed as an array literal and throws 22P02 "malformed array literal".
+--
+-- The format(...) branches returned typed text and worked, which is why this
+-- only surfaced when the invalidated-evidence branch fired — i.e. when testing
+-- the forged-document path, which is the single most important branch in the
+-- function. Every append is now explicitly ::text.
