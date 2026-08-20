@@ -21,11 +21,16 @@
     "verify:legend": "tsx scripts/verify-legend.ts",
     "verify:no-payments": "tsx scripts/verify-no-payments.ts",
     "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:forms && pnpm verify:legend",
-    "verify:templates": "tsx scripts/verify-outbound-templates.ts"
+    "verify:templates": "tsx scripts/verify-outbound-templates.ts",
+    "ingest": "tsx scripts/ingest.ts",
+    "fixture": "tsx scripts/generate-fixture.ts",
+    "seed:rules": "tsx scripts/seed-state-rules.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.3",
     "next": "^16.3.1",
     "pdf-lib": "^1.17.1",
+    "postgres": "^3.4.9",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "zod": "^4.4.3"
