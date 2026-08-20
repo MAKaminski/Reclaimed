@@ -174,3 +174,37 @@ defective agreement. Page 6 was rendered and the printed labels read directly.
 Two defects were caught the same way and would not have been caught otherwise:
 the form prints its own `$`, so amounts rendered as `$ $63,825.50`; and the fee
 had to be shown to land at exactly 30% *with costs inside it*, not on top.
+
+## ADR-0007 — PostHog deferred pending an explicit decision
+
+**Date:** 2026-08-20 · **Status:** Open — needs the owner's decision
+
+The build spec lists PostHog in the tech stack (§3), but no phase requires it and
+it is **not installed**. That is a deliberate hold, not an oversight.
+
+The concern is § 44-12-239.1(b): a CDR receiving the statutory database "is
+prohibited from distributing such information **except for the purpose of
+soliciting owners of unclaimed property to offer claim services**," with
+violations referred to the Attorney General.
+
+Product analytics on a staff-only tool is not obviously a problem — it observes
+staff behaviour, not owners. The problem is what leaks into event properties. A
+single `posthog.capture('property_viewed', { ownerName, cashAmount })` sends
+CDR-file-derived owner data to a third-party processor, and that is a
+distribution the statute does not permit. It is exactly the kind of thing that
+gets added later by someone debugging a funnel.
+
+**Options:**
+
+1. **Do not install it.** Zero risk. Lose staff-usage analytics on a tool with a
+   handful of users, where the value is low anyway.
+2. **Install it with a hard guard** — an allowlist of event properties enforced
+   by a CI check, plus `person_profiles: 'never'`, so no owner-derived field can
+   be captured even by accident.
+3. **Self-host it**, keeping the data inside our own boundary.
+
+**Recommendation: (1) for now, (2) if analytics become genuinely needed.** The
+addressable question is "which claims convert", and that is answered from
+`property_scores` and `claims` in our own database — which is where the
+back-testing loop for `lib/scoring/params.ts` already points. A third-party pipe
+adds statutory exposure without answering a question we cannot already answer.
