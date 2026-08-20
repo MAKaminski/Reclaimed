@@ -1,0 +1,30 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0014 — Claims, submissions, expected receipts. (Applied to cuaeplfeignnlptfugcv.)
+--
+-- THERE IS NO CDR E-FILING PORTAL. Claims are EMAILED as PDFs to
+-- ucp.cdr.claims@dor.ga.gov, so submission is an outbound email with an
+-- idempotency key and a stored copy of the EXACT BYTES SENT. If DOR later
+-- disputes what it received, the answer must be a retrieval, not a
+-- reconstruction.
+--
+-- Clocks are set by TRIGGER, not by a generated column: `timestamptz + interval`
+-- is not immutable (it depends on the TimeZone setting), so Postgres rejects it
+-- in a generated expression.
+--   90 days  decision   § 44-12-220(b)      set on submission
+--   60 days  payment    § 44-12-220(d)(3)   set on approval, to BOTH parties
+--   90 days  appeal     § 44-12-221         set on denial
+--
+-- CHECK claims_go_to_dor
+--     recipient_email must be ucp.cdr.claims@dor.ga.gov. A misaddressed claim
+--     is not filed.
+-- UNIQUE idempotency_key
+--     The same payload cannot be submitted twice; a DIFFERENT payload yields a
+--     different key, which is correct — a corrected claim is a new filing.
+--
+-- expected_receipts carries tax_offset_cents because § 44-12-220(c)(2) (SB 403)
+-- offsets payment against unpaid Georgia tax liability FIRST. The amount
+-- received may legitimately be less than approved; that is not a discrepancy.
+--
+-- Verified live: a misaddressed claim and a duplicate submission were both
+-- refused; a claim submitted 45 days ago showed 45 days to decision; approval
+-- set payment due exactly 60 days out.
