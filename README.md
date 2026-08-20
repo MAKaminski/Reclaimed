@@ -45,6 +45,34 @@ The kill switch defaults to `unregistered`. Nothing sends, nothing generates an
 agreement, and no DOR data is accepted until registration completes — see
 `docs/RUNBOOK.md`. **The build is not the gate. Registration is.**
 
+All seven phases are built:
+
+| Phase | What exists |
+| --- | --- |
+| 0 Compliance | Rules engine, `computeFee`, byte-verified legend, brandGuard, kill switch, blocked hosts |
+| 1 Ingest | Format-sniffing parser, staging + server-side diff, `disappeared` halt. 1 GB in 13s |
+| 2 Scoring | EV model with versioned, documented priors and logged inputs; EV-ranked queue |
+| 3 Locate | Evidence-gated authority chain (min-confidence), § 44-12-220(i) heir path |
+| 4 Agreements | UP-CDR2 generation from the real DOR PDF, golden-file tested |
+| 5 Outreach | One send gate, cross-channel permanent suppression, mail-first |
+| 6 Claims | Email submission with idempotency, 90/60-day clocks, expected receipts |
+| 7 Verification | Five CI gates, 234 unit/compliance tests, 7 E2E |
+
+**Supabase:** project `reclaimed` (us-east-1), 15 migrations applied, RLS
+deny-all verified end to end. Set `DATABASE_URL` from the dashboard before
+running `pnpm ingest` — the >1GB weekly file is COPY-loaded over a direct
+connection, not through the REST API.
+
+## Commands
+
+```bash
+pnpm ingest --file <path> --dry-run   # validate a weekly delivery, load nothing
+pnpm ingest --file <path>             # stage, diff, emit events
+pnpm score                            # score the priority tier
+pnpm seed:rules                       # load state rules in full
+pnpm discover:fields                  # re-enumerate DOR form fields
+```
+
 ## Do not
 
 - Add Stripe, or any payments integration. Re-read `docs/DECISIONS.md` ADR-0001.

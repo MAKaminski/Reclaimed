@@ -100,3 +100,77 @@ its constant against `data/seed/legend-attestation.json` on every load. **Any
 drift in either direction reverts to unverified, and every outbound render path
 throws `LegendUnverifiedError`.** Editing the attestation by hand to unblock a
 send is the exact failure mode the file exists to prevent.
+
+---
+
+## ADR-0004 — Conservatism belongs in the gate, not the ranking
+
+**Date:** 2026-08-20 · **Status:** Accepted
+
+This codebase resolves genuinely-unknown facts conservatively: the 120-day
+window treats an unknown delivery date as *inside* the window, and the authority
+chain refuses to submit a claim it cannot evidence. Both are correct, because
+both gate an **action with legal consequences**.
+
+Ranking is different, and conflating the two was a real bug.
+
+The scoring model originally treated `entityStatus: 'unknown'` — meaning *we
+have not run the SOS match yet* — as though the entity were dissolved, applying
+the penalty twice: once to contactability, once to provability. The effect was
+to bury every entity-owned property beneath individual ones, before Phase 3 had
+looked up a single entity. But entity-owned property is, per SB 403, precisely
+the addressable market.
+
+**Decision:** split the states. `unchecked` (not yet looked up) uses a blended
+prior weighted toward active, because most registered entities are in good
+standing. `unknown` (looked up, indeterminate) stays pessimistic. The
+conservatism lives in `chain_submittable()`, which is the thing that can
+actually cause harm.
+
+## ADR-0005 — Cost is staged by when it is incurred
+
+**Date:** 2026-08-20 · **Status:** Accepted
+
+The expected-value model originally scaled the entire cost of working a property
+by `P(contactable)`. That produced a perverse result caught by a test: on a small
+claim, a *more* reachable owner scored *worse*, because the model assumed we
+would do the full evidence assembly on someone who never replied.
+
+**Decision:** cost is decomposed by the stage at which it is actually spent —
+first-touch mail unconditionally, follow-ups on contact, notary reimbursement and
+evidence assembly only on signing. The expected cost weights each stage by the
+probability of reaching it.
+
+This also matters for the cap: § 44-12-224(d)(1) counts costs *inside* the 30%,
+so the **full** cost is what goes to `computeFee`, while the **staged** cost is
+what goes into the EV. Those are different numbers and conflating them either
+overstates EV or understates the cap basis.
+
+## ADR-0006 — The DOR forms are fully fillable; no coordinate stamping
+
+**Date:** 2026-08-20 · **Status:** Accepted · **Supersedes a planning assumption**
+
+Planning assumed UP-CDR2 exposed only ~14 AcroForm fields — too few for a form
+whose §I alone lists 15 properties — and therefore that generation would need a
+hybrid of named-field filling and coordinate stamping.
+
+That was wrong, and the cause is worth recording: the estimate came from a raw
+`strings` scan of the PDF, which cannot see inside compressed object streams.
+`pdf-lib` decompresses properly and finds **63** fields on UP-CDR2, 42 on
+UP-CDR4, 51 on UP-CDR1, 13 on UP-CDR3.
+
+The property tables are physically bounded by the forms: UP-CDR2 has exactly 15
+rows, UP-CDR4 exactly 5 — matching the statutory limits, which cannot be
+overfilled.
+
+**Decision:** fill named AcroForm fields only. No coordinate stamping anywhere.
+
+**The mapping was confirmed by rendering the page, not inferred.** The §II fields
+are named `fill_2` … `fill_12`, which say nothing about which is the fee
+percentage and which is the net to claimant. Guessing from coordinates would have
+been plausible and possibly wrong, and § 44-12-224(b) voids the claim on a
+defective agreement. Page 6 was rendered and the printed labels read directly.
+
+Two defects were caught the same way and would not have been caught otherwise:
+the form prints its own `$`, so amounts rendered as `$ $63,825.50`; and the fee
+had to be shown to land at exactly 30% *with costs inside it*, not on top.
