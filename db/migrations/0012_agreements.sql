@@ -1,0 +1,23 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0012 — Agreements. (Applied to project cuaeplfeignnlptfugcv.)
+--
+-- § 44-12-224(b): using the wrong form, or a defective one, VOIDS the
+-- representative's claim. An agreement row therefore carries a FROZEN SNAPSHOT
+-- of the fee computation, the rules version, and the form hash — if the law or
+-- the form changes, a historical agreement must still render exactly as signed.
+--
+-- freeze_agreement_after_send() trigger refuses, once sent_at is set:
+--   · any change to property_ids
+--       "No property may be added to the form after it has been received."
+--   · any change to claimant_mailing_address
+--       WRITE-LOCKED. This is where DOR pays the claimant under
+--       § 44-12-220(d)(3). Every criminal prosecution in this industry involved
+--       redirecting it. A change requires a RE-SIGNED agreement, not an edit.
+--   · any change to fee_snapshot, fee_pct, fee_cents, or form_sha256
+--
+-- CHECK constraints mirror the forms' physical row counts: 15 for UP-CDR2,
+-- 5 for UP-CDR4.
+--
+-- Verified against the live database: an attempted address redirect after
+-- sending, an attempted property addition after sending, and a 16-property
+-- UP-CDR2 row were all refused.

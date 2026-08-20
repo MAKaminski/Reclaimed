@@ -25,7 +25,8 @@
     "ingest": "tsx scripts/ingest.ts",
     "fixture": "tsx scripts/generate-fixture.ts",
     "seed:rules": "tsx scripts/seed-state-rules.ts",
-    "score": "tsx scripts/score.ts"
+    "score": "tsx scripts/score.ts",
+    "discover:fields": "tsx scripts/discover-form-fields.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

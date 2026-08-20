@@ -1,0 +1,2021 @@
+[
+  {
+    "form": "UP-CDR1",
+    "pageCount": 5,
+    "pageSizes": [
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      }
+    ],
+    "hasAcroForm": true,
+    "fieldCount": 51,
+    "fields": [
+      {
+        "name": "1 Full Legal Name",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 54.84,
+          "y": 603.359985,
+          "width": 311.279995,
+          "height": 28.799987999999985
+        }
+      },
+      {
+        "name": "2 Trade Names DBA names or other business name if any",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 368.279999,
+          "y": 603.359985,
+          "width": 189.480011,
+          "height": 19.080016999999998
+        }
+      },
+      {
+        "name": "3 Federal Employer Identification Number FEIN Social Security Number for individuals",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 54.84,
+          "y": 558.359985,
+          "width": 311.279995,
+          "height": 26.400024999999914
+        }
+      },
+      {
+        "name": "4 If publicly traded please provide CIK CodeTicker symbol Provide DUNS number if any",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 368.160004,
+          "y": 558.359985,
+          "width": 189.72000099999997,
+          "height": 17.52001999999993
+        }
+      },
+      {
+        "name": "undefined",
+        "type": "checkbox",
+        "pageIndex": 2,
+        "rect": {
+          "x": 413.279999,
+          "y": 540.119995,
+          "width": 7.679992000000027,
+          "height": 7.679992999999968
+        }
+      },
+      {
+        "name": "undefined_2",
+        "type": "checkbox",
+        "pageIndex": 2,
+        "rect": {
+          "x": 458.519989,
+          "y": 540.119995,
+          "width": 7.680023000000006,
+          "height": 7.679992999999968
+        }
+      },
+      {
+        "name": "6 Address of Principal Place of BusinessMailing Address",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 55.080002,
+          "y": 477.600006,
+          "width": 502.20002700000003,
+          "height": 44.04000899999994
+        }
+      },
+      {
+        "name": "7. Georgia Address",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 56.2104,
+          "y": 425.359985,
+          "width": 499.58159200000006,
+          "height": 32.25802600000003
+        }
+      },
+      {
+        "name": "7 If Registrants principal place of business is not in the State of Georgia does Registrant maintain an office in Georgia If yes",
+        "type": "radio",
+        "pageIndex": 2,
+        "rect": {
+          "x": 183.240005,
+          "y": 459.359985,
+          "width": 7.679992999999996,
+          "height": 7.680024000000003
+        },
+        "options": [
+          "YES",
+          "NO"
+        ]
+      },
+      {
+        "name": "8 State of Corporate Formation If incorporated you must provide proof of formation and proof of registration with Georgia Secretary of State",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 54.84,
+          "y": 369.839996,
+          "width": 250.08001299999998,
+          "height": 28.80001900000002
+        }
+      },
+      {
+        "name": "9 Corporate form Corporation Limited Liability Company LLCPLLC Partnership LLP LP or General Sole Proprietor Other explain",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 307.200012,
+          "y": 369.839996,
+          "width": 250.32000800000003,
+          "height": 28.80001900000002
+        }
+      },
+      {
+        "name": "10 Primary Contact Name",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 54.84,
+          "y": 328.799988,
+          "width": 165.960003,
+          "height": 28.800018000000023
+        }
+      },
+      {
+        "name": "11 Primary Contact Telephone Number",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 223.080002,
+          "y": 328.799988,
+          "width": 166.19999699999997,
+          "height": 28.800018000000023
+        }
+      },
+      {
+        "name": "12 Primary Contact Email Address",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 391.559998,
+          "y": 328.799988,
+          "width": 165.96002200000004,
+          "height": 28.800018000000023
+        }
+      },
+      {
+        "name": "13 Been involved as a plaintiff or defendant in a lawsuit with a state or any state agency within the last five 5 years YES NO",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 54.360001,
+          "y": 246.839996,
+          "width": 503.639999,
+          "height": 13.200012999999984
+        }
+      },
+      {
+        "name": "undefined_3",
+        "type": "checkbox",
+        "pageIndex": 2,
+        "rect": {
+          "x": 59.639999,
+          "y": 260.399994,
+          "width": 7.68000099999999,
+          "height": 7.6799930000000245
+        }
+      },
+      {
+        "name": "undefined_4",
+        "type": "checkbox",
+        "pageIndex": 2,
+        "rect": {
+          "x": 98.279999,
+          "y": 260.399994,
+          "width": 7.679999999999993,
+          "height": 7.6799930000000245
+        }
+      },
+      {
+        "name": "14 Been subject of an investigation as a plantiff",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 146.473007,
+          "y": 200.561005,
+          "width": 410.69398500000005,
+          "height": 14.50900200000001
+        }
+      },
+      {
+        "name": "outcome",
+        "type": "radio",
+        "pageIndex": 2,
+        "rect": {
+          "x": 59.639999,
+          "y": 201.119995,
+          "width": 7.68000099999999,
+          "height": 7.680008000000015
+        },
+        "options": [
+          "YES_2",
+          "NO_2"
+        ]
+      },
+      {
+        "name": "15 Been accused of a breach of fiduciary duty in any civil",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 136,
+          "y": 161.287994,
+          "width": 423.130005,
+          "height": 11.891007000000002
+        }
+      },
+      {
+        "name": "circumstances and outcome of the proceeding",
+        "type": "radio",
+        "pageIndex": 2,
+        "rect": {
+          "x": 59.639999,
+          "y": 163.800003,
+          "width": 7.68000099999999,
+          "height": 7.679992999999996
+        },
+        "options": [
+          "YES_3",
+          "NO_3"
+        ]
+      },
+      {
+        "name": "16 Filed for bankruptcy protection in any state within the last seven 7 YES NO",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 54.360001,
+          "y": 118.440002,
+          "width": 503.639999,
+          "height": 13.319992999999997
+        }
+      },
+      {
+        "name": "undefined_5",
+        "type": "checkbox",
+        "pageIndex": 2,
+        "rect": {
+          "x": 59.639999,
+          "y": 132.119995,
+          "width": 7.68000099999999,
+          "height": 7.680008000000015
+        }
+      },
+      {
+        "name": "undefined_6",
+        "type": "checkbox",
+        "pageIndex": 2,
+        "rect": {
+          "x": 98.279999,
+          "y": 132.119995,
+          "width": 7.679999999999993,
+          "height": 7.680008000000015
+        }
+      },
+      {
+        "name": "17. Had a data breach inpacting personal",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 120.945,
+          "y": 80.718803,
+          "width": 439.49500200000006,
+          "height": 12.010796
+        }
+      },
+      {
+        "name": "last seven 7 years",
+        "type": "radio",
+        "pageIndex": 2,
+        "rect": {
+          "x": 59.639999,
+          "y": 81.959999,
+          "width": 7.68000099999999,
+          "height": 7.680000000000007
+        },
+        "options": [
+          "YES_4",
+          "NO_4"
+        ]
+      },
+      {
+        "name": "Telephone Number",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.48,
+          "y": 516.47998,
+          "width": 230.75999,
+          "height": 19.920044000000075
+        }
+      },
+      {
+        "name": "Telephone Number_2",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.48,
+          "y": 415.079987,
+          "width": 230.75999,
+          "height": 19.920012999999983
+        }
+      },
+      {
+        "name": "18 Been the subject of any lien or judgement",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.121399,
+          "y": 679.036011,
+          "width": 505.723572,
+          "height": 13.200012000000015
+        }
+      },
+      {
+        "name": "18 Been the subject of any lien or judgement in excess of 50000 within the last seven 7 years",
+        "type": "radio",
+        "pageIndex": 3,
+        "rect": {
+          "x": 59.639999,
+          "y": 692.640015,
+          "width": 7.68000099999999,
+          "height": 7.679992000000084
+        },
+        "options": [
+          "YES_5",
+          "NO_5"
+        ]
+      },
+      {
+        "name": "19 Had any liquidated damages assessed in excess of 25000 within the last seven 7 YES NO",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.240002,
+          "y": 638.159973,
+          "width": 503.759998,
+          "height": 13.200012000000015
+        }
+      },
+      {
+        "name": "undefined_7",
+        "type": "checkbox",
+        "pageIndex": 3,
+        "rect": {
+          "x": 59.639999,
+          "y": 651.719971,
+          "width": 7.68000099999999,
+          "height": 7.6800530000000435
+        }
+      },
+      {
+        "name": "undefined_8",
+        "type": "checkbox",
+        "pageIndex": 3,
+        "rect": {
+          "x": 93.839996,
+          "y": 651.719971,
+          "width": 7.680001000000004,
+          "height": 7.6800530000000435
+        }
+      },
+      {
+        "name": "Full Legal Name last name first name",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.48,
+          "y": 572.640015,
+          "width": 311.879985,
+          "height": 19.919983000000002
+        }
+      },
+      {
+        "name": "Social Security Number",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 368.160004,
+          "y": 572.640015,
+          "width": 189.60000599999995,
+          "height": 19.919983000000002
+        }
+      },
+      {
+        "name": "Mailing Address",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.48,
+          "y": 544.559998,
+          "width": 503.28000999999995,
+          "height": 19.919982000000005
+        }
+      },
+      {
+        "name": "Email Address",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 287.040009,
+          "y": 516.47998,
+          "width": 270.72000099999997,
+          "height": 19.920044000000075
+        }
+      },
+      {
+        "name": "Full Legal Name last name first name_2",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.48,
+          "y": 471.23999,
+          "width": 311.879985,
+          "height": 19.920014000000037
+        }
+      },
+      {
+        "name": "Social Security Number_2",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 368.160004,
+          "y": 471.23999,
+          "width": 189.60000599999995,
+          "height": 19.920014000000037
+        }
+      },
+      {
+        "name": "Mailing Address_2",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.48,
+          "y": 443.160004,
+          "width": 503.28000999999995,
+          "height": 19.919983000000002
+        }
+      },
+      {
+        "name": "Email Address_2",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 287.040009,
+          "y": 415.079987,
+          "width": 270.72000099999997,
+          "height": 19.920012999999983
+        }
+      },
+      {
+        "name": "Full Legal Name",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.48,
+          "y": 369.839996,
+          "width": 311.879985,
+          "height": 19.920014000000037
+        }
+      },
+      {
+        "name": "Social Security Number_3",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 368.160004,
+          "y": 369.839996,
+          "width": 189.60000599999995,
+          "height": 19.920014000000037
+        }
+      },
+      {
+        "name": "Mailing Address_3",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.48,
+          "y": 341.640015,
+          "width": 503.28000999999995,
+          "height": 19.919983000000002
+        }
+      },
+      {
+        "name": "Telephone Number_3",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 54.48,
+          "y": 313.559998,
+          "width": 230.75999,
+          "height": 19.920012999999983
+        }
+      },
+      {
+        "name": "Email Address_3",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 287.040009,
+          "y": 313.559998,
+          "width": 270.72000099999997,
+          "height": 19.920012999999983
+        }
+      },
+      {
+        "name": "and complete If Registrant is a business the signatory below is provided by an authorized employee or",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 79.559998,
+          "y": 273.480011,
+          "width": 145.08000099999998,
+          "height": 19.559998000000007
+        }
+      },
+      {
+        "name": "Signature1_es_:signer:signature",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 19.92,
+          "y": 211.919998,
+          "width": 280.08,
+          "height": 19.559998000000007
+        }
+      },
+      {
+        "name": "Printed Name of Registrant",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 311.040009,
+          "y": 211.919998,
+          "width": 280.079986,
+          "height": 19.559998000000007
+        }
+      },
+      {
+        "name": "Title of Registrant",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 19.92,
+          "y": 173.399994,
+          "width": 280.08,
+          "height": 19.560012999999998
+        }
+      },
+      {
+        "name": "Date",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 311.040009,
+          "y": 173.399994,
+          "width": 280.079986,
+          "height": 19.560012999999998
+        }
+      }
+    ]
+  },
+  {
+    "form": "UP-CDR2",
+    "pageCount": 9,
+    "pageSizes": [
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      }
+    ],
+    "hasAcroForm": true,
+    "fieldCount": 63,
+    "fields": [
+      {
+        "name": "Property IDRow1",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 419.76001,
+          "width": 173.16000300000002,
+          "height": 19.799987999999985
+        }
+      },
+      {
+        "name": "fill_17",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 333.131012,
+          "y": 418.69101,
+          "width": 161.14898699999998,
+          "height": 22.66897499999999
+        }
+      },
+      {
+        "name": "Property IDRow2",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 398.519989,
+          "width": 173.16000300000002,
+          "height": 19.920012999999983
+        }
+      },
+      {
+        "name": "fill_18",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 333.785004,
+          "y": 400.069,
+          "width": 160.49499499999996,
+          "height": 18.087005999999974
+        }
+      },
+      {
+        "name": "Property IDRow3",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 377.279999,
+          "width": 173.16000300000002,
+          "height": 19.92001300000004
+        }
+      },
+      {
+        "name": "fill_19",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 334.559998,
+          "y": 376.210999,
+          "width": 159.600006,
+          "height": 22.669005999999968
+        }
+      },
+      {
+        "name": "Property IDRow4",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 356.279999,
+          "width": 173.16000300000002,
+          "height": 19.679992000000027
+        }
+      },
+      {
+        "name": "fill_20",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 334.440002,
+          "y": 355.744995,
+          "width": 159.83999699999998,
+          "height": 22.135009999999966
+        }
+      },
+      {
+        "name": "Property IDRow5",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 335.160004,
+          "width": 173.16000300000002,
+          "height": 19.799986999999987
+        }
+      },
+      {
+        "name": "fill_21",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 333.785004,
+          "y": 335.399994,
+          "width": 160.49499499999996,
+          "height": 19.395996000000025
+        }
+      },
+      {
+        "name": "Property IDRow6",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 314.040009,
+          "width": 173.16000300000002,
+          "height": 19.799986999999987
+        }
+      },
+      {
+        "name": "fill_22",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 334.440002,
+          "y": 314.279999,
+          "width": 159.83999699999998,
+          "height": 18.74200400000001
+        }
+      },
+      {
+        "name": "Property IDRow7",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 292.920013,
+          "width": 173.16000300000002,
+          "height": 19.79998800000004
+        }
+      },
+      {
+        "name": "fill_23",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 334.440002,
+          "y": 293.902008,
+          "width": 159.83999699999998,
+          "height": 19.22198499999996
+        }
+      },
+      {
+        "name": "Property IDRow8",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 271.799988,
+          "width": 173.16000300000002,
+          "height": 19.800018000000023
+        }
+      },
+      {
+        "name": "fill_24",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 334.113007,
+          "y": 271.799988,
+          "width": 160.166992,
+          "height": 20.858002
+        }
+      },
+      {
+        "name": "Property IDRow9",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 250.679993,
+          "width": 173.16000300000002,
+          "height": 19.800017999999994
+        }
+      },
+      {
+        "name": "fill_25",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 334.440002,
+          "y": 251.988998,
+          "width": 160.166993,
+          "height": 19.222001000000006
+        }
+      },
+      {
+        "name": "Property IDRow10",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 229.679993,
+          "width": 173.16000300000002,
+          "height": 19.680008000000015
+        }
+      },
+      {
+        "name": "fill_26",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 333.458008,
+          "y": 230.335007,
+          "width": 160.82199099999997,
+          "height": 19.75599600000001
+        }
+      },
+      {
+        "name": "Property IDRow11",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 208.559998,
+          "width": 173.16000300000002,
+          "height": 19.800003000000004
+        }
+      },
+      {
+        "name": "fill_27",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 334.113007,
+          "y": 208.886993,
+          "width": 161.14898600000004,
+          "height": 20.858002
+        }
+      },
+      {
+        "name": "Property IDRow12",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 187.440002,
+          "width": 173.16000300000002,
+          "height": 19.800003000000004
+        }
+      },
+      {
+        "name": "fill_28",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 332.148987,
+          "y": 187.766998,
+          "width": 162.131012,
+          "height": 20.53100599999999
+        }
+      },
+      {
+        "name": "Property IDRow13",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 166.320007,
+          "width": 173.16000300000002,
+          "height": 19.799987999999985
+        }
+      },
+      {
+        "name": "fill_29",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 331.166992,
+          "y": 165.992996,
+          "width": 163.11300699999998,
+          "height": 20.53100599999999
+        }
+      },
+      {
+        "name": "Property IDRow14",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 145.199997,
+          "width": 173.16000300000002,
+          "height": 19.800003000000004
+        }
+      },
+      {
+        "name": "fill_30",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 331.166992,
+          "y": 145.526993,
+          "width": 163.11300699999998,
+          "height": 21.186003999999997
+        }
+      },
+      {
+        "name": "Property IDRow15",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 145.559998,
+          "y": 124.080002,
+          "width": 173.16000300000002,
+          "height": 19.800003000000018
+        }
+      },
+      {
+        "name": "fill_31",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 330.513,
+          "y": 124.406998,
+          "width": 163.766999,
+          "height": 20.20399400000001
+        }
+      },
+      {
+        "name": "fill_2",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 425.531,
+          "y": 603.364,
+          "width": 142.06900000000002,
+          "height": 18.836000000000013
+        }
+      },
+      {
+        "name": "fill_4",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 423.927002,
+          "y": 570.960022,
+          "width": 143.31298800000002,
+          "height": 30.41497800000002
+        }
+      },
+      {
+        "name": "fill_6",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 422.618011,
+          "y": 539.400024,
+          "width": 144.621979,
+          "height": 29.759949000000006
+        }
+      },
+      {
+        "name": "fill_8",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 421.604004,
+          "y": 518.159973,
+          "width": 145.995972,
+          "height": 20.455016999999998
+        }
+      },
+      {
+        "name": "fill_10",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 425.890991,
+          "y": 444.720001,
+          "width": 141.34899900000005,
+          "height": 30.415008999999998
+        }
+      },
+      {
+        "name": "fill_12",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 427.494995,
+          "y": 423.600006,
+          "width": 140.10498099999995,
+          "height": 20.214995999999985
+        }
+      },
+      {
+        "name": "1 Name",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 43.887299,
+          "y": 303.119995,
+          "width": 292.679687,
+          "height": 10.800017999999966
+        }
+      },
+      {
+        "name": "2 Phone Number",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 337.320007,
+          "y": 303.119995,
+          "width": 230.88000500000004,
+          "height": 10.800017999999966
+        }
+      },
+      {
+        "name": "3 Mailing Address",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 43.560001,
+          "y": 283.559998,
+          "width": 524.640011,
+          "height": 11.040008
+        }
+      },
+      {
+        "name": "4 Email",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 43.560001,
+          "y": 263.880005,
+          "width": 292.679989,
+          "height": 10.919983000000002
+        }
+      },
+      {
+        "name": "5 Tax ID or SSN",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 337.320007,
+          "y": 263.880005,
+          "width": 230.88000500000004,
+          "height": 10.919983000000002
+        }
+      },
+      {
+        "name": "6 Name",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 43.200001,
+          "y": 200.759995,
+          "width": 292.799999,
+          "height": 10.919997999999993
+        }
+      },
+      {
+        "name": "7 Phone Number",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 337.079987,
+          "y": 200.759995,
+          "width": 230.88003499999996,
+          "height": 10.919997999999993
+        }
+      },
+      {
+        "name": "8 Mailing Address",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 43.200001,
+          "y": 181.320007,
+          "width": 524.7600209999999,
+          "height": 10.919997999999993
+        }
+      },
+      {
+        "name": "9 Email",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 43.200001,
+          "y": 161.639999,
+          "width": 292.799999,
+          "height": 10.919999000000018
+        }
+      },
+      {
+        "name": "10 Tax ID or SSN",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 337.079987,
+          "y": 161.639999,
+          "width": 230.88003499999996,
+          "height": 10.919999000000018
+        }
+      },
+      {
+        "name": "1 Name of CDR",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 43.887299,
+          "y": 654.23999,
+          "width": 261.479705,
+          "height": 10.919983000000002
+        }
+      },
+      {
+        "name": "2 Name of AgentEmployee",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 306.446991,
+          "y": 654.23999,
+          "width": 261.480011,
+          "height": 10.919983000000002
+        }
+      },
+      {
+        "name": "3 CDRs Identification Number received from the Department upon registration",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 43.887299,
+          "y": 634.559998,
+          "width": 524.039703,
+          "height": 10.919982000000005
+        }
+      },
+      {
+        "name": "4 Address",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 43.887299,
+          "y": 615,
+          "width": 524.039703,
+          "height": 11.03997800000002
+        }
+      },
+      {
+        "name": "5 AgentEmployee Email Address",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 43.887299,
+          "y": 595.320007,
+          "width": 261.479705,
+          "height": 10.919983000000002
+        }
+      },
+      {
+        "name": "6 AgentEmployee Phone Number",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 306.446991,
+          "y": 595.320007,
+          "width": 261.480011,
+          "height": 10.919983000000002
+        }
+      },
+      {
+        "name": "undefined",
+        "type": "checkbox",
+        "pageIndex": 6,
+        "rect": {
+          "x": 311.399994,
+          "y": 418.679993,
+          "width": 9,
+          "height": 6
+        }
+      },
+      {
+        "name": "undefined_2",
+        "type": "checkbox",
+        "pageIndex": 6,
+        "rect": {
+          "x": 396,
+          "y": 418.679993,
+          "width": 9,
+          "height": 6
+        }
+      },
+      {
+        "name": "I",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 50.52,
+          "y": 250.919998,
+          "width": 192.11999899999998,
+          "height": 10.800003000000032
+        }
+      },
+      {
+        "name": "Claimant hereby authorize",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 369.480011,
+          "y": 250.919998,
+          "width": 197.27999899999998,
+          "height": 11.781998000000016
+        }
+      },
+      {
+        "name": "Please send the net amount of",
+        "type": "text",
+        "pageIndex": 7,
+        "rect": {
+          "x": 187.559998,
+          "y": 499.440002,
+          "width": 73.080017,
+          "height": 12.436005000000023
+        }
+      },
+      {
+        "name": "or net percentage of",
+        "type": "text",
+        "pageIndex": 7,
+        "rect": {
+          "x": 370.559998,
+          "y": 499.440002,
+          "width": 33.360014999999976,
+          "height": 12.436005000000023
+        }
+      },
+      {
+        "name": "Printed Name of Notary Public",
+        "type": "text",
+        "pageIndex": 7,
+        "rect": {
+          "x": 44.279999,
+          "y": 229.679993,
+          "width": 260.27999900000003,
+          "height": 15.054001
+        }
+      },
+      {
+        "name": "My Commission Expires",
+        "type": "text",
+        "pageIndex": 7,
+        "rect": {
+          "x": 163.199997,
+          "y": 183,
+          "width": 150.12000999999998,
+          "height": 12.436004999999994
+        }
+      },
+      {
+        "name": "Sworn and subscribed before this",
+        "type": "text",
+        "pageIndex": 7,
+        "rect": {
+          "x": 207.119995,
+          "y": 148.440002,
+          "width": 19.559998000000007,
+          "height": 14.72700500000002
+        }
+      },
+      {
+        "name": "day of",
+        "type": "text",
+        "pageIndex": 7,
+        "rect": {
+          "x": 255.360001,
+          "y": 148.440002,
+          "width": 62.52000399999997,
+          "height": 14.072998000000013
+        }
+      },
+      {
+        "name": "20",
+        "type": "text",
+        "pageIndex": 7,
+        "rect": {
+          "x": 331.679993,
+          "y": 148.440002,
+          "width": 21,
+          "height": 15.054992999999996
+        }
+      }
+    ]
+  },
+  {
+    "form": "UP-CDR3",
+    "pageCount": 3,
+    "pageSizes": [
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      }
+    ],
+    "hasAcroForm": true,
+    "fieldCount": 13,
+    "fields": [
+      {
+        "name": "Claimant",
+        "type": "text",
+        "pageIndex": 0,
+        "rect": {
+          "x": 72.839996,
+          "y": 420.720001,
+          "width": 230.88000500000004,
+          "height": 10.92001399999998
+        }
+      },
+      {
+        "name": "CDR",
+        "type": "text",
+        "pageIndex": 0,
+        "rect": {
+          "x": 304.799988,
+          "y": 420.720001,
+          "width": 234.60003600000005,
+          "height": 10.92001399999998
+        }
+      },
+      {
+        "name": "Claim",
+        "type": "text",
+        "pageIndex": 0,
+        "rect": {
+          "x": 72.839996,
+          "y": 401.040009,
+          "width": 230.88000500000004,
+          "height": 10.919982000000005
+        }
+      },
+      {
+        "name": "CDR Identification Number",
+        "type": "text",
+        "pageIndex": 0,
+        "rect": {
+          "x": 304.799988,
+          "y": 401.040009,
+          "width": 234.60003600000005,
+          "height": 10.919982000000005
+        }
+      },
+      {
+        "name": "Text1",
+        "type": "text",
+        "pageIndex": 0,
+        "rect": {
+          "x": 72.6549,
+          "y": 73.560501,
+          "width": 479.89209700000004,
+          "height": 262.219498
+        }
+      },
+      {
+        "name": "l",
+        "type": "text",
+        "pageIndex": 1,
+        "rect": {
+          "x": 79.800003,
+          "y": 534.47998,
+          "width": 176.87999000000002,
+          "height": 28.800049000000058
+        }
+      },
+      {
+        "name": "I agree to the additional terms and conditions stated in Section II and acknowledge that these terms and",
+        "type": "checkbox",
+        "pageIndex": 1,
+        "rect": {
+          "x": 72,
+          "y": 475.200012,
+          "width": 9.959998999999996,
+          "height": 6.59997599999997
+        }
+      },
+      {
+        "name": "Claimants Signature",
+        "type": "signature",
+        "pageIndex": 1,
+        "rect": {
+          "x": 167.039993,
+          "y": 415.079987,
+          "width": 373.19999700000005,
+          "height": 28.800017999999966
+        }
+      },
+      {
+        "name": "Date",
+        "type": "text",
+        "pageIndex": 1,
+        "rect": {
+          "x": 97.080002,
+          "y": 382.679993,
+          "width": 60.000000000000014,
+          "height": 28.800017999999966
+        }
+      },
+      {
+        "name": "I dispute the following terms and conditions stated in Section II reference any disputed terms and",
+        "type": "checkbox",
+        "pageIndex": 1,
+        "rect": {
+          "x": 72,
+          "y": 322.320007,
+          "width": 9.959998999999996,
+          "height": 6.600006000000008
+        }
+      },
+      {
+        "name": "l_2",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 79.800003,
+          "y": 640.799988,
+          "width": 176.87999000000002,
+          "height": 28.799987999999985
+        }
+      },
+      {
+        "name": "Designated Representatives Signature",
+        "type": "signature",
+        "pageIndex": 2,
+        "rect": {
+          "x": 242.039993,
+          "y": 537.719971,
+          "width": 154.19999699999997,
+          "height": 28.800049000000058
+        }
+      },
+      {
+        "name": "Date_2",
+        "type": "text",
+        "pageIndex": 2,
+        "rect": {
+          "x": 454.679993,
+          "y": 537.719971,
+          "width": 85.55999700000001,
+          "height": 28.800049000000058
+        }
+      }
+    ]
+  },
+  {
+    "form": "UP-CDR4",
+    "pageCount": 8,
+    "pageSizes": [
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      },
+      {
+        "width": 612,
+        "height": 792
+      }
+    ],
+    "hasAcroForm": true,
+    "fieldCount": 42,
+    "fields": [
+      {
+        "name": "Property IDRow1",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 145.320007,
+          "y": 359.160004,
+          "width": 173.160004,
+          "height": 19.799986999999987
+        }
+      },
+      {
+        "name": "fill_7",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 325.69101,
+          "y": 358.744995,
+          "width": 168.22900299999998,
+          "height": 21.360993000000008
+        }
+      },
+      {
+        "name": "Property IDRow2",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 145.320007,
+          "y": 337.920013,
+          "width": 173.160004,
+          "height": 19.919983000000002
+        }
+      },
+      {
+        "name": "fill_8",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 326.345001,
+          "y": 336.610992,
+          "width": 167.57501199999996,
+          "height": 22.49401899999998
+        }
+      },
+      {
+        "name": "Property IDRow3",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 145.320007,
+          "y": 316.679993,
+          "width": 173.160004,
+          "height": 19.920012999999983
+        }
+      },
+      {
+        "name": "fill_9",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 327.119995,
+          "y": 315.610992,
+          "width": 167.989014,
+          "height": 21.360015999999973
+        }
+      },
+      {
+        "name": "Property IDRow4",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 145.320007,
+          "y": 295.679993,
+          "width": 173.160004,
+          "height": 19.67999199999997
+        }
+      },
+      {
+        "name": "fill_10",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 327.654999,
+          "y": 295.265015,
+          "width": 166.265014,
+          "height": 19.396972000000005
+        }
+      },
+      {
+        "name": "Property IDRow5",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 145.320007,
+          "y": 274.440002,
+          "width": 173.160004,
+          "height": 19.919983000000002
+        }
+      },
+      {
+        "name": "fill_11",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 327,
+          "y": 273.371002,
+          "width": 166.92001299999998,
+          "height": 24.63299600000005
+        }
+      },
+      {
+        "name": "fill_13",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 410.411011,
+          "y": 172.080002,
+          "width": 128.74896200000006,
+          "height": 20.334991000000002
+        }
+      },
+      {
+        "name": "fill_15",
+        "type": "text",
+        "pageIndex": 3,
+        "rect": {
+          "x": 410.115997,
+          "y": 140.520004,
+          "width": 130.64797999999996,
+          "height": 32.912994999999995
+        }
+      },
+      {
+        "name": "fill_5",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 413.367004,
+          "y": 623.52002,
+          "width": 125.43298399999998,
+          "height": 30.294982000000005
+        }
+      },
+      {
+        "name": "Receipt signed by the claimant and if any",
+        "type": "checkbox",
+        "pageIndex": 4,
+        "rect": {
+          "x": 311.399994,
+          "y": 514.080017,
+          "width": 9,
+          "height": 6
+        }
+      },
+      {
+        "name": "Copy of check issued for payment",
+        "type": "checkbox",
+        "pageIndex": 4,
+        "rect": {
+          "x": 311.399994,
+          "y": 482.279999,
+          "width": 9,
+          "height": 6
+        }
+      },
+      {
+        "name": "Bank wire confirmation",
+        "type": "checkbox",
+        "pageIndex": 4,
+        "rect": {
+          "x": 311.399994,
+          "y": 461.76001,
+          "width": 9,
+          "height": 6
+        }
+      },
+      {
+        "name": "undefined",
+        "type": "checkbox",
+        "pageIndex": 4,
+        "rect": {
+          "x": 311.399994,
+          "y": 441.119995,
+          "width": 9,
+          "height": 6
+        }
+      },
+      {
+        "name": "Other please specify",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 311.399994,
+          "y": 420.119995,
+          "width": 216.12002600000005,
+          "height": 19.20001199999996
+        }
+      },
+      {
+        "name": "1 Name",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 72.839996,
+          "y": 317.76001,
+          "width": 232.67999300000002,
+          "height": 10.799987999999985
+        }
+      },
+      {
+        "name": "2 Phone Number",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 306.600006,
+          "y": 317.76001,
+          "width": 232.680023,
+          "height": 10.799987999999985
+        }
+      },
+      {
+        "name": "3 Mailing Address",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 72.839996,
+          "y": 298.079987,
+          "width": 466.440033,
+          "height": 10.800017999999966
+        }
+      },
+      {
+        "name": "4 Email",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 72.839996,
+          "y": 278.399994,
+          "width": 232.67999300000002,
+          "height": 10.920012999999983
+        }
+      },
+      {
+        "name": "5 Tax ID or SSN",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 306.600006,
+          "y": 278.399994,
+          "width": 232.680023,
+          "height": 10.920012999999983
+        }
+      },
+      {
+        "name": "1 Name of CDR",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 72.839996,
+          "y": 204.720001,
+          "width": 232.67999300000002,
+          "height": 10.919997999999993
+        }
+      },
+      {
+        "name": "2 Name of AgentEmployee",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 306.600006,
+          "y": 204.720001,
+          "width": 232.680023,
+          "height": 10.919997999999993
+        }
+      },
+      {
+        "name": "3 CDRs Identification Number received from the Department upon registration",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 72.839996,
+          "y": 185.160004,
+          "width": 466.440033,
+          "height": 10.800003000000004
+        }
+      },
+      {
+        "name": "4 Address",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 72.839996,
+          "y": 165.479996,
+          "width": 466.440033,
+          "height": 10.800003000000004
+        }
+      },
+      {
+        "name": "5 AgentEmployee Email Address",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 72.839996,
+          "y": 145.800003,
+          "width": 232.67999300000002,
+          "height": 10.800003000000004
+        }
+      },
+      {
+        "name": "6AgentEmployee Phone Number",
+        "type": "text",
+        "pageIndex": 4,
+        "rect": {
+          "x": 306.600006,
+          "y": 145.800003,
+          "width": 232.680023,
+          "height": 10.800003000000004
+        }
+      },
+      {
+        "name": "Has the CDR included additional terms and conditions to this Agreement",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 72.839996,
+          "y": 591,
+          "width": 234.72000200000002,
+          "height": 10.919983000000002
+        }
+      },
+      {
+        "name": "undefined_2",
+        "type": "checkbox",
+        "pageIndex": 5,
+        "rect": {
+          "x": 313.440002,
+          "y": 612.23999,
+          "width": 9,
+          "height": 6
+        }
+      },
+      {
+        "name": "undefined_3",
+        "type": "checkbox",
+        "pageIndex": 5,
+        "rect": {
+          "x": 398.040009,
+          "y": 612.23999,
+          "width": 9,
+          "height": 6
+        }
+      },
+      {
+        "name": "YES NO",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 309,
+          "y": 591,
+          "width": 229.919983,
+          "height": 21.119995000000017
+        }
+      },
+      {
+        "name": "I",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 80.279999,
+          "y": 474,
+          "width": 176.39999400000002,
+          "height": 28.799987999999985
+        }
+      },
+      {
+        "name": "Claimant hereby authorize",
+        "type": "text",
+        "pageIndex": 5,
+        "rect": {
+          "x": 388.320007,
+          "y": 474,
+          "width": 151.79998800000004,
+          "height": 28.799987999999985
+        }
+      },
+      {
+        "name": "Please send the entire claim amount of",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 256.079987,
+          "y": 651.599976,
+          "width": 68.040008,
+          "height": 28.80004800000006
+        }
+      },
+      {
+        "name": "Claimants Signature",
+        "type": "signature",
+        "pageIndex": 6,
+        "rect": {
+          "x": 164.639999,
+          "y": 575.400024,
+          "width": 231.47999600000003,
+          "height": 28.799987999999985
+        }
+      },
+      {
+        "name": "Date",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 454.559998,
+          "y": 575.400024,
+          "width": 85.55999700000001,
+          "height": 28.799987999999985
+        }
+      },
+      {
+        "name": "Signature of Notary Public",
+        "type": "signature",
+        "pageIndex": 6,
+        "rect": {
+          "x": 43.200001,
+          "y": 439.799988,
+          "width": 244.44001400000002,
+          "height": 28.800018000000023
+        }
+      },
+      {
+        "name": "Printed Name of Notary Public",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 49.200001,
+          "y": 391.079987,
+          "width": 244.44001400000002,
+          "height": 28.800017999999966
+        }
+      },
+      {
+        "name": "Sworn and subscribed before this",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 201.240005,
+          "y": 335.399994,
+          "width": 29.519990000000007,
+          "height": 28.800018000000023
+        }
+      },
+      {
+        "name": "day of  20",
+        "type": "text",
+        "pageIndex": 6,
+        "rect": {
+          "x": 283.559998,
+          "y": 335.399994,
+          "width": 19.200012000000015,
+          "height": 28.800018000000023
+        }
+      }
+    ]
+  }
+]

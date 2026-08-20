@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { computeFee, computePathBSplit, assertFeeAgreementEligible } from '@/lib/compliance/computeFee'
-import { cents, dollarsToCents, percentOf, formatUsd, type Cents } from '@/lib/compliance/money'
+import { cents, dollarsToCents, percentOf, formatUsd, formatAmount, type Cents } from '@/lib/compliance/money'
 import { getStateRules } from '@/lib/compliance/stateRules'
 
 const CAP = getStateRules('GA').feeCapPct as number
@@ -153,5 +153,14 @@ describe('money primitives refuse anything that is not integer cents', () => {
     expect(formatUsd(cents(400_000))).toBe('$4,000.00')
     expect(formatUsd(cents(5))).toBe('$0.05')
     expect(formatUsd(cents(120_050))).toBe('$1,200.50')
+  })
+})
+
+describe('form-field amount formatting', () => {
+  it('omits the currency symbol, because the DOR cell prints its own', () => {
+    // Emitting "$" here renders "$ $63,825.50" on a document DOR reviews.
+    expect(formatAmount(cents(6_382_550))).toBe('63,825.50')
+    expect(formatAmount(cents(5))).toBe('0.05')
+    expect(formatUsd(cents(6_382_550))).toBe('$63,825.50')
   })
 })

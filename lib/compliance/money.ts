@@ -111,7 +111,16 @@ export function percentOf(amount: Cents, pct: number): Cents {
   return cents(Math.floor((amount * pctBasisPoints) / 10_000))
 }
 
-/** Format cents for display and for stamping onto DOR forms. */
+/**
+ * Format cents WITHOUT a currency symbol, for form fields whose printed cell
+ * already carries a "$". The DOR forms print the symbol themselves, so emitting
+ * one here renders "$ $63,825.50" on a document DOR reviews.
+ */
+export function formatAmount(amount: Cents): string {
+  return formatUsd(amount).replace('$', '')
+}
+
+/** Format cents for display, with the currency symbol. */
 export function formatUsd(amount: Cents): string {
   const negative = amount < 0
   const abs = Math.abs(amount)
