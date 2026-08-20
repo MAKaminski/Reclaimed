@@ -20,13 +20,14 @@
     "verify:forms": "tsx scripts/verify-forms.ts",
     "verify:legend": "tsx scripts/verify-legend.ts",
     "verify:no-payments": "tsx scripts/verify-no-payments.ts",
-    "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:forms && pnpm verify:legend",
+    "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:no-public-data && pnpm verify:forms && pnpm verify:legend",
     "verify:templates": "tsx scripts/verify-outbound-templates.ts",
     "ingest": "tsx scripts/ingest.ts",
     "fixture": "tsx scripts/generate-fixture.ts",
     "seed:rules": "tsx scripts/seed-state-rules.ts",
     "score": "tsx scripts/score.ts",
-    "discover:fields": "tsx scripts/discover-form-fields.ts"
+    "discover:fields": "tsx scripts/discover-form-fields.ts",
+    "verify:no-public-data": "tsx scripts/verify-no-public-properties.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

@@ -1,0 +1,18 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 0015 — Complete the workability predicates. (Applied to cuaeplfeignnlptfugcv.)
+--
+-- Migration 0004 defined properties_workable with only the property-intrinsic
+-- predicates, because `agreements` and `suppressions` did not yet exist and a
+-- forward reference is impossible. Both now exist, so the deferred predicates
+-- are added:
+--
+--   · not already under a live agreement of ours
+--       (draft, sent_for_signature, signed, or submitted)
+--   · not suppressed, by property id OR by normalised owner name
+--
+-- Without these, a property already under a signed agreement would keep
+-- surfacing in the work queue and could be solicited again — which reads to an
+-- owner as harassment and to DOR as disorganisation.
+--
+-- Verified live: putting Q-001 under a sent agreement and suppressing Q-003 by
+-- owner name removed both from properties_workable and from work_queue.

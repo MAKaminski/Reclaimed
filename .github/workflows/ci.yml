@@ -23,6 +23,10 @@ jobs:
       - name: "§1.2 solicitation legend present — § 44-12-239(f)"
         run: pnpm verify:templates
 
+      # §1.8 — no unauthenticated read of CDR-derived data.
+      - name: "§1.8 no public data surface — § 44-12-239.1(b)"
+        run: pnpm verify:no-public-data
+
       # §1.2 — the legend still matches the enrolled act, byte for byte.
       - name: "§1.2 legend byte-verified against enrolled SB 103"
         run: pnpm verify:legend
@@ -43,3 +47,14 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      # The kill switch must be visible, not merely enforced.
+      - name: "E2E: kill switch and no public data surface"
+        run: pnpm test:e2e
+        env:
+          CDR_REGISTRATION_STATUS: unregistered
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
