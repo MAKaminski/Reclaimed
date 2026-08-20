@@ -24,9 +24,11 @@
     "verify:templates": "tsx scripts/verify-outbound-templates.ts",
     "ingest": "tsx scripts/ingest.ts",
     "fixture": "tsx scripts/generate-fixture.ts",
-    "seed:rules": "tsx scripts/seed-state-rules.ts"
+    "seed:rules": "tsx scripts/seed-state-rules.ts",
+    "score": "tsx scripts/score.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "next": "^16.3.1",
     "pdf-lib": "^1.17.1",
