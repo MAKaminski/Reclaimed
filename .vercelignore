@@ -1,0 +1,17 @@
+# Test fixtures — the synthetic DOR bulk file is ~1GB and is never deployed.
+# It is generated on demand by `pnpm fixture`.
+data/fixtures/
+
+# Build and test artefacts
+.next/
+test-results/
+playwright-report/
+node_modules/
+
+# Never ship local env
+.env.local
+.env*.local
+
+# The live-copy written by verify:forms when a DOR revision is detected;
+# the PINNED copy (data/forms/*.pdf) IS deployed and IS required at runtime.
+data/forms/*.live.pdf

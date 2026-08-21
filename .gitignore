@@ -10,7 +10,13 @@ next-env.d.ts
 .DS_Store
 /test-results/
 /playwright-report/
-/data/forms/*.pdf
+# The DOR forms are VENDORED, not ignored. lib/forms/recoveryAgreement.ts reads
+# them at RUNTIME, so a deploy or a fresh clone without them throws ENOENT on
+# every agreement. They are 752 KB of public government forms, pinned by sha256
+# in data/seed/form-hashes.json — vendoring makes generation deterministic and
+# offline-capable, and `pnpm verify:forms` still fails CI if DOR revises one.
 /data/forms/*.live.pdf
 /tmp/
 /data/fixtures/
+.vercel
+.env*
