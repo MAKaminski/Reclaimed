@@ -3,6 +3,6 @@
   "sha256": "c7ec9f78253442b54183c57ba33e670b83ebaa791e15f90a1219ecb872c8e7c2",
   "byteLength": 192,
   "source": "Enrolled SB 103 (2023-2024 session), Georgia General Assembly — https://www.legis.ga.gov/api/legislation/document/20232024/219683",
-  "verifiedAt": "2026-08-20T20:28:28.412Z",
+  "verifiedAt": "2026-08-21T19:53:27.637Z",
   "note": "Byte-verified against the enrolled act text. Two extraction artefacts were normalised before comparison: PDF line breaks, and the sequential LINE NUMBERS the enrolled act carries in its left margin, which extraction interleaves into the body text. The legend contains no digits, so stripping them cannot mask a numeric discrepancy. Every other character matched exactly."
 }

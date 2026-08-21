@@ -31,9 +31,16 @@ export function SignInForm() {
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
-        // Never create an account from the sign-in box. An unknown address must
-        // not become a Supabase user just by being typed in.
-        shouldCreateUser: false,
+        // Account creation IS allowed, and that is not a hole.
+        //
+        // An account is not access. Without a `staff` row every RLS policy in
+        // the schema denies, and only an open invite matching the caller's own
+        // VERIFIED address creates one (redeem_my_invite, migration 0018).
+        //
+        // Setting this false was worse than useless: the redemption trigger
+        // fires on the auth.users insert this would have prevented, so an
+        // invited person could never sign in at all.
+        shouldCreateUser: true,
       },
     })
 

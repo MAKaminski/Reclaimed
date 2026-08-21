@@ -52,6 +52,7 @@
     "log_staff_change",
     "log_state_rule_change",
     "may_send",
+    "redeem_my_invite",
     "redeem_staff_invite",
     "set_claim_clocks"
   ],
