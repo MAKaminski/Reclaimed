@@ -30,7 +30,10 @@ export function SignInForm() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        // /auth/finish, not /auth/callback: on the free tier the email template
+        // cannot be changed, so the link may return either ?code= (PKCE) or a
+        // #fragment (implicit). Only a browser page can read the fragment.
+        emailRedirectTo: `${window.location.origin}/auth/finish`,
         // Account creation IS allowed, and that is not a hole.
         //
         // An account is not access. Without a `staff` row every RLS policy in

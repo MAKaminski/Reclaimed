@@ -17,7 +17,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /** Reachable without a session. Everything else requires one. */
-const PUBLIC_PATHS = ['/signin', '/auth/callback', '/auth/signout']
+const PUBLIC_PATHS = ['/signin', '/auth/callback', '/auth/confirm', '/auth/finish', '/auth/signout']
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })

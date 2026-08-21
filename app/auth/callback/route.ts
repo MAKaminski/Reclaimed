@@ -14,15 +14,31 @@ export async function GET(request: Request) {
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
 
+  // A link carrying token_hash belongs to /auth/confirm. Forward rather than
+  // fail: which route an email points at is a template setting, and a template
+  // edit should not lock everyone out.
+  const tokenHash = url.searchParams.get('token_hash')
+  if (code === null && tokenHash !== null) {
+    const forward = new URL('/auth/confirm', url.origin)
+    forward.search = url.search
+    return NextResponse.redirect(forward)
+  }
+
   if (code === null) {
-    return NextResponse.redirect(new URL('/signin?error=missing_code', url.origin))
+    // Most often the email template used {{ .ConfirmationURL }}, which returns
+    // the session in the URL FRAGMENT — never sent to the server. Use
+    // {{ .TokenHash }} pointing at /auth/confirm instead.
+    return NextResponse.redirect(new URL('/signin?error=link_incomplete', url.origin))
   }
 
   const supabase = await createClient()
   const { error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error !== null) {
-    return NextResponse.redirect(new URL('/signin?error=invalid_link', url.origin))
+    const expired = /expired|invalid/i.test(error.message)
+    return NextResponse.redirect(
+      new URL(`/signin?error=${expired ? 'link_expired' : 'link_failed'}`, url.origin),
+    )
   }
 
   // Always to our own origin — never to a redirect target supplied in the URL.

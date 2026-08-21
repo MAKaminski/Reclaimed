@@ -4,9 +4,28 @@ import { SignInForm } from '@/components/SignInForm'
 
 export const dynamic = 'force-dynamic'
 
-export default async function SignInPage() {
+/** Why a sign-in link failed, in words rather than a code. */
+const LINK_ERRORS: Record<string, string> = {
+  link_expired:
+    'That link has expired or was already used. Sign-in links are single-use by design — request a fresh one below.',
+  link_failed:
+    'That link could not be verified. Request a fresh one below.',
+  link_incomplete:
+    'That link was missing its sign-in token. Request a fresh one below.',
+  link_type_unsupported:
+    'That link is not a sign-in link.',
+}
+
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
   const { accountEmail, staff } = await getSessionState()
   if (staff !== null) redirect('/')
+
+  const { error } = await searchParams
+  const errorMessage = error === undefined ? null : (LINK_ERRORS[error] ?? 'Sign-in failed.')
 
   return (
     <div style={{ maxWidth: '26rem' }}>
@@ -34,6 +53,17 @@ export default async function SignInPage() {
             Staff only. We&rsquo;ll email you a one-time link — there is no
             password to lose.
           </p>
+          {errorMessage !== null && (
+            <p
+              role="alert"
+              style={{
+                background: '#fef2f2', border: '1px solid #fecaca', color: '#7f1d1d',
+                padding: '0.6rem 0.75rem', borderRadius: '0.375rem', fontSize: '0.875rem',
+              }}
+            >
+              {errorMessage}
+            </p>
+          )}
           <SignInForm />
         </>
       )}
