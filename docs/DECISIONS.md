@@ -283,3 +283,45 @@ database is where the claimant-address write-lock, the NOT NULL on authority
 evidence, the computed legend-size CHECK, and the append-only audit rules
 actually live. **A repo that cannot rebuild the database cannot rebuild the
 compliance posture**, and nothing was checking that it could.
+
+---
+
+## ADR-0009 — § 44-12-239 subsection letters verified
+
+**Date:** 2026-08-21 · **Status:** Accepted · **Closes an open item**
+
+A handoff note flagged that although the legend *text* had been byte-verified,
+neither **subsection letter** had been — the brief cited (f) for the solicitation
+legend and (g) for the naming prohibition, and both were assumed.
+
+That was a fair distinction and it is now closed. Both were read directly from
+the enrolled SB 103 act (legis.ga.gov, 2023-2024 session), verbatim:
+
+> **(f)** Any solicitation from a claimant's designated representative to an owner
+> or apparent owner of unclaimed property shall include the following notice in
+> all capital letters in at least **12 point type** or in a font larger than the
+> font utilized in the solicitation, **whichever is larger**: 'THIS IS A
+> SOLICITATION. …'
+>
+> **(g)** A claimant's designated representative may not register under or use a
+> business name that might lead a reasonable person to conclude that the
+> representative, firm, or employer is an agent of the United States, or an
+> agency thereof, or a state or an agency or political subdivision of a state.
+
+Three things confirmed beyond the subsection letters:
+
+1. **The 12-point floor is statutory**, not a house convention.
+   `LEGEND_MIN_POINT_SIZE = 12` is correct.
+2. **"whichever is larger" is statutory language**, not our paraphrase. The
+   computed `max(12, body + 1)` in `requiredLegendPointSize()` implements the
+   statute rather than interpreting it.
+3. The preceding subsection **(e)** confirms the material-change duty carried in
+   `docs/RUNBOOK.md`: *"Failure to comply with this subsection shall result in
+   immediate revocation of the registration."* Subsection **(h)** confirms the
+   four-year term in the rules seed.
+
+Method note: the enrolled act carries sequential margin line numbers which PDF
+extraction interleaves into the body ("…in at**536** least 12 point type…").
+Reading them out requires keeping digits and recognising the artefact — stripping
+all digits, as a first pass did, also removes the "12" and would have made the
+point size look unverified when it is not.

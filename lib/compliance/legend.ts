@@ -14,6 +14,18 @@
  *                  sha256 c7ec9f78253442b54183c57ba33e670b83ebaa791e15f90a1219ecb872c8e7c2
  *                  192 bytes.
  *
+ * SUBSECTION AND POINT SIZE verified 2026-08-21 against the same enrolled act.
+ * The surrounding text reads, verbatim:
+ *
+ *   "(f) Any solicitation from a claimant's designated representative to an
+ *    owner or apparent owner of unclaimed property shall include the following
+ *    notice in all capital letters in at least 12 point type or in a font
+ *    larger than the font utilized in the solicitation, whichever is larger:"
+ *
+ * So the legend is subsection (f), the floor is 12 point, and "whichever is
+ * larger" is confirmed as statutory language rather than a paraphrase. The
+ * naming prohibition immediately following it is subsection (g).
+ *
  * The enrolled act carries sequential line numbers in its left margin, which PDF
  * extraction interleaves into the body ("...NOT A BILL OR OFFICIAL538 GOVERNMENT
  * DOCUMENT..."). Those, and PDF line breaks, are the ONLY differences between the

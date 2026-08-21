@@ -16,6 +16,8 @@ import {
   getLegendAttestation,
   renderLegend,
   legendSha256,
+  LEGEND_MIN_POINT_SIZE,
+  requiredLegendPointSize,
 } from '@/lib/compliance/legend'
 
 const attestationPath = resolve(import.meta.dirname, '../../data/seed/legend-attestation.json')
@@ -70,5 +72,21 @@ describe('§1.2 fail-closed: drift between constant and attestation re-blocks se
   it('the attestation cannot be satisfied by a hand-written placeholder hash', () => {
     expect(attested.sha256).toMatch(/^[0-9a-f]{64}$/)
     expect(attested.sha256).not.toBe('0'.repeat(64))
+  })
+})
+
+describe('§ 44-12-239(f) subsection and point size, verified against the enrolled act', () => {
+  it('holds the 12-point floor the statute states', () => {
+    // Enrolled SB 103, verbatim: "...in all capital letters in at least 12 point
+    // type or in a font larger than the font utilized in the solicitation,
+    // whichever is larger". Both the figure and the "whichever is larger" clause
+    // are statutory language, not our paraphrase.
+    expect(LEGEND_MIN_POINT_SIZE).toBe(12)
+  })
+
+  it('computes "whichever is larger" rather than treating 12 as a constant', () => {
+    expect(requiredLegendPointSize(9)).toBe(12)   // floor governs
+    expect(requiredLegendPointSize(12)).toBe(13)  // must EXCEED, not match
+    expect(requiredLegendPointSize(18)).toBe(19)  // body governs
   })
 })
