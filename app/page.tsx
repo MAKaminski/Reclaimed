@@ -24,6 +24,11 @@ export default function Home() {
         Georgia unclaimed property recovery. Staff only — there is no public data
         surface, by design (§ 44-12-239.1(b)).
       </p>
+      <p style={{ marginTop: '0.5rem' }}>
+        <a href="/workflow" style={{ color: '#1c1917' }}>
+          Workflow — who does what, and what you can do right now →
+        </a>
+      </p>
 
       <Section title="Operational gates">
         <table style={{ borderCollapse: 'collapse', width: '100%' }}>

@@ -70,6 +70,7 @@ export async function RegistrationBanner() {
       <span style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
         {staff !== null ? (
           <>
+            <Link href="/workflow" style={linkStyle}>Workflow</Link>
             <Link href="/queue" style={linkStyle}>Queue</Link>
             {staff.role === 'admin' && <Link href="/staff" style={linkStyle}>Staff</Link>}
             <span title={mayTouchClaims(staff)
