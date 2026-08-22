@@ -35,9 +35,20 @@ const NOT_SOLICITATIONS = [
 /** Filename or path fragments that mark a file as owner-facing. */
 const SOLICITATION_HINTS = /(outbound|solicit|letter|mailer|campaign|firsttouch|first-touch|reminder|postcard|envelope)/i
 
-/** The only sanctioned render paths. */
+/**
+ * The only sanctioned render paths.
+ *
+ * buildSolicitationLetter is included as an INDIRECTION, not an exemption: it
+ * lives in lib/outreach/letterPdf.ts, which is itself scanned below and must
+ * itself call stampSolicitationLegend. A caller delegating to it is therefore
+ * provably legended, one hop away.
+ */
 const REACT_PRIMITIVE = '<SolicitationLegend'
 const PDF_PRIMITIVE = 'stampSolicitationLegend'
+const LETTER_BUILDER = 'buildSolicitationLetter'
+
+/** Modules that MUST themselves stamp the legend for the indirection to hold. */
+const LEGEND_BEARING_MODULES = ['lib/outreach/letterPdf.ts']
 
 /** Re-typing the legend instead of using a primitive defeats the whole gate. */
 const INLINE_LEGEND = /THIS IS A SOLICITATION/i
@@ -86,8 +97,9 @@ function main(): void {
 
     const usesReact = source.includes(REACT_PRIMITIVE)
     const usesPdf = source.includes(PDF_PRIMITIVE)
+    const usesBuilder = source.includes(LETTER_BUILDER)
 
-    if (!usesReact && !usesPdf) {
+    if (!usesReact && !usesPdf && !usesBuilder) {
       failures.push({
         file: rel,
         reason:
@@ -159,6 +171,44 @@ function main(): void {
           })
         }
       }
+    }
+  }
+
+  // The indirection is only sound if the module it points at actually stamps.
+  for (const module of LEGEND_BEARING_MODULES) {
+    let source: string
+    try {
+      source = readFileSync(join(ROOT, module), 'utf8')
+    } catch {
+      failures.push({
+        file: module,
+        reason: 'is referenced as a legend-bearing module but does not exist. ' +
+          'Every caller delegating to it is therefore unlegended.',
+      })
+      continue
+    }
+    // Check for an actual CALL in executable code.
+    //
+    // Three things defeat a naive check, and all three were observed while
+    // building this gate:
+    //   · the IMPORT line contains the identifier
+    //   · a DOC COMMENT describing the call contains it, parentheses and all
+    //   · the identifier alone appears in unrelated prose
+    // Strip comments and imports first, then require a call.
+    const executable = source
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/[^\n]*/g, '')
+      .split('\n')
+      .filter((line) => !/^\s*import\b/.test(line))
+      .join('\n')
+    if (!new RegExp(`\\b${PDF_PRIMITIVE}\\s*\\(`).test(executable)) {
+      failures.push({
+        file: module,
+        reason:
+          'is treated as legend-bearing by this gate but no longer calls ' +
+          'stampSolicitationLegend(). Every caller that delegates to it is now ' +
+          'emitting an unlegended solicitation.',
+      })
     }
   }
 

@@ -86,7 +86,9 @@ export default async function QueuePage() {
               {rows.map((row) => (
                 <tr key={row.property_id} style={{ borderTop: '1px solid #e7e5e4', verticalAlign: 'top' }}>
                   <td style={{ padding: '0.6rem 0.75rem 0.6rem 0' }}>
-                    <div style={{ fontWeight: 500 }}>{row.owner_name ?? '—'}</div>
+                    <a href={`/property/${row.property_id}`} style={{ fontWeight: 500, color: '#1c1917' }}>
+                      {row.owner_name ?? '—'}
+                    </a>
                     <div style={{ color: '#a8a29e', fontSize: '0.75rem' }}>
                       {row.property_id}
                       {row.last_known_city !== null && ` · ${row.last_known_city}, ${row.last_known_state ?? ''}`}
