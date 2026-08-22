@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { advanceStage, sendSolicitation, fileClaim, type ActionResult } from '@/app/property/actions'
+import { advanceStage, sendSolicitation, fileClaim, type ActionResult } from '@/app/(staff)/property/actions'
 import type { WorkflowStage } from '@/lib/db/workflow'
 
 /**

@@ -41,3 +41,68 @@ metrics — aggregate operational statistics are not owner-identifying, so
 § 44-12-225 should not shield them, and § 50-18-71 makes it cheap (first quarter
 hour free, 10¢/page). Georgia publishes no unclaimed-property annual report; the
 $3.3B figure is secondary-source only and undated.
+
+---
+
+## Questions 7–12 — the public website
+
+Added 2026-08-22 with the public surface (ADR-0010). Same convention as above: each
+carries the conservative default the code holds while the question is unanswered.
+
+### 7. Is a "not yet registered" website a solicitation?
+
+Does the Department consider a publicly available website that describes CDR
+services and states a fee, **while expressly stating the operator is not registered
+and is not accepting clients**, to be a "solicitation to enter into an agreement"
+under § 44-12-239.2(a)(10)? If so, what would make it not one?
+
+> **Default:** `getOfferState()` returns `pre_registration` — no call to action, no
+> contact capture, no agreement path, and an express declination on every page.
+
+### 8. Would carrying the legend while unregistered itself be misleading?
+
+If such a page **is** a solicitation, must it carry the § 44-12-239(f) legend — and
+would carrying a notice reading "THIS IS A SOLICITATION" while not offering services
+itself be false or misleading under § 44-12-239.2(a)(5)?
+
+> **Default:** the legend is withheld before registration, and CI **fails the build**
+> if its text appears anywhere in the public tree.
+
+### 9. How is the legend sized on a web page?
+
+For a web page, what does the Department treat as "the font utilized in the
+solicitation" for § 44-12-239(f) sizing — body text, the largest text on the page,
+or something else? Is a CSS pixel treated as a point?
+
+> **Default:** `PUBLIC_MAX_POINT_SIZE = 21`, so the legend renders at 22pt — larger
+> than **every** element on the page — and CI blocks any larger type.
+
+### 10. How does "per act" count for a published page?
+
+How does the Department count "each such act" under § 44-12-239.2(b)(5) for a
+continuously published web page — per page, per day published, or per visitor?
+
+> **Default:** no commercial page is published in any state where solicitation is
+> not permitted.
+
+### 11. May an applicant publish while UP-CDR1 is pending?
+
+May a registration applicant publish a website describing the services it intends to
+offer while its application is pending? Is there Department-preferred disclosure
+language we should use instead of our own?
+
+> **Default:** our own disclosure, `lib/public/disclosure.ts`, whose required
+> elements are pinned by a substance test in CI.
+
+### 12. Can the public verify a registration number?
+
+Is there a Department-published list of registered CDRs, or any way for a member of
+the public to verify a representative's CDR identification number?
+
+> **Default:** `/is-this-letter-real` tells readers to ask for the number — which
+> § 44-12-224(c)(6) requires on every agreement — and to confirm it by calling the
+> Unclaimed Property Program.
+
+This one is worth asking on its own merits. It is the missing consumer-protection
+primitive in the whole regime: the statute requires a registration number on every
+agreement but gives an owner no way to check it against anything.

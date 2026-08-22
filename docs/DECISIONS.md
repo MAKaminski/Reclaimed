@@ -325,3 +325,120 @@ extraction interleaves into the body ("…in at**536** least 12 point type…").
 Reading them out requires keeping digits and recognising the artefact — stripping
 all digits, as a first pass did, also removes the "12" and would have made the
 point size look unverified when it is not.
+
+---
+
+## ADR-0010 — The public surface, and why publishing before registration is lawful
+
+**Status:** accepted, 2026-08-22. **Carries residual risk the owner has accepted.**
+
+### Context
+
+Until now there was no public surface at all: `proxy.ts` redirected every
+unauthenticated request to `/signin` and the root layout set a global `noindex`.
+ADR-0002 recorded that as correct — there is no public *data* surface, because
+§ 44-12-239.1(b) forecloses redistributing the Department's file.
+
+But "no public data" and "no public page" are different claims, and only the first
+is required. The question is whether a page describing the service — including the
+fee — may be published while unregistered.
+
+§ 44-12-239.2(a)(10) reaches *"entering into, or making a solicitation to enter
+into, an agreement to file a claim … unless such person is registered."*
+**"Solicitation" is not defined anywhere in the article.**
+
+### Decision
+
+Publish the full service description now, behind a prominent disclosure that
+Reclaimed is not registered and is not accepting clients.
+
+**The reasoning: a communication that expressly refuses to accept an agreement
+cannot be an invitation to enter one.** The disclosure is not decoration around the
+offer; it is the thing that makes the page not-an-offer.
+
+That is held mechanically rather than editorially, in four places:
+
+1. `lib/compliance/offerState.ts` derives state from registration with no override,
+   exactly as `operatingMode.ts` does. `mayInviteEngagement`, `mayCaptureContact`
+   and `mayAssertOffering` are all false while unregistered.
+2. `<WhenOffering>` is the only place a CTA may live, and it renders nothing before
+   registration.
+3. `lib/public/structuredData.ts` refuses to emit `Offer`, `Service`,
+   `ProfessionalService`, or `aggregateRating` — structured data is the one place an
+   offering can be asserted *invisibly*, where no copy review would catch it.
+4. `verify:templates` fails the build if any form, input, submit button, server
+   action, or `data-cta` in the public tree sits outside `<WhenOffering>` — and it
+   holds regardless of what `CDR_REGISTRATION_STATUS` happens to be in CI, because a
+   gate that only fires in one environment is not a gate.
+
+### Three sub-decisions worth recording
+
+**The legend is withheld, not shown.** The instinct is that over-disclosure is
+always safe. It is not. The § 44-12-239(f) legend opens "THIS IS A SOLICITATION",
+which on a page that expressly declines clients is **false** — and a false statement
+on a commercial page is independently reachable under § 44-12-239.2(a)(5) at $2,000
+per act, quite apart from the Georgia FBPA private right of action with treble
+damages. So `lib/public/disclosure.ts` carries all three of the legend's
+*protective* elements (not a government agency, not sent by the State of Georgia,
+not required to use any service) **without asserting its premise**. CI fails if the
+legend text appears anywhere in the public tree, with one exemption:
+`/is-this-letter-real` quotes it educationally, and must import the constant.
+
+**The disclosure leads with a fact, not a legal conclusion.** "THIS IS NOT A
+SOLICITATION" would be us characterising our own conduct in legal terms — and if a
+regulator disagreed, the disclosure itself becomes the false statement. "NOT AN
+OFFER OF SERVICES. NOT ACCEPTING CLIENTS" is a fact about what we do, which we
+control absolutely.
+
+**There is a third, fail-closed offer state.** If registration goes active while the
+legend attestation has drifted, `renderLegend()` throws and every public page would
+500 to crawlers. We cannot fall back to `pre_registration` — we *are* registered,
+and saying otherwise would be false. So `unavailable` renders identity only and
+`robots.ts` returns `Disallow: /`. The site takes itself out of the index rather
+than say something untrue. Same instinct as ADR-0003.
+
+### No lead capture
+
+Rejected, and it is the tempting one. A "notify me when you launch" form collects
+the contact details of people who want claim services — the front half of soliciting
+an agreement. There is no form, no input, and no email capture anywhere in the
+public tree, and CI holds it.
+
+### Consequences
+
+- The root layout became inert, which **inverted this repo's default from noindex to
+  indexable**. That is a dangerous inversion with a silent failure mode, so
+  `scripts/verify-public-surface.ts` exists solely to hold the route architecture.
+- `/` is now public; the staff dashboard moved to `/dashboard`.
+  `tests/e2e/killSwitch.spec.ts` changed in the same commit.
+- Offer state is baked at build time by static generation. **Flipping
+  `CDR_REGISTRATION_STATUS` requires a redeploy** — noted in `docs/GO-LIVE.md`.
+
+### Residual risk, stated plainly
+
+Whether a published page that describes a service and quotes a price *while
+expressly declining to accept clients* is a "solicitation to enter into an
+agreement" has, so far as this research goes, **never been construed by DOR, by
+rule, by bulletin, or by any reported enforcement action.** The position is
+reasonable and probably right. It is untested, and it is the owner's risk.
+
+1. **The fee quote is the weakest element on the page.** Everything else is either a
+   fact about Georgia law or a statement about what we are *not* doing. "30%" is the
+   one thing that reads as a price term, and a published price is classically an
+   invitation to treat. The copy presents it as the *statutory cap* plus what we
+   *intend* to charge once registered — never as a rate on offer.
+2. **"Per act" is undefined for a continuously published page.** Per page, per day,
+   per visitor? The last is implausible, but nothing forecloses it, and it is the
+   unbounded tail.
+3. **Georgia FBPA moves faster than DOR.** § 10-1-399 gives a private right of
+   action with treble damages after only a 30-day pre-suit demand — a plaintiff's
+   firm needs neither DOR to act nor us to be registered. Hence the rule that every
+   factual claim on the site is substantiable from an in-repo primary source, which
+   is why `/fees` renders its worked example from `computeFee()` rather than typing
+   the numbers.
+
+Also: **nothing may appear on the site that is not also true on the filed UP-CDR1.**
+§ 44-12-239(c) makes false information on that form a felony under § 16-10-20.
+
+Six questions covering this were added to `docs/DOR-QUESTIONS.md` for the UP-CDR1
+package.

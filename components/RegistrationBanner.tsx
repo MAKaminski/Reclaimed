@@ -70,6 +70,7 @@ export async function RegistrationBanner() {
       <span style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
         {staff !== null ? (
           <>
+            <Link href="/dashboard" style={linkStyle}>Board</Link>
             <Link href="/workflow" style={linkStyle}>Workflow</Link>
             <Link href="/queue" style={linkStyle}>Queue</Link>
             {staff.role === 'admin' && <Link href="/staff" style={linkStyle}>Staff</Link>}
@@ -86,7 +87,10 @@ export async function RegistrationBanner() {
         ) : accountEmail !== null ? (
           <span>{accountEmail} · not authorised</span>
         ) : (
-          <Link href="/signin" style={linkStyle}>Sign in</Link>
+          <>
+            <Link href="/" style={linkStyle}>Public site</Link>
+            <Link href="/signin" style={linkStyle}>Sign in</Link>
+          </>
         )}
       </span>
     </header>

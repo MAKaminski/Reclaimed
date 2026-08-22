@@ -65,15 +65,99 @@ export async function getStageRules(): Promise<StageRule[]> {
   return rules.sort((a, b) => a.step_number - b.step_number)
 }
 
-export async function getStageCounts(): Promise<Record<string, number>> {
+/**
+ * Per-stage inventory, aggregated in the database.
+ *
+ * PostgREST returns bigint as a STRING (see WorkQueueRow), so every numeric
+ * column here is Number()'d at the boundary rather than trusted.
+ */
+export interface StageBoardRow {
+  stage: WorkflowStage
+  property_count: number
+  expected_value_cents: number
+  claim_value_cents: number
+  oldest_days_in_stage: number
+  stale_count: number
+}
+
+export async function getStageBoard(): Promise<StageBoardRow[]> {
   const supabase = await createClient()
   const { data } = await supabase
-    .from('property_workflow')
-    .select('stage')
-    .returns<Array<{ stage: WorkflowStage }>>()
+    .from('pipeline_board')
+    .select('*')
+    .returns<Array<Record<string, unknown>>>()
 
+  return (data ?? []).map((r) => ({
+    stage: r.stage as WorkflowStage,
+    property_count: Number(r.property_count ?? 0),
+    expected_value_cents: Number(r.expected_value_cents ?? 0),
+    claim_value_cents: Number(r.claim_value_cents ?? 0),
+    oldest_days_in_stage: Number(r.oldest_days_in_stage ?? 0),
+    stale_count: Number(r.stale_count ?? 0),
+  }))
+}
+
+/** Scored opportunities nobody has started. The "is my pipeline full" number. */
+export interface PipelineSupply {
+  unworkedCount: number
+  unworkedExpectedValueCents: number
+  highValueCount: number
+  lastScoredAt: string | null
+}
+
+export async function getPipelineSupply(): Promise<PipelineSupply> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('pipeline_supply')
+    .select('*')
+    .maybeSingle<Record<string, unknown>>()
+
+  return {
+    unworkedCount: Number(data?.unworked_count ?? 0),
+    unworkedExpectedValueCents: Number(data?.unworked_expected_value_cents ?? 0),
+    highValueCount: Number(data?.high_value_count ?? 0),
+    lastScoredAt: (data?.last_scored_at as string | null) ?? null,
+  }
+}
+
+export interface StuckRow {
+  property_id: string
+  stage: WorkflowStage
+  owner_name: string | null
+  priority_reason: string | null
+  expected_value_cents: number
+  days_in_stage: number
+  assigned_to: string | null
+}
+
+export async function getStuckItems(limit = 12): Promise<StuckRow[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('pipeline_stuck')
+    .select('*')
+    .limit(limit)
+    .returns<Array<Record<string, unknown>>>()
+
+  return (data ?? []).map((r) => ({
+    property_id: String(r.property_id),
+    stage: r.stage as WorkflowStage,
+    owner_name: (r.owner_name as string | null) ?? null,
+    priority_reason: (r.priority_reason as string | null) ?? null,
+    expected_value_cents: Number(r.expected_value_cents ?? 0),
+    days_in_stage: Number(r.days_in_stage ?? 0),
+    assigned_to: (r.assigned_to as string | null) ?? null,
+  }))
+}
+
+/**
+ * Derived from the board view rather than counted in JS. Callers that only need
+ * counts (the /workflow explainer, the property detail page) keep working
+ * unchanged and stop reading every workflow row to do it.
+ */
+export async function getStageCounts(): Promise<Record<string, number>> {
+  const board = await getStageBoard()
   const counts: Record<string, number> = {}
-  for (const row of data ?? []) counts[row.stage] = (counts[row.stage] ?? 0) + 1
+  for (const row of board) counts[row.stage] = row.property_count
   return counts
 }
 

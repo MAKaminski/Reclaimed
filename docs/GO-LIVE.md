@@ -53,6 +53,28 @@ This step is free. Everything else in this document is wasted if it fails.
 - [ ] `CDR_REGISTRATION_NUMBER` set → agreements can generate
 - [ ] `CDR_REGISTRATION_EXPIRES_AT` set (registration date + 4 years)
 - [ ] `CDR_REGISTRATION_STATUS=active` → **the kill switch opens**
+- [ ] **Redeploy.** ⚠ The public pages are statically generated, so offer state is
+      baked at build time. Changing the env var alone leaves the live site saying
+      "not registered, not accepting clients" indefinitely. This is safe in one
+      direction only — a stale build *understates*, never overstates — but it does
+      mean the marketing site does not flip until a build runs.
+- [ ] Confirm `/registration-status` shows the new number and that `/` now renders
+      the § 44-12-239(f) legend instead of the pre-registration disclosure
+- [ ] `pnpm verify:legend` green before the first solicitation. If the attestation
+      has drifted while registration is active, `getOfferState()` returns
+      `unavailable`, the site noindexes itself, and nothing may be sent
+
+### 3a. The public site, before it is worth having
+
+- [ ] `NEXT_PUBLIC_SITE_URL` set in Vercel to the real apex domain
+      (its host is brand-checked at module load — a domain containing a denied
+      term refuses to render the public tree at all)
+- [ ] Verify the domain in Google Search Console and submit `/sitemap.xml`
+- [ ] Confirm `/robots.txt`, `/sitemap.xml` and `/llms.txt` all serve **anonymously**
+      in production — the proxy matcher behaves differently there than in dev
+- [ ] Only after registration: decide whether to add a contact route. There is
+      deliberately no form, no email capture and no waitlist today —
+      § 44-12-239.2(a)(10). `docs/DECISIONS.md` ADR-0010 has the reasoning
 
 ### 4. Before enabling anything optional
 

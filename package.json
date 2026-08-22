@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Georgia Unclaimed Property CDR platform — compliance-first",
+  "description": "Georgia Unclaimed Property CDR platform \u2014 compliance-first",
   "engines": {
     "node": ">=20"
   },
@@ -20,7 +20,7 @@
     "verify:forms": "tsx scripts/verify-forms.ts",
     "verify:legend": "tsx scripts/verify-legend.ts",
     "verify:no-payments": "tsx scripts/verify-no-payments.ts",
-    "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:brand && pnpm verify:no-public-data && pnpm verify:migrations && pnpm verify:forms && pnpm verify:legend",
+    "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:brand && pnpm verify:no-public-data && pnpm verify:public-surface && pnpm verify:migrations && pnpm verify:forms && pnpm verify:legend",
     "verify:templates": "tsx scripts/verify-outbound-templates.ts",
     "ingest": "tsx scripts/ingest.ts",
     "fixture": "tsx scripts/generate-fixture.ts",
@@ -30,7 +30,8 @@
     "verify:no-public-data": "tsx scripts/verify-no-public-properties.ts",
     "verify:brand": "tsx scripts/verify-brand.ts",
     "verify:migrations": "tsx scripts/verify-migrations.ts",
-    "bootstrap:admin": "tsx scripts/bootstrap-admin.ts"
+    "bootstrap:admin": "tsx scripts/bootstrap-admin.ts",
+    "verify:public-surface": "tsx scripts/verify-public-surface.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

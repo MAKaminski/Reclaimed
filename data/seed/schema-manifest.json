@@ -30,6 +30,9 @@
   "views": [
     "authority_chain_state",
     "claim_clocks",
+    "pipeline_board",
+    "pipeline_stuck",
+    "pipeline_supply",
     "properties_priority",
     "properties_workable",
     "property_scores_latest",

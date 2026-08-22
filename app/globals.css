@@ -1,0 +1,198 @@
+/*
+ * Design tokens.
+ *
+ * Every value here is LIFTED from the inline styles already in the app — the
+ * Tailwind stone ramp plus semantic red/green/amber/indigo that the staff pages
+ * were already hand-writing as hex literals. Nothing new was invented; this file
+ * only gives the existing palette a name so it can be varied by media query,
+ * which an inline style object cannot do.
+ *
+ * The --fs-* scale mirrors lib/public/typeScale.ts in px (1pt = 4/3px). Public
+ * pages must use these variables, never a raw fontSize — see the note in that
+ * file about the legend sizing rule.
+ */
+
+:root {
+  /* Surfaces and ink */
+  --paper: #fafaf9;
+  --card: #ffffff;
+  --ink: #1c1917;
+  --muted: #57534e;
+  --label: #78716c;
+  --faint: #a8a29e;
+  --rule: #e7e5e4;
+  --rule-strong: #d6d3d1;
+
+  /* Semantic pairs, as already used by RegistrationBanner and StageActions */
+  --ok-bg: #f0fdf4;
+  --ok-border: #bbf7d0;
+  --ok-fg: #14532d;
+
+  --held-bg: #fffbeb;
+  --held-border: #fde68a;
+  --held-fg: #78350f;
+
+  --stop-bg: #fef2f2;
+  --stop-border: #fecaca;
+  --stop-fg: #7f1d1d;
+
+  --dor-bg: #e0e7ff;
+  --dor-fg: #3730a3;
+
+  /* Type scale — mirrors PUBLIC_TYPE_SCALE, in px */
+  --fs-small: 13px;
+  --fs-body: 16px;
+  --fs-h3: 18px;
+  --fs-h2: 22px;
+  --fs-h1: 28px;
+
+  --measure: 38rem;
+  --page: 64rem;
+  --radius: 0.5rem;
+  --radius-sm: 0.375rem;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  color-scheme: light;
+}
+
+/*
+ * Dark mode is scoped to `.public-shell`, not :root.
+ *
+ * The staff pages predate this file and style themselves with hand-written hex
+ * literals for a light background. Flipping the root tokens would darken the
+ * page under them and leave #57534e body text on #1c1917 — a half-migrated dark
+ * mode that is worse than none. The public tree is the theme-aware surface;
+ * the internal tool stays light until its styles are migrated too.
+ */
+@media (prefers-color-scheme: dark) {
+  .public-shell:not([data-theme="light"]) {
+    --paper: #1c1917;
+    --card: #292524;
+    --ink: #fafaf9;
+    --muted: #d6d3d1;
+    --label: #a8a29e;
+    --faint: #78716c;
+    --rule: #44403c;
+    --rule-strong: #57534e;
+
+    --ok-bg: #14261a;
+    --ok-border: #22543d;
+    --ok-fg: #bbf7d0;
+
+    --held-bg: #292014;
+    --held-border: #78350f;
+    --held-fg: #fde68a;
+
+    --stop-bg: #2c1618;
+    --stop-border: #7f1d1d;
+    --stop-fg: #fecaca;
+
+    --dor-bg: #1e1b4b;
+    --dor-fg: #c7d2fe;
+
+    color-scheme: dark;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+}
+
+a { color: inherit; }
+a:hover { text-decoration-thickness: 2px; }
+
+:where(a, button, input, summary):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Wide content must scroll inside itself; the page body never scrolls sideways. */
+.scroll-x { overflow-x: auto; }
+
+/* ── Public surface ──────────────────────────────────────────────────────── */
+
+.public-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* Explicit, because body's --paper stays light for the staff app. */
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.public-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.prose { max-width: var(--measure); }
+.prose p, .prose li { color: var(--muted); }
+.prose h1 { font-size: var(--fs-h1); line-height: 1.2; letter-spacing: -0.02em; color: var(--ink); }
+.prose h2 { font-size: var(--fs-h2); line-height: 1.25; margin-top: 2.5rem; color: var(--ink); }
+.prose h3 { font-size: var(--fs-h3); margin-top: 1.75rem; color: var(--ink); }
+.prose .lede { font-size: var(--fs-h3); color: var(--ink); line-height: 1.5; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+}
+
+.notice { border-radius: var(--radius); padding: 1rem 1.15rem; }
+.notice--stop { background: var(--stop-bg); border: 1px solid var(--stop-border); color: var(--stop-fg); }
+.notice--held { background: var(--held-bg); border: 1px solid var(--held-border); color: var(--held-fg); }
+.notice--ok   { background: var(--ok-bg);   border: 1px solid var(--ok-border);   color: var(--ok-fg); }
+.notice p { color: inherit; }
+
+.fact-table { width: 100%; border-collapse: collapse; font-size: var(--fs-small); }
+.fact-table th, .fact-table td {
+  text-align: left; padding: 0.6rem 0.75rem 0.6rem 0;
+  border-top: 1px solid var(--rule); vertical-align: top;
+}
+.fact-table thead th {
+  border-top: 0; color: var(--label); text-transform: uppercase;
+  letter-spacing: 0.06em; font-size: 0.6875rem;
+}
+
+.source-line { font-size: var(--fs-small); color: var(--faint); margin-top: 0.5rem; }
+
+.public-grid {
+  display: grid; gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 40rem) { .public-grid { grid-template-columns: 1fr 1fr; } }
+
+.public-nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: baseline; }
+
+/* ── Action board ────────────────────────────────────────────────────────── */
+
+.phase-rail {
+  display: grid; gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 46rem) { .phase-rail { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 68rem) { .phase-rail { grid-template-columns: repeat(5, 1fr); } }
+
+.stat-row {
+  display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem;
+  font-size: var(--fs-small); color: var(--muted);
+}
+
+@media print {
+  .no-print { display: none !important; }
+}

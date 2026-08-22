@@ -1,7 +1,9 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/db/supabase'
 import { getSessionState } from '@/lib/db/auth'
 import { cents, formatUsd } from '@/lib/compliance/money'
 import type { WorkQueueRow } from '@/lib/db/supabase'
+import type { WorkflowStage } from '@/lib/db/workflow'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,9 +16,19 @@ const REASON_LABEL: Record<string, string> = {
   other: 'Other',
 }
 
-export default async function QueuePage() {
+/**
+ * `?stage=` narrows the queue to one workflow stage.
+ *
+ * Not cosmetic: the dashboard's primary call to action is "prove the signer on
+ * 14 properties", and if that link lands on an unfiltered 200-row list the user
+ * is back to scanning and the whole promise of the board breaks.
+ */
+export default async function QueuePage({ searchParams }: {
+  searchParams: Promise<{ stage?: string }>
+}) {
   const supabase = await createClient()
   const { staff } = await getSessionState()
+  const { stage } = await searchParams
 
   if (staff === null) {
     return (
@@ -32,11 +44,23 @@ export default async function QueuePage() {
     )
   }
 
-  const { data, error } = await supabase
-    .from('work_queue')
-    .select('*')
-    .limit(200)
-    .returns<WorkQueueRow[]>()
+  // Filtering by stage means intersecting with property_workflow, which
+  // work_queue deliberately does not join (it ranks opportunities, not work in
+  // flight). Two reads rather than a view, because the unfiltered case — the
+  // common one — must not pay for the join.
+  let ids: string[] | null = null
+  if (stage !== undefined && stage !== '') {
+    const { data: flow } = await supabase
+      .from('property_workflow')
+      .select('property_id')
+      .eq('stage', stage as WorkflowStage)
+      .returns<Array<{ property_id: string }>>()
+    ids = (flow ?? []).map((r) => r.property_id)
+  }
+
+  let query = supabase.from('work_queue').select('*').limit(200)
+  if (ids !== null) query = query.in('property_id', ids.length > 0 ? ids : ['\u0000none'])
+  const { data, error } = await query.returns<WorkQueueRow[]>()
 
   if (error !== null) {
     return (
@@ -62,6 +86,13 @@ export default async function QueuePage() {
         § 44-12-220(d.1)(1) auto-pay cannot reach. {rows.length} properties ·{' '}
         {formatUsd(cents(totalEv))} total expected value.
       </p>
+
+      {stage !== undefined && stage !== '' && (
+        <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
+          Filtered to <strong>{stage.replace(/_/g, ' ')}</strong>.{' '}
+          <Link href="/queue">Clear filter</Link>
+        </p>
+      )}
 
       {rows.length === 0 ? (
         <p style={{ color: '#57534e' }}>
