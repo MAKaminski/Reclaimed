@@ -5,8 +5,16 @@
  * large for a serverless function, so this is a first-class pnpm script designed
  * to run on a workstation or in a container.
  *
- *   pnpm ingest --file <path> --dry-run      parse and report, load nothing
- *   pnpm ingest --file <path>                parse, stage, diff, emit events
+ *   pnpm ingest --source <key> --file <path> --dry-run       parse, load nothing
+ *   pnpm ingest --source <key> --manifest <acquisition.json>  load what acquire fetched
+ *
+ * --source is REQUIRED. "Which source is this file" is exactly the fact
+ * properties.source_key needs, nobody can infer it from a path, and it is a
+ * compliance fact rather than bookkeeping: § 44-12-239.1(b) restricts what the
+ * Georgia CDR file may be used for, so provenance governs what may lawfully be
+ * done with a row. It also scopes the disappearance anti-join — without it,
+ * loading California would retire every Georgia row for being absent from a
+ * California file.
  *
  * --dry-run is not a developer convenience. It is how you validate a weekly
  * delivery BEFORE it touches the properties table: if DOR changes the format
@@ -23,6 +31,9 @@ import {
   recordInference, setRowsStaged,
 } from '../lib/ingest/load.ts'
 import { assertRegistered } from '../lib/compliance/registration.ts'
+import { getSource, requiresRegistration } from '../lib/acquire/sources.ts'
+import { parseArgs as parseFlags, ArgumentError } from './lib/args.ts'
+import { readFileSync } from 'node:fs'
 
 /** Hash the delivery so an accidental re-load of the same file is visible. */
 async function sha256File(path: string): Promise<string> {
@@ -31,25 +42,24 @@ async function sha256File(path: string): Promise<string> {
   return hash.digest('hex')
 }
 
-function parseArgs(): Record<string, string> {
-  const out: Record<string, string> = {}
-  for (let i = 2; i < process.argv.length; i++) {
-    const arg = process.argv[i]
-    if (arg === undefined || !arg.startsWith('--')) continue
-    const key = arg.replace(/^--/, '')
-    const next = process.argv[i + 1]
-    if (next !== undefined && !next.startsWith('--')) { out[key] = next; i++ }
-    else out[key] = 'true'
-  }
-  return out
-}
+const SPEC = {
+  source: { type: 'string', required: true, describe: 'Registered source key', placeholder: 'KEY' },
+  file: { type: 'string', describe: 'A single delivered file', placeholder: 'PATH' },
+  manifest: { type: 'string', describe: 'acquisition.json written by `pnpm acquire`', placeholder: 'PATH' },
+  'dry-run': { type: 'boolean', describe: 'Parse and report; write nothing' },
+  'accept-mapping-change': { type: 'boolean', describe: 'Proceed despite a column-mapping change' },
+} as const
 
 function formatDuration(ms: number): string {
   const s = ms / 1000
   return s < 60 ? `${s.toFixed(1)}s` : `${Math.floor(s / 60)}m ${(s % 60).toFixed(0)}s`
 }
 
-function reportInference(result: ParseResult, sizeBytes: number): void {
+function reportInference(
+  result: ParseResult,
+  sizeBytes: number,
+  totals?: { rowsRead: number; rowsRejected: number; elapsedMs: number },
+): void {
   const { inference, mapping } = result
 
   console.log('\n── Format inference ──────────────────────────────────────────')
@@ -79,15 +89,20 @@ function reportInference(result: ParseResult, sizeBytes: number): void {
 
   console.log('\n── Throughput ────────────────────────────────────────────────')
   const mb = sizeBytes / 1e6
-  const seconds = result.elapsedMs / 1000
+  // Totals across every file in the run. Reporting one file's row count against
+  // all four files' bytes produced a nonsense 570 MB/s.
+  const elapsedMs = totals?.elapsedMs ?? result.elapsedMs
+  const rowsRead = totals?.rowsRead ?? result.rowsRead
+  const seconds = elapsedMs / 1000
   console.log(`  size          ${mb.toFixed(1)} MB`)
-  console.log(`  elapsed       ${formatDuration(result.elapsedMs)}`)
-  console.log(`  rate          ${(mb / seconds).toFixed(1)} MB/s · ${Math.round(result.rowsRead / seconds).toLocaleString()} rows/s`)
+  console.log(`  elapsed       ${formatDuration(elapsedMs)}`)
+  console.log(`  rate          ${(mb / seconds).toFixed(1)} MB/s · ${Math.round(rowsRead / seconds).toLocaleString()} rows/s`)
   const projected = (1000 / (mb / seconds))
   console.log(`  1 GB would take ${formatDuration(projected * 1000)}  ${projected < 600 ? '✓ under the 10-minute target' : '✗ OVER the 10-minute target'}`)
 
   console.log('\n── Rows ──────────────────────────────────────────────────────')
-  console.log(`  read          ${result.rowsRead.toLocaleString()}`)
+  if (totals !== undefined) console.log(`  read          ${totals.rowsRead.toLocaleString()}  (all files)`)
+  else console.log(`  read          ${result.rowsRead.toLocaleString()}`)
   console.log(`  parsed        ${result.rowsParsed.toLocaleString()}`)
   console.log(`  rejected      ${result.rowsRejected.toLocaleString()}` +
     (result.rowsRead > 0 ? `  (${((result.rowsRejected / result.rowsRead) * 100).toFixed(3)}%)` : ''))
@@ -101,46 +116,100 @@ function reportInference(result: ParseResult, sizeBytes: number): void {
   }
 }
 
+interface Manifest {
+  sourceKey: string
+  acquisitionId: number | null
+  sha256: string
+  files: string[]
+}
+
 async function main(): Promise<void> {
-  const args = parseArgs()
-  const file = args.file
-  if (file === undefined) {
-    console.error('Usage: pnpm ingest --file <path> [--dry-run]')
+  let args
+  try {
+    args = parseFlags(SPEC, 'pnpm ingest')
+  } catch (error) {
+    if (error instanceof ArgumentError) { console.error(`\n${error.message}\n`); process.exit(1) }
+    throw error
+  }
+
+  const source = getSource(args.source!)
+  const dryRun = args['dry-run']
+
+  // One run may span N files: California ships four CSVs in one archive, and
+  // DOR-QUESTIONS #5 lists "one file or several" as unknown for Georgia. They
+  // are sniffed INDEPENDENTLY — concatenating is wrong precisely because each
+  // may carry its own header row.
+  let paths: string[]
+  let acquisitionId: number | null = null
+  let deliverySha: string | null = null
+
+  if (args.manifest !== undefined) {
+    const manifest = JSON.parse(readFileSync(resolve(args.manifest), 'utf8')) as Manifest
+    if (manifest.sourceKey !== source.key) {
+      console.error(
+        `\nManifest is for source "${manifest.sourceKey}" but --source says "${source.key}".\n`,
+      )
+      process.exit(1)
+    }
+    paths = manifest.files.map((f) => resolve(f))
+    acquisitionId = manifest.acquisitionId
+    deliverySha = manifest.sha256
+  } else if (args.file !== undefined) {
+    paths = [resolve(args.file)]
+  } else {
+    console.error('\nPass either --manifest <acquisition.json> or --file <path>.\n')
     process.exit(1)
   }
 
-  const path = resolve(file)
-  const sizeBytes = statSync(path).size
-  const dryRun = args['dry-run'] === 'true'
+  const sizeBytes = paths.reduce((n, p) => n + statSync(p).size, 0)
 
-  // § 44-12-239.1(a) entitles a REGISTERED CDR to this database. Receiving and
-  // using it before registration is § 44-12-239.2(a)(10) territory, so the load
-  // path is gated exactly like the send path. --dry-run parses only and touches
-  // no data, so it stays available while unregistered.
-  if (!dryRun) {
+  // Registration gates the GEORGIA entitlement, not every source. § 44-12-239.1(a)
+  // is what entitles us to DOR's file, so receiving it before registration is
+  // § 44-12-239.2(a)(10) territory. California's file is public and carries no
+  // such condition — gating it would put public data behind something $1,200 and
+  // 4-8 weeks away for no reason. DERIVED from the source, never declared.
+  if (!dryRun && requiresRegistration(source)) {
     assertRegistered('receive_data')
   }
 
-  console.log(`Ingesting ${path}`)
-  console.log(`${(sizeBytes / 1e6).toFixed(1)} MB${dryRun ? '  · DRY RUN — nothing will be written' : ''}`)
+  console.log(`\nIngesting ${source.key} — ${source.label}`)
+  console.log(`  ${paths.length} file(s) · ${(sizeBytes / 1e6).toFixed(1)} MB` +
+    `${dryRun ? '  · DRY RUN — nothing will be written' : ''}`)
+  if (source.columnOverrides !== null) {
+    console.log(`  column mapping: PINNED (${Object.keys(source.columnOverrides).length} fields)`)
+  }
 
   const sample: ParsedProperty[] = []
   let batches = 0
 
   if (dryRun) {
-    const result = await parseFile(path, {
-      batchSize: 5_000,
-      onBatch: (rows) => {
-        batches++
-        if (sample.length < 3) sample.push(...rows.slice(0, 3 - sample.length))
-      },
-      progressEvery: 500_000,
-      onProgress: (rows, bytes) => {
-        process.stdout.write(`\r  ${rows.toLocaleString()} rows · ${(bytes / 1e6).toFixed(0)} MB…`)
-      },
+    let result!: ParseResult
+    let totalRows = 0
+    let totalRejected = 0
+    const started = Date.now()
+    for (const [i, file] of paths.entries()) {
+      process.stdout.write(`  [${i + 1}/${paths.length}] ${basename(file)}\n`)
+      result = await parseFile(file, {
+        batchSize: 5_000,
+        columnOverrides: source.columnOverrides,
+        onBatch: (rows) => {
+          batches++
+          if (sample.length < 3) sample.push(...rows.slice(0, 3 - sample.length))
+        },
+        progressEvery: 500_000,
+        onProgress: (rows, bytes) => {
+          process.stdout.write(`\r      ${rows.toLocaleString()} rows · ${(bytes / 1e6).toFixed(0)} MB…`)
+        },
+      })
+      process.stdout.write('\r' + ' '.repeat(70) + '\r')
+      totalRows += result.rowsRead
+      totalRejected += result.rowsRejected
+      console.log(`      ${result.rowsRead.toLocaleString()} rows · ${result.rowsRejected.toLocaleString()} rejected`)
+    }
+    console.log(`\n  TOTAL ${totalRows.toLocaleString()} rows across ${paths.length} file(s)`)
+    reportInference(result, sizeBytes, {
+      rowsRead: totalRows, rowsRejected: totalRejected, elapsedMs: Date.now() - started,
     })
-    process.stdout.write('\r' + ' '.repeat(60) + '\r')
-    reportInference(result, sizeBytes)
 
     if (sample.length > 0) {
       console.log('\n── Sample parsed rows ────────────────────────────────────────')
@@ -154,29 +223,49 @@ async function main(): Promise<void> {
   }
 
   // ── Live load ────────────────────────────────────────────────────────────
-  console.log('  hashing delivery…')
-  const sha256 = await sha256File(path)
+  // The acquisition already hashed the artifact; don't read 1GB twice.
+  const sha256 = deliverySha ?? await sha256File(paths[0]!)
 
   const sql = getSql()
-  const run = await createIngestRun(sql, { filename: basename(path), bytes: sizeBytes, sha256 })
+  const run = await createIngestRun(sql, {
+    filename: paths.map((f) => basename(f)).join(', '),
+    bytes: sizeBytes,
+    sha256,
+  })
+  await sql`
+    update ingest_runs
+    set source_key = ${source.key}, acquisition_id = ${acquisitionId},
+        source_file_count = ${paths.length}
+    where id = ${run.id}
+  `
   console.log(`  ingest run ${run.id}`)
 
   const loader = new StagingLoader(sql, run.id)
 
   try {
-    const result = await parseFile(path, {
-      batchSize: 5_000,
-      onBatch: async (rows) => {
-        batches++
-        if (sample.length < 3) sample.push(...rows.slice(0, 3 - sample.length))
-        await loader.write(rows)
-      },
-      progressEvery: 250_000,
-      onProgress: (rows, bytes) => {
-        process.stdout.write(`\r  staging ${rows.toLocaleString()} rows · ${(bytes / 1e6).toFixed(0)} MB…`)
-      },
-    })
+    let result!: ParseResult
+    let staged = 0
+    for (const [i, file] of paths.entries()) {
+      console.log(`  [${i + 1}/${paths.length}] ${basename(file)}`)
+      result = await parseFile(file, {
+        batchSize: 5_000,
+        columnOverrides: source.columnOverrides,
+        onBatch: async (rows) => {
+          batches++
+          if (sample.length < 3) sample.push(...rows.slice(0, 3 - sample.length))
+          await loader.write(rows.map((r) => ({ ...r, source_key: source.key })))
+        },
+        progressEvery: 250_000,
+        onProgress: (rows, bytes) => {
+          process.stdout.write(`\r      staging ${rows.toLocaleString()} rows · ${(bytes / 1e6).toFixed(0)} MB…`)
+        },
+      })
+      process.stdout.write('\r' + ' '.repeat(70) + '\r')
+      staged += result.rowsRead
+      console.log(`      ${result.rowsRead.toLocaleString()} rows`)
+    }
     await loader.flush()
+    void staged
     process.stdout.write('\r' + ' '.repeat(70) + '\r')
 
     await recordInference(sql, run.id, result)

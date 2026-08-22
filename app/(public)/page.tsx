@@ -5,6 +5,9 @@ import { JsonLd } from '@/components/public/JsonLd'
 import { webPageLd, faqLd } from '@/lib/public/structuredData'
 import { SelfFileCallout } from '@/components/public/SelfFileCallout'
 import { WhenOffering } from '@/components/public/WhenOffering'
+import { Reveal } from '@/components/public/Reveal'
+import { Stagger } from '@/components/public/Stagger'
+import { Eyebrow } from '@/components/public/Eyebrow'
 import { getStateRules } from '@/lib/compliance/stateRules'
 import { DOR_CLAIM_PORTAL } from '@/lib/public/site'
 
@@ -40,32 +43,54 @@ export default function HomePage() {
     <div>
       <JsonLd data={[webPageLd({ page, about: ['unclaimed property', 'Georgia'] }), faqLd(FAQS)]} />
 
-      <div className="prose">
-        <h1>Georgia is holding money for people who do not know it exists</h1>
-        <p className="lede">
+      <section className="section">
+        <Eyebrow index="01">Georgia unclaimed property</Eyebrow>
+        <Reveal
+          as="h1"
+          className="t-display"
+          lines={[
+            'Georgia is holding money',
+            'for people who do not',
+            'know it exists.',
+          ]}
+        />
+        <p className="lede" style={{ marginTop: 'var(--space-sm)' }}>
           Most of them should claim it themselves, for free, in an afternoon. This
-          site explains how to do that, how to tell a lawful solicitation from a
-          scam, and the handful of situations where a claim is genuinely too
-          complicated to do alone.
+          site explains how — how to tell a lawful solicitation from a scam, and the
+          handful of situations where a claim is genuinely too complicated to do alone.
         </p>
-      </div>
+      </section>
 
       <SelfFileCallout />
 
-      <div className="prose">
-        <h2>Start here</h2>
-      </div>
-      <div className="public-grid" style={{ marginTop: '0.75rem' }}>
-        {ROUTES.map((r) => (
-          <Link key={r.href} href={r.href} className="card" style={{ textDecoration: 'none', display: 'block' }}>
-            <strong style={{ fontSize: 'var(--fs-h3)' }}>{r.label}</strong>
-            <p style={{ margin: '0.35rem 0 0', color: 'var(--muted)', fontSize: 'var(--fs-small)' }}>{r.body}</p>
-          </Link>
-        ))}
-      </div>
+      <section className="section">
+        <Eyebrow index="02">Start here</Eyebrow>
+        <Stagger className="public-grid">
+          {ROUTES.map((r) => (
+            <Link key={r.href} href={r.href} className="card">
+              <strong style={{ fontSize: 'var(--fs-h3)', letterSpacing: '-0.015em' }}>{r.label}</strong>
+              <p style={{ margin: 'var(--space-2xs) 0 0', color: 'var(--ink-dim)', fontSize: 'var(--fs-small)' }}>
+                {r.body}
+              </p>
+            </Link>
+          ))}
+        </Stagger>
+      </section>
 
-      <div className="prose">
-        <h2>What Reclaimed does</h2>
+      {/* Full-bleed colour inversion at the page's midpoint — the break that
+          separates "here is how to do it yourself" from "here is what we do". */}
+      <section className="section bleed invert">
+        <div className="grid">
+          <div className="col-lead">
+            <Eyebrow index="03">What Reclaimed does</Eyebrow>
+            <h2 style={{
+              fontSize: 'var(--fs-h2)', lineHeight: 1.15, letterSpacing: '-0.02em',
+              margin: '0 0 var(--space-sm)', maxWidth: '20ch',
+            }}>
+              We do not charge for finding money.
+            </h2>
+          </div>
+          <div className="col-body">
         <p>
           A claimant’s designated representative (CDR) is a person registered with
           the Georgia Department of Revenue under O.C.G.A. § 44-12-239 to file
@@ -80,13 +105,17 @@ export default function HomePage() {
           Department refuses claims over exactly that.
         </p>
         <p>
-          <strong>We do not charge for finding money.</strong>{' '}
           <a href={DOR_CLAIM_PORTAL} rel="noopener">The State’s database is free and public</a>{' '}
           and searching it takes five minutes. Charging for discovery is charging for
           something you can do yourself.
         </p>
+          </div>
+        </div>
+      </section>
 
-        <h2>What it would cost</h2>
+      <section className="section prose">
+        <Eyebrow index="04">Fees</Eyebrow>
+        <h2 style={{ marginTop: 0 }}>What it would cost</h2>
         <p>
           Georgia caps a representative’s total fees <em>and</em> costs at {CAP}% of
           the lesser of the amount claimed or the property’s value —
@@ -108,7 +137,11 @@ export default function HomePage() {
           </div>
         </WhenOffering>
 
-        <h2>Common questions</h2>
+      </section>
+
+      <section className="section prose">
+        <Eyebrow index="05">Questions</Eyebrow>
+        <h2 style={{ marginTop: 0 }}>Common questions</h2>
         <dl>
           {FAQS.map((f) => (
             <div key={f.question} style={{ marginBottom: '1rem' }}>
@@ -117,7 +150,7 @@ export default function HomePage() {
             </div>
           ))}
         </dl>
-      </div>
+      </section>
     </div>
   )
 }

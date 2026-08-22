@@ -20,7 +20,7 @@
     "verify:forms": "tsx scripts/verify-forms.ts",
     "verify:legend": "tsx scripts/verify-legend.ts",
     "verify:no-payments": "tsx scripts/verify-no-payments.ts",
-    "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:brand && pnpm verify:no-public-data && pnpm verify:public-surface && pnpm verify:migrations && pnpm verify:forms && pnpm verify:legend",
+    "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:brand && pnpm verify:no-public-data && pnpm verify:public-surface && pnpm verify:acquisition && pnpm verify:migrations && pnpm verify:forms && pnpm verify:legend",
     "verify:templates": "tsx scripts/verify-outbound-templates.ts",
     "ingest": "tsx scripts/ingest.ts",
     "fixture": "tsx scripts/generate-fixture.ts",
@@ -31,7 +31,9 @@
     "verify:brand": "tsx scripts/verify-brand.ts",
     "verify:migrations": "tsx scripts/verify-migrations.ts",
     "bootstrap:admin": "tsx scripts/bootstrap-admin.ts",
-    "verify:public-surface": "tsx scripts/verify-public-surface.ts"
+    "verify:public-surface": "tsx scripts/verify-public-surface.ts",
+    "acquire": "tsx scripts/acquire.ts",
+    "verify:acquisition": "tsx scripts/verify-acquisition.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

@@ -17,6 +17,8 @@ const RUN = '00000000-0000-0000-0000-0000000000ff'
 function row(overrides: Partial<ParsedProperty> = {}): ParsedProperty {
   return {
     property_id: 'GA001',
+    raw: null,
+    source_key: null,
     owner_name: 'SMITH, JAMES',
     insured_name: null,
     beneficiary_name: null,
@@ -62,7 +64,7 @@ describe('COPY text encoding', () => {
     expect(field).toBe('A\\tB\\nC\\\\D\\rE')
     // Exactly one row terminator, and exactly the expected column count.
     expect(encoded.split('\n')).toHaveLength(2)
-    expect(encoded.trimEnd().split('\t')).toHaveLength(21)
+    expect(encoded.trimEnd().split('\t')).toHaveLength(23)  // + raw, source_key
   })
 
   it('a delimiter hidden in a name cannot shift the column count', () => {
@@ -72,7 +74,7 @@ describe('COPY text encoding', () => {
       cash_amount_cents: 12345,
     }))
     const fields = encoded.trimEnd().split('\t')
-    expect(fields).toHaveLength(21)
+    expect(fields).toHaveLength(23)  // + raw, source_key (migration 0023)
     expect(fields[12]).toBe('12345') // still the real amount, in the right slot
   })
 

@@ -137,3 +137,59 @@ export function mapColumnsPositionally(fieldCount: number): MappingResult {
     basis: 'positional-fallback',
   }
 }
+
+/**
+ * Map by an EXPLICIT header-name pin rather than by pattern.
+ *
+ * The regex matcher is a good default and a bad guess. Against California's
+ * real header it maps `CASH_REPORTED` into `year_reported` — a dollar amount in
+ * a year column, silently, which then feeds derive_delivery_precision() and the
+ * enforceability window. It does not fail; it corrupts.
+ *
+ * So where a source's real header has been read, it is pinned in
+ * lib/acquire/sources.ts and resolved here. Every pin must MATCH: a pinned
+ * column that is not present means the publisher changed the format, which is
+ * exactly the moment to stop rather than fall back to guessing.
+ *
+ * Fields absent from the overrides are absent from the result. That is
+ * deliberate — for a source that genuinely has no `date_of_last_activity`,
+ * omission is the correct answer and inference is not.
+ */
+export function mapColumnsFromOverrides(
+  headers: readonly string[],
+  overrides: Readonly<Partial<Record<PropertyField, string>>>,
+): MappingResult {
+  const normalise = (h: string): string => h.replace(/^"|"$/g, '').trim().toLowerCase()
+  const lookup = new Map(headers.map((h, i) => [normalise(h), i]))
+
+  const mapping: ColumnMapping = {}
+  const taken = new Set<number>()
+  const notFound: string[] = []
+
+  for (const [field, headerName] of Object.entries(overrides)) {
+    if (headerName === undefined) continue
+    const index = lookup.get(normalise(headerName))
+    if (index === undefined) { notFound.push(`${field} -> "${headerName}"`); continue }
+    mapping[field as PropertyField] = index
+    taken.add(index)
+  }
+
+  if (notFound.length > 0) {
+    throw new Error(
+      `REFUSING: pinned columns are missing from the file header: ${notFound.join(', ')}.\n\n` +
+      `Header seen: ${headers.map((h) => normalise(h)).join(', ')}\n\n` +
+      'A pinned mapping that no longer matches means the publisher changed the ' +
+      'format. Falling back to pattern matching here is how a dollar amount ends ' +
+      'up in a year column. Re-read the header and update columnOverrides.',
+    )
+  }
+
+  return {
+    mapping,
+    unmapped: headers
+      .map((header, index) => ({ index, header }))
+      .filter(({ index }) => !taken.has(index)),
+    missing: ALL_FIELDS.filter((f) => mapping[f] === undefined),
+    basis: 'header-names',
+  }
+}

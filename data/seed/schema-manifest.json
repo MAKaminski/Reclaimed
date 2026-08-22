@@ -1,6 +1,7 @@
 {
   "_note": "Every database object the migrations must create. Generated from the deployed schema of project cuaeplfeignnlptfugcv and checked by scripts/verify-migrations.ts. Supabase's own storage/auth objects are excluded. Regenerate deliberately when the schema changes \u2014 this file is what makes the repo's claim to reproduce the database checkable.",
   "tables": [
+    "acquisitions",
     "agreements",
     "audit_log",
     "authority_links",
@@ -66,6 +67,8 @@
     "workflow_stage_rules"
   ],
   "types": [
+    "acquisition_mode",
+    "acquisition_outcome",
     "agreement_form",
     "agreement_status",
     "authority_link_type",
@@ -115,5 +118,5 @@
     "suppressions_no_delete",
     "suppressions_no_update"
   ],
-  "policyCount": 47
+  "policyCount": 48
 }

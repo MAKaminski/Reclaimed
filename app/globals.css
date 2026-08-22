@@ -1,103 +1,134 @@
 /*
- * Design tokens.
+ * Design tokens and the public visual system.
  *
- * Every value here is LIFTED from the inline styles already in the app — the
- * Tailwind stone ramp plus semantic red/green/amber/indigo that the staff pages
- * were already hand-writing as hex literals. Nothing new was invented; this file
- * only gives the existing palette a name so it can be varied by media query,
- * which an inline style object cannot do.
+ * The visual language follows the rejouice pattern corpus (Studio palette,
+ * editorial grid, expo easing, masked reveals) with three deliberate departures,
+ * each forced by something real:
  *
- * The --fs-* scale mirrors lib/public/typeScale.ts in px (1pt = 4/3px). Public
- * pages must use these variables, never a raw fontSize — see the note in that
- * file about the legend sizing rule.
+ * 1. TYPE IS CAPPED. The reference display token runs to 200px. § 44-12-239(f)
+ *    sizes the solicitation legend at max(12pt, largest font + 1), so a 200px
+ *    hero would force a 151pt legal notice the day we register. The cap lives in
+ *    lib/public/typeScale.ts and CI forbids raw fontSize in the public tree.
+ *
+ * 2. RED IS SEMANTIC, NEVER DECORATIVE. The Studio light palette's accent is a
+ *    deep red, which sits too close to the disclosure red. If links and the
+ *    legal notice share a colour, the notice stops reading as a notice. So the
+ *    teal is the accent and red means exactly one thing.
+ *
+ * 3. DARK MODE IS SCOPED to .public-shell. The staff pages still style
+ *    themselves with hand-written light-mode hex; flipping the root tokens would
+ *    leave #57534e body text on #1c1917. A half-migrated dark mode is worse than
+ *    none.
  */
 
 :root {
-  /* Surfaces and ink */
+  /* ── Ground and ink — Studio, light ───────────────────────────────────── */
+  --bg: #ffffff;
+  --bg-2: #f2f1ee;
+  --ink: #161822;
+  --ink-dim: #5f6070;
+  --ink-faint: #b6b7c2;
+  --line: rgba(22, 24, 34, 0.16);
+  --bg-inverse: #161822;
+  --ink-inverse: #ffffff;
+
+  /* The accent is teal, not red. See note 2 above. */
+  --accent: #00544d;
+  --accent-hover: #007a70;
+
+  /* Legacy aliases — the staff pages still reference these names. */
   --paper: #fafaf9;
   --card: #ffffff;
-  --ink: #1c1917;
-  --muted: #57534e;
-  --label: #78716c;
-  --faint: #a8a29e;
-  --rule: #e7e5e4;
-  --rule-strong: #d6d3d1;
+  --muted: #5f6070;
+  --label: #6b6c7c;
+  --faint: #b6b7c2;
+  --rule: rgba(22, 24, 34, 0.14);
+  --rule-strong: rgba(22, 24, 34, 0.24);
 
-  /* Semantic pairs, as already used by RegistrationBanner and StageActions */
-  --ok-bg: #f0fdf4;
-  --ok-border: #bbf7d0;
-  --ok-fg: #14532d;
+  /* ── Semantic. Red appears here and nowhere else. ─────────────────────── */
+  --ok-bg: #f0fdf4;   --ok-border: #bbf7d0;  --ok-fg: #14532d;
+  --held-bg: #fffbeb; --held-border: #fde68a; --held-fg: #78350f;
+  --stop-bg: #fef2f2; --stop-border: #fecaca; --stop-fg: #7f1d1d;
+  --dor-bg: #e0e7ff;  --dor-fg: #3730a3;
 
-  --held-bg: #fffbeb;
-  --held-border: #fde68a;
-  --held-fg: #78350f;
+  /* ── Type. Fluid, few steps, big jumps — capped. ──────────────────────── */
+  --fs-display: clamp(2rem, 5vw, 3rem);       /* 48px = 36pt, the cap */
+  --fs-h2: clamp(1.5rem, 3vw, 2rem);          /* 32px */
+  --fs-h3: 1.25rem;                            /* 20px */
+  --fs-body: clamp(1rem, 1.05vw, 1.0625rem);
+  --fs-small: 0.8125rem;
+  --fs-label: 0.6875rem;
 
-  --stop-bg: #fef2f2;
-  --stop-border: #fecaca;
-  --stop-fg: #7f1d1d;
+  --leading-display: 1.02;
+  --leading-body: 1.65;
+  --tracking-display: -0.025em;
+  --tracking-label: 0.14em;
 
-  --dor-bg: #e0e7ff;
-  --dor-fg: #3730a3;
+  /* ── Motion. Long, low-acceleration curves read as considered. ────────── */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --dur-instant: 0.12s;
+  --dur-micro: 0.4s;
+  --dur-reveal: 0.95s;
+  --stagger: 0.06s;
 
-  /* Type scale — mirrors PUBLIC_TYPE_SCALE, in px */
-  --fs-small: 13px;
-  --fs-body: 16px;
-  --fs-h3: 18px;
-  --fs-h2: 22px;
-  --fs-h1: 28px;
-
-  --measure: 38rem;
-  --page: 64rem;
+  /* ── Space and layout ─────────────────────────────────────────────────── */
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1.25rem;
+  --space-md: 2rem;
+  --space-lg: clamp(3rem, 6vw, 5.5rem);
+  --space-xl: clamp(5rem, 12vh, 9rem);
+  --gutter: clamp(1.25rem, 4vw, 4rem);
+  --grid-gap: clamp(1rem, 1.6vw, 2rem);
+  --measure: 62ch;
+  --page: 78rem;
   --radius: 0.5rem;
   --radius-sm: 0.375rem;
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
   color-scheme: light;
 }
 
 /*
- * Dark mode is scoped to `.public-shell`, not :root.
- *
- * The staff pages predate this file and style themselves with hand-written hex
- * literals for a light background. Flipping the root tokens would darken the
- * page under them and leave #57534e body text on #1c1917 — a half-migrated dark
- * mode that is worse than none. The public tree is the theme-aware surface;
- * the internal tool stays light until its styles are migrated too.
+ * Dark mode, scoped to the public shell. See note 3.
  */
 @media (prefers-color-scheme: dark) {
   .public-shell:not([data-theme="light"]) {
-    --paper: #1c1917;
-    --card: #292524;
-    --ink: #fafaf9;
-    --muted: #d6d3d1;
-    --label: #a8a29e;
-    --faint: #78716c;
-    --rule: #44403c;
-    --rule-strong: #57534e;
+    --bg: #161822;
+    --bg-2: #1e2130;
+    --ink: #f6f5f2;
+    --ink-dim: #9a9aa8;
+    --ink-faint: #4d4f60;
+    --line: rgba(246, 245, 242, 0.16);
+    --bg-inverse: #ffffff;
+    --ink-inverse: #161822;
 
-    --ok-bg: #14261a;
-    --ok-border: #22543d;
-    --ok-fg: #bbf7d0;
+    --accent: #5fd3c4;
+    --accent-hover: #8fe6da;
 
-    --held-bg: #292014;
-    --held-border: #78350f;
-    --held-fg: #fde68a;
+    --paper: #161822;
+    --card: #1e2130;
+    --muted: #9a9aa8;
+    --label: #9a9aa8;
+    --faint: #4d4f60;
+    --rule: rgba(246, 245, 242, 0.16);
+    --rule-strong: rgba(246, 245, 242, 0.28);
 
-    --stop-bg: #2c1618;
-    --stop-border: #7f1d1d;
-    --stop-fg: #fecaca;
-
-    --dor-bg: #1e1b4b;
-    --dor-fg: #c7d2fe;
+    --ok-bg: #10241a;   --ok-border: #1f5137;   --ok-fg: #86efac;
+    --held-bg: #241d10; --held-border: #6b4310; --held-fg: #fcd34d;
+    --stop-bg: #2a1417; --stop-border: #7f1d1d; --stop-fg: #fca5a5;
+    --dor-bg: #1e1b4b;  --dor-fg: #c7d2fe;
 
     color-scheme: dark;
   }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 body {
   margin: 0;
@@ -105,29 +136,28 @@ body {
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
 }
 
-a { color: inherit; }
+a { color: inherit; text-underline-offset: 0.18em; }
 a:hover { text-decoration-thickness: 2px; }
 
 :where(a, button, input, summary):focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
   border-radius: 2px;
 }
 
-/* Wide content must scroll inside itself; the page body never scrolls sideways. */
 .scroll-x { overflow-x: auto; }
 
-/* ── Public surface ──────────────────────────────────────────────────────── */
+/* ══ Public shell ═══════════════════════════════════════════════════════ */
 
 .public-shell {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  /* Explicit, because body's --paper stays light for the staff app. */
-  background: var(--paper);
+  background: var(--bg);
   color: var(--ink);
 }
 
@@ -136,24 +166,95 @@ a:hover { text-decoration-thickness: 2px; }
   width: 100%;
   max-width: var(--page);
   margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
+  padding: var(--space-md) var(--gutter) var(--space-xl);
+}
+
+/* ── Editorial grid ───────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--grid-gap);
+}
+@media (min-width: 48rem) { .grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (min-width: 72rem) { .grid { grid-template-columns: repeat(12, minmax(0, 1fr)); } }
+
+.col-lead, .col-body, .col-aside, .col-full { grid-column: 1 / -1; }
+.col-body { max-width: var(--measure); }
+@media (min-width: 72rem) {
+  .col-lead { grid-column: 1 / 10; }
+  .col-body { grid-column: 1 / 8; }
+  .col-aside { grid-column: 9 / 13; }
+}
+
+/* ── Typography ───────────────────────────────────────────────────────── */
+.t-display {
+  font-size: var(--fs-display);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+  margin: 0;
+  text-wrap: balance;
+}
+.t-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin: 0;
 }
 
 .prose { max-width: var(--measure); }
-.prose p, .prose li { color: var(--muted); }
-.prose h1 { font-size: var(--fs-h1); line-height: 1.2; letter-spacing: -0.02em; color: var(--ink); }
-.prose h2 { font-size: var(--fs-h2); line-height: 1.25; margin-top: 2.5rem; color: var(--ink); }
-.prose h3 { font-size: var(--fs-h3); margin-top: 1.75rem; color: var(--ink); }
-.prose .lede { font-size: var(--fs-h3); color: var(--ink); line-height: 1.5; }
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 1rem 1.15rem;
+.prose p, .prose li { color: var(--ink-dim); }
+.prose h1 {
+  font-size: var(--fs-display); line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display); color: var(--ink);
+  margin: 0 0 var(--space-sm); text-wrap: balance; font-weight: 600;
+}
+.prose h2 {
+  font-size: var(--fs-h2); line-height: 1.15; margin-top: var(--space-lg);
+  color: var(--ink); letter-spacing: -0.015em; font-weight: 600;
+}
+.prose h3 { font-size: var(--fs-h3); margin-top: var(--space-md); color: var(--ink); }
+.prose .lede {
+  font-size: var(--fs-h3); color: var(--ink); line-height: 1.5;
+  max-width: 46ch;
 }
 
-.notice { border-radius: var(--radius); padding: 1rem 1.15rem; }
+/* ── Section rhythm ───────────────────────────────────────────────────── */
+.section { padding-block: var(--space-lg); border-top: 1px solid var(--line); }
+.section:first-of-type { border-top: 0; padding-block-start: 0; }
+
+/* Escape the gutter without leaving the grid. */
+.bleed {
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  width: calc(100% + var(--gutter) * 2);
+}
+
+/* Colour inversion for a full-bleed break. */
+.invert {
+  background: var(--bg-inverse);
+  color: var(--ink-inverse);
+  padding-block: var(--space-lg);
+}
+.invert :where(p, li) { color: color-mix(in oklab, var(--ink-inverse) 78%, transparent); }
+.invert :where(h1, h2, h3, strong) { color: var(--ink-inverse); }
+
+/* ── Surfaces ─────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-sm) var(--space-md);
+  transition: border-color var(--dur-micro) var(--ease-out-expo),
+              transform var(--dur-micro) var(--ease-out-expo);
+}
+a.card { text-decoration: none; display: block; }
+a.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) { a.card:hover { transform: none; } }
+
+.notice { border-radius: var(--radius); padding: var(--space-sm) var(--space-md); }
 .notice--stop { background: var(--stop-bg); border: 1px solid var(--stop-border); color: var(--stop-fg); }
 .notice--held { background: var(--held-bg); border: 1px solid var(--held-border); color: var(--held-fg); }
 .notice--ok   { background: var(--ok-bg);   border: 1px solid var(--ok-border);   color: var(--ok-fg); }
@@ -161,38 +262,82 @@ a:hover { text-decoration-thickness: 2px; }
 
 .fact-table { width: 100%; border-collapse: collapse; font-size: var(--fs-small); }
 .fact-table th, .fact-table td {
-  text-align: left; padding: 0.6rem 0.75rem 0.6rem 0;
-  border-top: 1px solid var(--rule); vertical-align: top;
+  text-align: left; padding: 0.7rem 0.9rem 0.7rem 0;
+  border-top: 1px solid var(--line); vertical-align: top;
 }
 .fact-table thead th {
-  border-top: 0; color: var(--label); text-transform: uppercase;
-  letter-spacing: 0.06em; font-size: 0.6875rem;
+  border-top: 0; color: var(--ink-dim); text-transform: uppercase;
+  letter-spacing: var(--tracking-label); font-size: var(--fs-label);
+  font-family: var(--font-mono);
+}
+.fact-table tbody tr { transition: background var(--dur-instant) ease; }
+.fact-table tbody tr:hover { background: var(--bg-2); }
+
+.source-line {
+  font-size: var(--fs-small); color: var(--ink-faint);
+  margin-top: var(--space-sm); padding-top: var(--space-xs);
+  border-top: 1px solid var(--line);
 }
 
-.source-line { font-size: var(--fs-small); color: var(--faint); margin-top: 0.5rem; }
-
-.public-grid {
-  display: grid; gap: 0.75rem;
-  grid-template-columns: 1fr;
-}
+.public-grid { display: grid; gap: var(--grid-gap); grid-template-columns: 1fr; }
 @media (min-width: 40rem) { .public-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 64rem) { .public-grid--3 { grid-template-columns: repeat(3, 1fr); } }
 
-.public-nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: baseline; }
+.public-nav { display: flex; flex-wrap: wrap; gap: 0.35rem 1.5rem; align-items: baseline; }
+.public-nav a { text-decoration: none; color: var(--ink-dim); transition: color var(--dur-instant) ease; }
+.public-nav a:hover { color: var(--ink); }
 
-/* ── Action board ────────────────────────────────────────────────────────── */
+/* ══ Motion ═════════════════════════════════════════════════════════════
+ * TRANSFORM ONLY. Nothing here may reduce opacity or clip content.
+ *
+ * The first version of this used the signature masked-line reveal — lines
+ * translated 110% inside an overflow:hidden mask — plus an opacity-0 stagger.
+ * Both worked when the compositor ran and both FAILED VISIBLY when it did not:
+ * a screenshot of the home page showed the eyebrow, then blank space where the
+ * headline should be, then the lede. In a hidden or throttled document the hide
+ * lands and the reveal does not.
+ *
+ * Guards helped and did not fix it, because the guard has to run before the
+ * document is throttled and that is not something script can guarantee.
+ *
+ * So the constraint is structural instead: motion may only translate. If every
+ * animation in this file silently never runs, the page is a few pixels off its
+ * final position and completely readable. On a site whose whole purpose is
+ * telling people how to claim their own money, unreadable is not a state worth
+ * risking for a nicer entrance.
+ */
 
-.phase-rail {
-  display: grid; gap: 0.75rem;
-  grid-template-columns: 1fr;
+.reveal__line {
+  display: block;
+  transition: transform var(--dur-reveal) var(--ease-out-expo) var(--reveal-delay, 0ms);
 }
+.reveal.is-armed .reveal__line { transform: translateY(0.5em); }
+.reveal.is-armed.is-revealed .reveal__line { transform: translateY(0); }
+
+.stagger > * {
+  transition: transform var(--dur-reveal) var(--ease-out-expo) var(--item-delay, 0ms);
+}
+.stagger.is-armed > * { transform: translateY(1rem); }
+.stagger.is-armed.is-in > * { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal.is-armed .reveal__line,
+  .stagger.is-armed > *,
+  .stagger.is-armed.is-in > * {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ══ Action board ═══════════════════════════════════════════════════════ */
+
+.phase-rail { display: grid; gap: var(--grid-gap); grid-template-columns: 1fr; }
 @media (min-width: 46rem) { .phase-rail { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 68rem) { .phase-rail { grid-template-columns: repeat(5, 1fr); } }
 
 .stat-row {
-  display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem;
+  display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem;
   font-size: var(--fs-small); color: var(--muted);
 }
 
-@media print {
-  .no-print { display: none !important; }
-}
+@media print { .no-print { display: none !important; } }

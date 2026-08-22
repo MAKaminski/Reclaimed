@@ -19,6 +19,7 @@ import { inferFormat, splitLine, stripBom, type FormatInference } from './sniff'
 import {
   mapColumnsFromHeader,
   mapColumnsPositionally,
+  mapColumnsFromOverrides,
   type ColumnMapping,
   type MappingResult,
   type PropertyField,
@@ -49,6 +50,18 @@ export interface ParsedProperty {
   year_reported: number | null
   holder_name: string | null
   holder_contact: string | null
+  /**
+   * The exact source line.
+   *
+   * properties.raw exists so "a parser bug is recoverable without a
+   * re-delivery" — but nothing was populating it: COPY_COLUMNS omitted the
+   * column and ParsedProperty had no field, so the line was discarded at parse
+   * time. On a >1GB weekly entitlement file that made every parser bug cost a
+   * full week's wait for the next delivery.
+   */
+  raw: string | null
+  /** Which registered source this row came from. Set by the ingest CLI. */
+  source_key?: string | null
 }
 
 export interface RejectSample {
@@ -84,7 +97,16 @@ export async function sniffFile(path: string): Promise<FormatInference> {
   }
 }
 
-function buildMapping(inference: FormatInference): MappingResult {
+function buildMapping(
+  inference: FormatInference,
+  overrides?: Readonly<Partial<Record<PropertyField, string>>> | null,
+): MappingResult {
+  // A pinned mapping wins over inference. Where we have read a source's real
+  // header, guessing is strictly worse than knowing — see the note on
+  // mapColumnsFromOverrides about CASH_REPORTED landing in year_reported.
+  if (overrides != null && inference.hasHeader && inference.columns !== null) {
+    return mapColumnsFromOverrides(inference.columns, overrides)
+  }
   return inference.hasHeader && inference.columns !== null
     ? mapColumnsFromHeader(inference.columns)
     : mapColumnsPositionally(inference.fieldCount)
@@ -100,7 +122,12 @@ export type ParsedRow =
   | { ok: true; row: ParsedProperty }
   | { ok: false; rejection: RowRejection }
 
-export function parseRow(fields: string[], mapping: ColumnMapping): ParsedRow {
+export function parseRow(
+  fields: string[],
+  mapping: ColumnMapping,
+  /** The original line, preserved on the row so a parser bug is recoverable. */
+  rawLine?: string,
+): ParsedRow {
   const propertyId = coerceText(at(fields, mapping, 'property_id'))
   // The Property ID is the join key and is required on UP-CDR2 §I. A row
   // without one cannot be claimed, so it cannot be worked.
@@ -149,6 +176,7 @@ export function parseRow(fields: string[], mapping: ColumnMapping): ParsedRow {
     safe_deposit_contents: coerceText(at(fields, mapping, 'safe_deposit_contents')),
     date_of_last_activity: coerceDate(at(fields, mapping, 'date_of_last_activity')),
     year_reported: coerceYear(at(fields, mapping, 'year_reported')),
+    raw: rawLine ?? null,
     holder_name: coerceText(at(fields, mapping, 'holder_name')),
     holder_contact: coerceText(at(fields, mapping, 'holder_contact')),
   } }
@@ -161,6 +189,8 @@ export interface ParseOptions {
   /** Progress callback, invoked roughly every `progressEvery` rows. */
   onProgress?: (rowsRead: number, bytesRead: number) => void
   progressEvery?: number
+  /** Pinned header->field mapping for a known source. Overrides inference. */
+  columnOverrides?: Readonly<Partial<Record<PropertyField, string>>> | null
 }
 
 /**
@@ -179,7 +209,7 @@ export async function parseFile(
   const progressEvery = options.progressEvery ?? 250_000
 
   const inference = await sniffFile(path)
-  const mapping = buildMapping(inference)
+  const mapping = buildMapping(inference, options.columnOverrides)
 
   const rejectSamples: RejectSample[] = []
   let rowsRead = 0
@@ -235,7 +265,7 @@ export async function parseFile(
       return
     }
 
-    const parsed = parseRow(fields, mapping.mapping)
+    const parsed = parseRow(fields, mapping.mapping, line)
     if (!parsed.ok) {
       rowsRejected++
       if (rejectSamples.length < MAX_REJECT_SAMPLES) {

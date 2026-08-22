@@ -108,7 +108,13 @@ function main(): void {
 
       // A dynamic table name defeats every name-based check above, so it is
       // itself the finding — the gate cannot verify what it cannot see.
-      const dynamicTable = /\.(from|rpc)\(\s*[^'"\`)\s]/.test(source)
+      // `Array.from(...)`, `Object.from`, and friends are not Supabase calls.
+      // Without this, a client component doing Array.from(root.children) reads
+      // as a query against a computed table name — which is how this gate
+      // flagged a scroll-animation helper that touches no database at all.
+      const NOT_A_QUERY = /\b(Array|Object|Map|Set|Date|Number|String|Promise)\.$/
+      const dynamicTable = [...source.matchAll(/\.(from|rpc)\(\s*[^'"`)\s]/g)]
+        .some((m) => !NOT_A_QUERY.test(source.slice(Math.max(0, m.index - 12), m.index + 1)))
       if (dynamicTable && !AUTH_MARKERS.some((m) => source.includes(m))) {
         failures.push({
           file: rel,

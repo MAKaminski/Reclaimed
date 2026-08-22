@@ -23,6 +23,7 @@ const COPY_COLUMNS = [
   'last_known_state', 'last_known_postal', 'naupa_relation_code', 'naupa_property_type',
   'cash_amount_cents', 'share_count', 'issuer_name', 'cusip', 'safe_deposit_contents',
   'date_of_last_activity', 'year_reported', 'holder_name', 'holder_contact',
+  'raw', 'source_key',
 ] as const
 
 /**
@@ -67,6 +68,8 @@ export function encodeCopyRow(runId: string, row: ParsedProperty): string {
     row.year_reported,
     row.holder_name,
     row.holder_contact,
+    row.raw,
+    row.source_key ?? null,
   ]
   return values.map(encodeCopyValue).join('\t') + '\n'
 }

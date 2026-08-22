@@ -40,22 +40,33 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     <div className="public-shell">
       <JsonLd data={[organizationLd(), webSiteLd()]} />
 
-      <header style={{ borderBottom: '1px solid var(--rule)', background: 'var(--card)' }}>
-        <div style={{ maxWidth: 'var(--page)', margin: '0 auto', padding: '0.9rem 1.25rem' }}>
+      <header style={{
+        borderBottom: '1px solid var(--line)',
+        background: 'var(--bg)',
+        position: 'sticky', top: 0, zIndex: 10,
+        backdropFilter: 'saturate(180%) blur(12px)',
+      }}>
+        <div style={{
+          maxWidth: 'var(--page)', margin: '0 auto',
+          padding: 'var(--space-sm) var(--gutter)',
+        }}>
           <div className="public-nav">
-            <Link href="/" style={{ fontWeight: 700, textDecoration: 'none', marginRight: '0.5rem' }}>
+            <Link href="/" style={{
+              fontWeight: 600, textDecoration: 'none', marginRight: 'var(--space-sm)',
+              letterSpacing: '-0.02em', color: 'var(--ink)',
+            }}>
               {SITE_NAME}
             </Link>
             {navPages().map((p) => (
-              <Link key={p.href} href={p.href} style={{ fontSize: 'var(--fs-small)', color: 'var(--muted)' }}>
+              <Link key={p.href} href={p.href} style={{ fontSize: 'var(--fs-small)' }}>
                 {p.navLabel}
               </Link>
             ))}
             <Link
               href="/signin"
-              style={{ marginLeft: 'auto', fontSize: 'var(--fs-small)', color: 'var(--faint)' }}
+              style={{ marginLeft: 'auto', fontSize: 'var(--fs-label)', color: 'var(--ink-faint)' }}
             >
-              Staff sign in
+              Staff
             </Link>
           </div>
         </div>
@@ -66,10 +77,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
 
-      <footer style={{ background: 'var(--card)', borderTop: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: 'var(--page)', margin: '0 auto', padding: '2rem 1.25rem' }}>
+      <footer style={{ background: 'var(--bg-2)', borderTop: '1px solid var(--line)' }}>
+        <div style={{
+          maxWidth: 'var(--page)', margin: '0 auto',
+          padding: 'var(--space-lg) var(--gutter)',
+        }}>
           <StandingDisclosures />
-          <p className="source-line" style={{ marginTop: '1.5rem' }}>
+          <p className="source-line" style={{ marginTop: 'var(--space-md)' }}>
             {SITE_NAME} is not a government agency and is not affiliated with the State
             of Georgia or the Georgia Department of Revenue.{' '}
             <Link href="/legal/disclosures">Disclosures</Link> ·{' '}
