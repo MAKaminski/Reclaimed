@@ -40,10 +40,14 @@ export function SignInForm() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // /auth/finish, not /auth/callback: on the free tier the email template
-        // cannot be changed, so the link may return either ?code= (PKCE) or a
-        // #fragment (implicit). Only a browser page can read the fragment.
-        emailRedirectTo: `${window.location.origin}/auth/finish`,
+        // /auth/confirm. The email template appends ?token_hash=…&type=… to
+        // this exact URL via {{ .RedirectTo }}, so the origin that requested the
+        // link is the origin it returns to — localhost stays localhost.
+        //
+        // Fully server-side: no PKCE verifier to lose when the link opens in a
+        // phone's mail app, and no token in the URL fragment or history.
+        // /auth/finish remains as a fallback for links already in flight.
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
         // Account creation IS allowed, and that is not a hole.
         //
         // An account is not access. Without a `staff` row every RLS policy in
