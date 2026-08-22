@@ -13,7 +13,7 @@
  * silently producing void claims. DOR last revised UP-CDR2 on 2025-04-09.
  */
 
-import { PDFDocument } from 'pdf-lib'
+import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib'
 import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { join, resolve } from 'node:path'
@@ -24,6 +24,7 @@ import {
   type FeeComputation,
 } from '@/lib/compliance/computeFee'
 import { assertRegistered, type RegistrationState } from '@/lib/compliance/registration'
+import { isRehearsal, REHEARSAL_WATERMARK } from '@/lib/compliance/operatingMode'
 import { getStateRules } from '@/lib/compliance/stateRules'
 import { assertChainSubmittable, type AuthorityLink, type ClaimShape } from '@/lib/locate/authorityChain'
 import { assertPayeeAddresses } from '@/lib/compliance/payeeAddress'
@@ -96,6 +97,8 @@ export interface BuildAgreementInput {
 
 export interface AgreementArtifact {
   pdfBytes: Uint8Array
+  /** True when generated before registration: practice only, never to be posted. */
+  isRehearsal: boolean
   /** Frozen snapshot. A historical agreement must render exactly as signed. */
   snapshot: AgreementSnapshot
   /** True when UP-CDR3 must be attached. */
@@ -163,8 +166,13 @@ function loadForm(formId: string): { bytes: Buffer; sha256: string } {
 export function assertAgreementPermitted(input: BuildAgreementInput): void {
   const rules = getStateRules('GA')
 
-  // §1.4 — registration. Also checks the CDR Identification Number is present.
-  assertRegistered('generate_agreement', input.registration)
+  // Registration is NOT checked here. Generating an agreement transmits nothing
+  // and reaches nobody, so it is product rather than compliance — and being able
+  // to rehearse the whole pipeline before registration is the point. What IS
+  // gated is POSTING it, enforced at the send path by assertMayTransmit().
+  //
+  // The CDR Identification Number is still required on any LIVE agreement, and
+  // that is checked below.
 
   if (input.properties.length === 0) {
     throw new AgreementError('REFUSING TO GENERATE: no properties on the agreement.')
@@ -194,11 +202,13 @@ export function assertAgreementPermitted(input: BuildAgreementInput): void {
     input.claimShape,
   )
 
-  // § 44-12-224(c)(6) — the CDR Identification Number.
-  if (input.cdr.identificationNumber.trim() === '') {
+  // § 44-12-224(c)(6) — the CDR Identification Number. Required on a LIVE
+  // agreement. In rehearsal there is no number yet by definition, so a
+  // placeholder is accepted and the artifact is watermarked instead.
+  if (!isRehearsal(input.registration) && input.cdr.identificationNumber.trim() === '') {
     throw new AgreementError(
-      'REFUSING TO GENERATE: no CDR Identification Number. § 44-12-224(c)(6) ' +
-        'requires it on every agreement, and § 44-12-224(b) voids a defective one.',
+      'REFUSING TO GENERATE a live agreement without a CDR Identification Number. ' +
+        '§ 44-12-224(c)(6) requires it, and § 44-12-224(b) voids a defective agreement.',
     )
   }
 
@@ -404,6 +414,29 @@ export async function buildRecoveryAgreement(
   // signature: § 44-12-224(c)(7) requires the claimant's own MANUAL signature
   // affixed by the claimant.
 
+  // ── Rehearsal watermark ──────────────────────────────────────────────────
+  // A rehearsal agreement is otherwise indistinguishable from a real one. If it
+  // were printed and posted it WOULD be an unregistered solicitation, so the
+  // mark goes into the page content on every page, not into metadata.
+  const rehearsal = isRehearsal(input.registration)
+  if (rehearsal) {
+    const font = await pdf.embedFont(StandardFonts.HelveticaBold)
+    for (const page of pdf.getPages()) {
+      const { width, height } = page.getSize()
+      page.drawText(REHEARSAL_WATERMARK, {
+        x: 40,
+        y: height / 2,
+        size: 22,
+        font,
+        color: rgb(0.85, 0.1, 0.1),
+        opacity: 0.28,
+        rotate: degrees(32),
+        maxWidth: width - 80,
+        lineHeight: 26,
+      })
+    }
+  }
+
   const pdfBytes = await pdf.save()
 
   // § 44-12-224(g)(1): the addendum is required where custom terms exist AND
@@ -413,6 +446,7 @@ export async function buildRecoveryAgreement(
 
   return {
     pdfBytes,
+    isRehearsal: rehearsal,
     requiresAddendum,
     snapshot: {
       formId: 'UP-CDR2',

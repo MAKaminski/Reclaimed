@@ -21,6 +21,7 @@
     "property_events",
     "property_holds",
     "property_scores",
+    "property_workflow",
     "staff",
     "staff_invites",
     "state_rules",
@@ -36,8 +37,11 @@
   ],
   "functions": [
     "apply_ingest_diff",
+    "assert_claim_matches_agreement",
+    "assert_submission_matches_claim",
     "chain_submittable",
     "classify_owner",
+    "compliance_gates",
     "derive_delivery_precision",
     "enforceable_on",
     "freeze_agreement_after_send",
@@ -51,10 +55,12 @@
     "log_authority_link_change",
     "log_staff_change",
     "log_state_rule_change",
+    "log_workflow_change",
     "may_send",
     "redeem_my_invite",
     "redeem_staff_invite",
-    "set_claim_clocks"
+    "set_claim_clocks",
+    "workflow_stage_rules"
   ],
   "types": [
     "agreement_form",
@@ -81,11 +87,14 @@
     "agreements_freeze",
     "authority_links_audit",
     "claims_clocks",
+    "claims_match_agreement",
     "evidence_immutable",
     "on_auth_user_created_redeem_invite",
     "property_events_halt",
+    "property_workflow_audit",
     "staff_audit",
-    "state_rules_audit"
+    "state_rules_audit",
+    "submissions_match_claim"
   ],
   "rules": [
     "agreements_no_delete",

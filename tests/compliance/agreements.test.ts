@@ -111,13 +111,36 @@ describe('§6.1 the form limits are physical, and enforced', () => {
   })
 })
 
-describe('§1.4 + § 44-12-224(c)(6) registration and the CDR number', () => {
-  it('refuses to generate while unregistered', () => {
-    const unregistered: RegistrationState = { status: 'unregistered', registrationNumber: null, expiresAt: null }
-    expect(() => assertAgreementPermitted(agreement({ registration: unregistered }))).toThrow()
+describe('§1.4 registration gates SENDING, not generating', () => {
+  const unregistered: RegistrationState = {
+    status: 'unregistered', registrationNumber: null, expiresAt: null,
+  }
+
+  it('PERMITS generating an agreement while unregistered — it transmits nothing', () => {
+    // Generating reaches no owner and no Department, so it is product rather
+    // than compliance. Being able to rehearse the whole pipeline before
+    // registration is the point.
+    expect(() => assertAgreementPermitted(agreement({ registration: unregistered })))
+      .not.toThrow()
   })
 
-  it('refuses without a CDR Identification Number', () => {
+  it('marks an unregistered agreement as a REHEARSAL', async () => {
+    const artifact = await buildRecoveryAgreement(agreement({ registration: unregistered }))
+    expect(artifact.isRehearsal).toBe(true)
+  })
+
+  it('marks a registered agreement as live', async () => {
+    const artifact = await buildRecoveryAgreement(agreement())
+    expect(artifact.isRehearsal).toBe(false)
+  })
+
+  it('accepts a placeholder CDR number in rehearsal — there is no real one yet', () => {
+    const draft = agreement({ registration: unregistered })
+    draft.cdr = { ...draft.cdr, identificationNumber: '   ' }
+    expect(() => assertAgreementPermitted(draft)).not.toThrow()
+  })
+
+  it('REFUSES a LIVE agreement without a CDR Identification Number — § 44-12-224(c)(6)', () => {
     const noNumber = agreement()
     noNumber.cdr = { ...noNumber.cdr, identificationNumber: '   ' }
     expect(() => assertAgreementPermitted(noNumber)).toThrow(/44-12-224\(c\)\(6\)/)

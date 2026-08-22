@@ -1,6 +1,7 @@
 import { getSessionState, mayTouchClaims } from '@/lib/db/auth'
-import { getStageRules, getStageCounts, resolveAvailability } from '@/lib/db/workflow'
+import { getStageRules, getStageCounts, resolveAvailability, getComplianceGates } from '@/lib/db/workflow'
 import { readRegistrationState, checkRegistration } from '@/lib/compliance/registration'
+import { getOperatingMode } from '@/lib/compliance/operatingMode'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,10 +17,13 @@ export default async function WorkflowPage() {
     return <p style={{ color: '#57534e' }}>Staff access required.</p>
   }
 
-  const [rules, counts] = await Promise.all([getStageRules(), getStageCounts()])
+  const [rules, counts, gates] = await Promise.all([
+    getStageRules(), getStageCounts(), getComplianceGates(),
+  ])
   const stages = resolveAvailability(rules, counts, staff)
   const registration = readRegistrationState()
   const canSolicit = checkRegistration('solicit', registration).permitted
+  const mode = getOperatingMode(registration)
 
   return (
     <>
@@ -28,6 +32,41 @@ export default async function WorkflowPage() {
         Eleven stages, three owners. You do everything except sign the agreement
         and decide the claim.
       </p>
+
+      <div style={{
+        marginTop: '1rem', maxWidth: '46rem', padding: '0.85rem 1rem',
+        borderRadius: '0.5rem',
+        background: mode.mode === 'live' ? '#f0fdf4' : '#fffbeb',
+        border: `1px solid ${mode.mode === 'live' ? '#bbf7d0' : '#fde68a'}`,
+      }}>
+        <strong style={{ fontSize: '0.9375rem' }}>
+          {mode.mode === 'live' ? 'LIVE' : 'REHEARSAL MODE'}
+        </strong>
+        <p style={{ margin: '0.3rem 0 0', fontSize: '0.875rem', color: '#57534e' }}>
+          {mode.mode === 'rehearsal' ? (
+            <>
+              <strong>Every stage below runs right now.</strong> Score properties,
+              build authority chains, generate a real UP-CDR2 from the real DOR
+              form, record a signature, assemble a claim packet, reconcile a
+              receipt — all of it works and produces genuine artifacts.
+              {' '}Only <strong>three things are withheld</strong>, and they are the
+              only three that put something in front of an owner or the Department:
+            </>
+          ) : mode.reason}
+        </p>
+        {mode.withheld.length > 0 && (
+          <ul style={{ margin: '0.4rem 0 0', paddingLeft: '1.1rem', fontSize: '0.875rem', color: '#7f1d1d' }}>
+            {mode.withheld.map((w) => <li key={w}>{w}</li>)}
+          </ul>
+        )}
+        {mode.mode === 'rehearsal' && (
+          <p style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem', color: '#78716c' }}>
+            Agreements generated now are watermarked <strong>REHEARSAL — DO NOT SEND</strong>
+            {' '}across every page. A rehearsal agreement is otherwise a perfectly valid
+            form, so posting one would itself be an unregistered solicitation.
+          </p>
+        )}
+      </div>
 
       {/* ── Who is who ────────────────────────────────────────────────── */}
       <Section title="Who does what">
@@ -90,19 +129,6 @@ export default async function WorkflowPage() {
 
       {/* ── The pipeline ──────────────────────────────────────────────── */}
       <Section title="The pipeline">
-        {!canSolicit && (
-          <p style={{
-            background: '#fef2f2', border: '1px solid #fecaca', color: '#7f1d1d',
-            padding: '0.75rem', borderRadius: '0.375rem', fontSize: '0.875rem', maxWidth: '46rem',
-          }}>
-            <strong>Stages 4, 5 and 8 are closed until CDR registration completes.</strong>{' '}
-            § 44-12-239.2(a)(10) reaches soliciting, contracting, filing, and even
-            receiving DOR&rsquo;s data — each sanctionable at up to $2,000 per act, with
-            revocation and referral to the Attorney General. Stages 1&ndash;3 are open
-            now and are where the real work is.
-          </p>
-        )}
-
         <ol style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '0.5rem', maxWidth: '46rem' }}>
           {stages.map(({ rule, permitted, blockers, count }) => {
             const tone = OWNER_STYLE[rule.owner]!
@@ -145,6 +171,63 @@ export default async function WorkflowPage() {
             )
           })}
         </ol>
+      </Section>
+
+      {/* ── Gates ─────────────────────────────────────────────────────── */}
+      <Section title="Legal gates — what each one unlocks">
+        <p style={{ color: '#57534e', fontSize: '0.875rem', maxWidth: '46rem', marginTop: 0 }}>
+          A gate stops something <strong>leaving the building</strong>. Everything
+          else is product, and product runs now.
+        </p>
+        <div style={{ display: 'grid', gap: '0.6rem', maxWidth: '46rem' }}>
+          {gates.map((g) => {
+            const cleared = g.blocked_today.length === 0
+            return (
+              <div key={g.gate_key} style={{
+                border: '1px solid #e7e5e4', borderRadius: '0.5rem', padding: '0.85rem',
+                background: cleared ? '#f0fdf4' : '#fff',
+              }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'baseline', flexWrap: 'wrap' }}>
+                  <strong style={{ fontSize: '0.9375rem' }}>{g.gate_name}</strong>
+                  <span style={{
+                    fontSize: '0.6875rem', padding: '0.1rem 0.45rem', borderRadius: '999px',
+                    textTransform: 'uppercase', letterSpacing: '0.04em',
+                    background: cleared ? '#14532d' : '#7f1d1d', color: '#fff',
+                  }}>{cleared ? 'cleared' : 'not yet'}</span>
+                  <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: '#a8a29e' }}>{g.statute}</span>
+                </div>
+
+                <p style={{ margin: '0.45rem 0 0.2rem', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#78716c' }}>
+                  Unlocks
+                </p>
+                <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.8125rem', color: '#57534e' }}>
+                  {g.unlocks.map((u) => <li key={u}>{u}</li>)}
+                </ul>
+
+                {g.blocked_today.length > 0 && (
+                  <>
+                    <p style={{ margin: '0.5rem 0 0.2rem', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#78716c' }}>
+                      Blocking today
+                    </p>
+                    <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.8125rem', color: '#7f1d1d' }}>
+                      {g.blocked_today.map((b) => <li key={b}>{b}</li>)}
+                    </ul>
+                  </>
+                )}
+
+                {g.available_in_rehearsal && !cleared && (
+                  <p style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem', color: '#14532d' }}>
+                    ✓ Exercisable in rehearsal — you can click the whole path today.
+                  </p>
+                )}
+
+                <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: '#a8a29e' }}>
+                  {g.penalty}
+                </p>
+              </div>
+            )
+          })}
+        </div>
       </Section>
 
       <Section title="What to do first">

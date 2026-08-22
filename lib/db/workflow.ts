@@ -37,6 +37,25 @@ export interface StageAvailability {
   count: number
 }
 
+export interface ComplianceGate {
+  gate_key: string
+  gate_name: string
+  statute: string
+  /** What clearing this gate makes legal. */
+  unlocks: string[]
+  /** What it is stopping right now. Empty when already cleared. */
+  blocked_today: string[]
+  /** Whether the pipeline can still be exercised without it. */
+  available_in_rehearsal: boolean
+  penalty: string
+}
+
+export async function getComplianceGates(): Promise<ComplianceGate[]> {
+  const supabase = await createClient()
+  const { data } = await supabase.rpc('compliance_gates')
+  return (data ?? []) as unknown as ComplianceGate[]
+}
+
 export async function getStageRules(): Promise<StageRule[]> {
   const supabase = await createClient()
   // The generated RPC type does not know this function returns a set, so the
