@@ -25,6 +25,16 @@ export function SignInForm() {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      // PKCE stores a code verifier in THIS browser and requires it back when
+      // the link is opened. A magic link is inherently cross-browser: people
+      // read mail on their phone, and Gmail opens links in its own in-app
+      // browser. That browser has no verifier, so the exchange fails with
+      // "PKCE code verifier not found in storage" — which is what happened.
+      //
+      // Implicit puts the session in the URL fragment instead, so the link
+      // works wherever it is opened. /auth/finish strips the token out of
+      // history immediately after establishing the session.
+      { auth: { flowType: 'implicit' } },
     )
 
     const { error } = await supabase.auth.signInWithOtp({

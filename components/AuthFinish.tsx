@@ -12,9 +12,12 @@ export function AuthFinish() {
   const [detail, setDetail] = useState('')
 
   useEffect(() => {
+    // Same flow as the sign-in form, or this client would look for a PKCE
+    // verifier that was never created.
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      { auth: { flowType: 'implicit', detectSessionInUrl: true } },
     )
 
     async function finish() {
@@ -35,17 +38,26 @@ export function AuthFinish() {
       const accessToken = hash.get('access_token')
       const refreshToken = hash.get('refresh_token')
 
-      if (code !== null) {
-        // PKCE: the verifier lives in this browser, so this must run here.
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (error !== null) { setDetail(error.message); setState('failed'); return }
-      } else if (accessToken !== null && refreshToken !== null) {
+      if (accessToken !== null && refreshToken !== null) {
         // Implicit: write the session so the SERVER can read the cookie.
         const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         })
         if (error !== null) { setDetail(error.message); setState('failed'); return }
+      } else if (code !== null) {
+        // A ?code= link predates the switch to implicit, or came from another
+        // client. Try it, but say plainly why it can fail rather than showing
+        // the raw PKCE message.
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error !== null) {
+          setDetail(
+            /verifier/i.test(error.message)
+              ? 'This link was opened in a different browser from the one that requested it. Request a new link and open it in this browser.'
+              : error.message,
+          )
+          setState('failed'); return
+        }
       } else {
         // detectSessionInUrl may already have consumed the fragment on load.
         const { data } = await supabase.auth.getSession()
