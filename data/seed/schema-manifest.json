@@ -32,6 +32,7 @@
     "acquisition_inventory",
     "authority_chain_state",
     "claim_clocks",
+    "holdings_composition",
     "pipeline_board",
     "pipeline_stuck",
     "pipeline_supply",

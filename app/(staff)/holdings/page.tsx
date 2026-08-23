@@ -3,11 +3,14 @@ import { createClient } from '@/lib/db/supabase'
 import { getSessionState } from '@/lib/db/auth'
 import { cents, formatUsd } from '@/lib/compliance/money'
 import { lookupFor } from '@/lib/acquire/stateLookup'
+import { getComposition, resolveSort, SORTABLE, type SortKey } from '@/lib/db/holdings'
+import { HoldingsComposition } from '@/components/HoldingsComposition'
 import { CopyId } from '@/components/CopyId'
 
 export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 100
+
 
 /**
  * Holdings — what we have LOADED, which is deliberately not what we may WORK.
@@ -99,11 +102,13 @@ function num(v: string | number | null | undefined): number {
 }
 
 export default async function HoldingsPage({ searchParams }: {
-  searchParams: Promise<{ source?: string; q?: string; page?: string }>
+  searchParams: Promise<{ source?: string; q?: string; page?: string; sort?: string; dir?: string }>
 }) {
   const supabase = await createClient()
   const { staff } = await getSessionState()
-  const { source, q, page } = await searchParams
+  const { source, q, page, sort, dir } = await searchParams
+  const sortKey = resolveSort(sort)
+  const ascending = dir === 'asc'
 
   if (staff === null) {
     return (
@@ -118,11 +123,16 @@ export default async function HoldingsPage({ searchParams }: {
     )
   }
 
-  const { data: invData, error: invError } = await supabase
-    .from('acquisition_inventory')
-    .select('*')
-    .order('live_rows', { ascending: false })
-    .returns<InventoryRow[]>()
+  const [{ data: invData, error: invError }, classes, types, holders] = await Promise.all([
+    supabase
+      .from('acquisition_inventory')
+      .select('*')
+      .order('live_rows', { ascending: false })
+      .returns<InventoryRow[]>(),
+    getComposition('class', { sourceKey: source, limit: 6 }),
+    getComposition('type', { sourceKey: source, limit: 10 }),
+    getComposition('holder', { sourceKey: source, limit: 10 }),
+  ])
 
   if (invError !== null) {
     return (
@@ -152,7 +162,7 @@ export default async function HoldingsPage({ searchParams }: {
       { count: 'exact' },
     )
     .is('retired_at', null)
-    .order('cash_amount_cents', { ascending: false, nullsFirst: false })
+    .order(SORTABLE[sortKey].column, { ascending, nullsFirst: false })
     .range(from, from + PAGE_SIZE - 1)
 
   if (source !== undefined && source !== '') rowQuery = rowQuery.eq('source_key', source)
@@ -165,7 +175,12 @@ export default async function HoldingsPage({ searchParams }: {
 
   const qs = (over: Record<string, string | undefined>): string => {
     const p = new URLSearchParams()
-    const merged = { source, q, page: String(pageNum), ...over }
+    const merged = {
+      source, q, page: String(pageNum),
+      sort: sortKey === 'value' ? undefined : sortKey,
+      dir: ascending ? 'asc' : undefined,
+      ...over,
+    }
     for (const [k, v] of Object.entries(merged)) {
       if (v !== undefined && v !== '' && !(k === 'page' && v === '1')) p.set(k, v)
     }
@@ -274,6 +289,20 @@ export default async function HoldingsPage({ searchParams }: {
         })}
       </div>
 
+      {/* ── What it is made of ───────────────────────────────────────── */}
+      {/* Not decoration. Each dimension decides something: whether the state
+          pays it out without us, what proving it costs, and whether one
+          relationship unlocks many claims. The component says which. */}
+      <h2 style={{ fontSize: '1.125rem', marginTop: '2.5rem', marginBottom: '0.25rem' }}>
+        What this is made of
+      </h2>
+      <p style={{ color: '#57534e', marginTop: 0, fontSize: '0.875rem', maxWidth: '52rem' }}>
+        Three dimensions, each on this page because it changes a decision rather than
+        because the file happens to carry it.
+        {source !== undefined && source !== '' && <> Scoped to <strong>{source}</strong>.</>}
+      </p>
+      <HoldingsComposition classes={classes} types={types} holders={holders} />
+
       {/* ── Row listing ──────────────────────────────────────────────── */}
       <h2 style={{ fontSize: '1.125rem', marginTop: '2.5rem', marginBottom: '0.25rem' }}>
         {source !== undefined && source !== '' ? source : 'All sources'}
@@ -312,17 +341,18 @@ export default async function HoldingsPage({ searchParams }: {
         <>
           <p style={{ color: '#78716c', fontSize: '0.8125rem', margin: '0 0 0.5rem' }}>
             {matched.toLocaleString()} matching · showing {(from + 1).toLocaleString()}–
-            {(from + rows.length).toLocaleString()} · ranked by reported value
+            {(from + rows.length).toLocaleString()} · sorted by {SORTABLE[sortKey].label.toLowerCase()}{' '}
+            {ascending ? 'ascending' : 'descending'}
           </p>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ textAlign: 'left', color: '#78716c', fontSize: '0.75rem', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '0.5rem 0.75rem 0.5rem 0' }}>Owner</th>
-                  <th style={{ padding: '0.5rem 0.75rem' }}>Class</th>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'right' }}>Reported</th>
-                  <th style={{ padding: '0.5rem 0.75rem' }}>Type</th>
-                  <th style={{ padding: '0.5rem 0.75rem' }}>Holder</th>
+                  <SortHeader k="owner"  current={sortKey} ascending={ascending} qs={qs} pad="0.5rem 0.75rem 0.5rem 0" />
+                  <SortHeader k="class"  current={sortKey} ascending={ascending} qs={qs} />
+                  <SortHeader k="value"  current={sortKey} ascending={ascending} qs={qs} align="right" />
+                  <SortHeader k="type"   current={sortKey} ascending={ascending} qs={qs} />
+                  <SortHeader k="holder" current={sortKey} ascending={ascending} qs={qs} />
                   <th style={{ padding: '0.5rem 0.75rem' }}>Verify</th>
                 </tr>
               </thead>
@@ -428,5 +458,44 @@ function StateLookupLink({ sourceKey }: { sourceKey: string | null }) {
     >
       look up ↗
     </a>
+  )
+}
+
+/**
+ * A column header that sorts.
+ *
+ * Clicking the active column flips direction; clicking another switches to it
+ * and starts descending, because for every column here the interesting end is
+ * the top — the largest amounts, the most owners, the holders with the most
+ * records. Ascending alphabetical owner names is a real need but a rarer one.
+ */
+function SortHeader({ k, current, ascending, qs, align, pad }: {
+  k: SortKey
+  current: SortKey
+  ascending: boolean
+  qs: (over: Record<string, string | undefined>) => string
+  align?: 'right'
+  pad?: string
+}) {
+  const active = current === k
+  const nextDir = active && !ascending ? 'asc' : undefined
+
+  return (
+    <th style={{ padding: pad ?? '0.5rem 0.75rem', textAlign: align ?? 'left' }}>
+      <Link
+        href={qs({ sort: k === 'value' ? undefined : k, dir: nextDir, page: '1' })}
+        style={{
+          color: active ? '#1c1917' : 'inherit',
+          textDecoration: 'none',
+          fontWeight: active ? 600 : 400,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {SORTABLE[k].label}
+        <span style={{ color: active ? '#1c1917' : '#d6d3d1' }}>
+          {active ? (ascending ? ' \u2191' : ' \u2193') : ' \u2195'}
+        </span>
+      </Link>
+    </th>
   )
 }
