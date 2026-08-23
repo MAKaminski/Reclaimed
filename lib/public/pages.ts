@@ -296,6 +296,11 @@ export const PUBLIC_PAGES: readonly PublicPage[] = Object.freeze([
 /** Static assets that must also bypass the session redirect. */
 export const PUBLIC_ASSETS: readonly string[] = Object.freeze([
   '/robots.txt', '/sitemap.xml', '/llms.txt', '/opengraph-image',
+  // `/apple-icon` has NO file extension, so proxy.ts's matcher — which excludes
+  // `favicon.ico` and anything ending in an image suffix — does not skip it. The
+  // proxy therefore ran and redirected the touch icon to /signin. `/icon.svg`
+  // was fine for the opposite reason: it ends in `.svg`.
+  '/apple-icon',
 ])
 
 export function publicPathnames(): string[] {
