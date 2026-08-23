@@ -110,6 +110,31 @@ function main(): void {
     }
   }
 
+  // ── 4. Privileged functions are not executable by `authenticated` ─────
+  //
+  // apply_ingest_diff is SECURITY DEFINER and rewrites `properties` wholesale.
+  // It shipped with EXECUTE granted to `authenticated`, which meant any
+  // signed-up user who learned a run id could retire every row for a source —
+  // 3,439 live properties to 6, probed and rolled back. RLS did not help: the
+  // function is SECURITY DEFINER, so RLS does not apply inside it.
+  //
+  // A grant is not visible in application code and not visible in a view
+  // definition, so neither the §1.8 gate nor the security_invoker check above
+  // can see it. This one reads the migrations for the revoke.
+  const MUST_REVOKE = ['apply_ingest_diff']
+  for (const fn of MUST_REVOKE) {
+    const revoked = new RegExp(
+      `revoke\\s+execute\\s+on\\s+function\\s+${fn}\\s*\\([^)]*\\)\\s+from\\s+[^;]*\\bauthenticated\\b`,
+    ).test(all)
+    if (!revoked) {
+      failures.push(
+        `function "${fn}" is never revoked from \`authenticated\`. It is SECURITY ` +
+        'DEFINER and writes to CDR-derived tables, so any signed-up user could ' +
+        'call it and RLS would not apply inside it.',
+      )
+    }
+  }
+
   if (failures.length > 0) {
     console.error('\n✗ MIGRATIONS DO NOT REPRODUCE THE DATABASE\n')
     for (const f of failures) console.error(`  · ${f}`)
