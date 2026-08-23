@@ -169,6 +169,32 @@ for (const artifact of ['app/robots.ts', 'app/sitemap.ts', 'app/llms.txt/route.t
   }
 }
 
+// ── 7. A public API path may never be a prefix ────────────────────────────
+//
+// proxy.ts matches an allowlist entry with startsWith(`${p}/`), so an entry of
+// `/api` would also open `/api/property/[id]/letter` — the staff route that
+// renders an owner's solicitation letter. Requiring three segments makes the
+// dangerous edit impossible rather than merely discouraged.
+{
+  const registry = read('lib/public/pages.ts')
+  if (registry !== null) {
+    const block = /PUBLIC_API_PATHS[^=]*=\s*Object\.freeze\(\[([\s\S]*?)\]\)/.exec(registry)
+    const entries = block === null ? [] : [...block[1]!.matchAll(/'([^']+)'/g)].map((m) => m[1]!)
+    for (const entry of entries) {
+      const depth = entry.split('/').filter((x) => x !== '').length
+      if (depth < 3) {
+        failures.push({
+          file: 'lib/public/pages.ts',
+          reason:
+            `PUBLIC_API_PATHS contains "${entry}", only ${depth} segment(s) deep. ` +
+            'proxy.ts opens everything beneath an allowlisted path, so a shallow ' +
+            'entry exposes every staff API route under it.',
+        })
+      }
+    }
+  }
+}
+
 if (failures.length > 0) {
   console.error('\n✗ PUBLIC SURFACE ARCHITECTURE\n')
   for (const f of failures) console.error(`  ${f.file}\n    ${f.reason}\n`)

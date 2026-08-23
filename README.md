@@ -65,6 +65,8 @@ is holding.
 | `docs/GO-LIVE.md` | The two-track checklist: registration, then technical |
 | `docs/RUNBOOK.md` | The out-of-code sequence and the 30-day material-change duty |
 | `docs/DOR-QUESTIONS.md` | Open questions for the Department, each with its conservative default |
+| `docs/CLI.md` | Every command, what it does, and the three gates with surprising failure modes |
+| `docs/MCP.md` | The MCP server for agents, and why it cannot reach property data |
 | `docs/WHAT-IT-TAKES.md` | Georgia vs the California alternative |
 
 ## Gates

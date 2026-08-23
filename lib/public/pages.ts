@@ -258,6 +258,18 @@ export const PUBLIC_PAGES: readonly PublicPage[] = Object.freeze([
     lastModified: '2026-08-23',
   },
   {
+    href: '/for-partners',
+    navLabel: 'For partners',
+    title: 'Refer an unclaimed property claim to Reclaimed — partner API',
+    description:
+      'An HTTP API for attorneys, fiduciaries and firms who want Reclaimed to do the recovery work. Referrals in, no data out, and no lookup endpoint.',
+    summary:
+      'The partner referral API: two endpoints, an OpenAPI spec, and why there is deliberately no lookup.',
+    inNav: false,
+    section: 'company',
+    lastModified: '2026-08-23',
+  },
+  {
     href: '/engineering',
     navLabel: 'Engineering',
     title: 'Compliance as code: how Reclaimed is built',
@@ -303,8 +315,26 @@ export const PUBLIC_ASSETS: readonly string[] = Object.freeze([
   '/apple-icon',
 ])
 
+/**
+ * API routes reachable WITHOUT a session.
+ *
+ * Listed one full path at a time, never as a prefix. `isPublicPath` in proxy.ts
+ * matches on `startsWith(`${p}/`)`, so a bare `/api` here would also open
+ * `/api/property/[id]/letter` — a staff route that renders an owner's
+ * solicitation letter. That is the single most dangerous edit anyone could make
+ * to this file, which is why the entries are exhaustive and why
+ * `verify:public-surface` refuses any entry shallower than three segments.
+ *
+ * `/api/openapi.json` is absent on purpose: it ends in `.json`, so proxy.ts's
+ * matcher already skips it before the allowlist is consulted.
+ */
+export const PUBLIC_API_PATHS: readonly string[] = Object.freeze([
+  '/api/v1/status',
+  '/api/v1/intake',
+])
+
 export function publicPathnames(): string[] {
-  return [...PUBLIC_PAGES.map((p) => p.href), ...PUBLIC_ASSETS]
+  return [...PUBLIC_PAGES.map((p) => p.href), ...PUBLIC_ASSETS, ...PUBLIC_API_PATHS]
 }
 
 export function navPages(): PublicPage[] {
