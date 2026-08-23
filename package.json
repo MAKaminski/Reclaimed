@@ -37,7 +37,8 @@
     "watch:sources": "tsx --env-file-if-exists=.env.local scripts/watch-sources.ts",
     "probe:authority": "tsx --env-file-if-exists=.env.local scripts/probe-authority.ts",
     "snapshot:index": "tsx --env-file-if-exists=.env.local scripts/snapshot-index.ts",
-    "verify:comparison": "tsx --env-file-if-exists=.env.local scripts/verify-comparison.ts"
+    "verify:comparison": "tsx --env-file-if-exists=.env.local scripts/verify-comparison.ts",
+    "fixtures:remove": "tsx --env-file-if-exists=.env.local scripts/remove-fixtures.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

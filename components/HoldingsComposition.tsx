@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { cents, formatUsd } from '@/lib/compliance/money'
 import type { CompositionRow } from '@/lib/db/holdings'
 
@@ -19,10 +20,14 @@ interface Dimension {
   labelHeading: string
 }
 
-export function HoldingsComposition({ classes, types, holders }: {
+export function HoldingsComposition({ classes, types, holders, hrefFor, active }: {
   classes: CompositionRow[] | null
   types: CompositionRow[] | null
   holders: CompositionRow[] | null
+  /** Builds the URL that filters the listing below to this slice. */
+  hrefFor: (dimension: string, label: string) => string
+  /** Currently applied filters, so the active row can show as selected. */
+  active: Record<string, string | undefined>
 }) {
   const dimensions: Dimension[] = [
     {
@@ -103,9 +108,30 @@ export function HoldingsComposition({ classes, types, holders }: {
                     const outside = d.key === 'holder'
                       ? r.multiOwnerRows + r.entityRows
                       : r.multiOwnerRows
+                    const isActive = active[d.key] === r.label
                     return (
-                      <tr key={r.label} style={{ borderTop: '1px solid #e7e5e4' }}>
-                        <td style={{ padding: '0.5rem 0.75rem 0.5rem 0' }}>{r.label}</td>
+                      <tr
+                        key={r.label}
+                        style={{
+                          borderTop: '1px solid #e7e5e4',
+                          background: isActive ? '#f5f5f4' : undefined,
+                        }}
+                      >
+                        <td style={{ padding: '0.5rem 0.75rem 0.5rem 0' }}>
+                          <Link
+                            href={hrefFor(d.key, r.label)}
+                            style={{
+                              color: isActive ? '#1c1917' : undefined,
+                              fontWeight: isActive ? 600 : undefined,
+                            }}
+                            title={isActive ? 'Clear this filter' : `Show only ${r.label}`}
+                          >
+                            {r.label}
+                          </Link>
+                          {isActive && (
+                            <span style={{ color: '#a8a29e', fontSize: '0.75rem' }}> · filtered</span>
+                          )}
+                        </td>
                         <td style={{
                           padding: '0.5rem 0.75rem', textAlign: 'right',
                           fontVariantNumeric: 'tabular-nums',

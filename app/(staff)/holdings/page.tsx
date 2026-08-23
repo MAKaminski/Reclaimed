@@ -102,11 +102,14 @@ function num(v: string | number | null | undefined): number {
 }
 
 export default async function HoldingsPage({ searchParams }: {
-  searchParams: Promise<{ source?: string; q?: string; page?: string; sort?: string; dir?: string }>
+  searchParams: Promise<{
+    source?: string; q?: string; page?: string; sort?: string; dir?: string
+    class?: string; type?: string; holder?: string
+  }>
 }) {
   const supabase = await createClient()
   const { staff } = await getSessionState()
-  const { source, q, page, sort, dir } = await searchParams
+  const { source, q, page, sort, dir, class: ownerClass, type, holder } = await searchParams
   const sortKey = resolveSort(sort)
   const ascending = dir === 'asc'
 
@@ -166,6 +169,11 @@ export default async function HoldingsPage({ searchParams }: {
     .range(from, from + PAGE_SIZE - 1)
 
   if (source !== undefined && source !== '') rowQuery = rowQuery.eq('source_key', source)
+  // Filters set by clicking a composition row. Equality only — these come from
+  // values the view itself produced, so there is no pattern matching to escape.
+  if (ownerClass !== undefined && ownerClass !== '') rowQuery = rowQuery.eq('owner_class', ownerClass)
+  if (type !== undefined && type !== '') rowQuery = rowQuery.eq('naupa_property_type', type)
+  if (holder !== undefined && holder !== '') rowQuery = rowQuery.eq('holder_name', holder)
   if (q !== undefined && q.trim() !== '') rowQuery = rowQuery.ilike('owner_name', `%${q.trim()}%`)
 
   const { data: rowData, count, error: rowError } = await rowQuery.returns<PropertyRow[]>()
@@ -177,6 +185,7 @@ export default async function HoldingsPage({ searchParams }: {
     const p = new URLSearchParams()
     const merged = {
       source, q, page: String(pageNum),
+      class: ownerClass, type, holder,
       sort: sortKey === 'value' ? undefined : sortKey,
       dir: ascending ? 'asc' : undefined,
       ...over,
@@ -301,16 +310,72 @@ export default async function HoldingsPage({ searchParams }: {
         because the file happens to carry it.
         {source !== undefined && source !== '' && <> Scoped to <strong>{source}</strong>.</>}
       </p>
-      <HoldingsComposition classes={classes} types={types} holders={holders} />
+      <HoldingsComposition
+        classes={classes}
+        types={types}
+        holders={holders}
+        active={{ class: ownerClass, type, holder }}
+        hrefFor={(dimension, label) => {
+          const alreadyOn = { class: ownerClass, type, holder }[dimension] === label
+          return qs({ [dimension]: alreadyOn ? undefined : label, page: '1' })
+        }}
+      />
 
       {/* ── Row listing ──────────────────────────────────────────────── */}
       <h2 style={{ fontSize: '1.125rem', marginTop: '2.5rem', marginBottom: '0.25rem' }}>
         {source !== undefined && source !== '' ? source : 'All sources'}
       </h2>
 
+      {(() => {
+        // A filter you cannot see is a filter you will misread the numbers under.
+        const applied = ([
+          ['source', source], ['class', ownerClass], ['type', type],
+          ['holder', holder], ['q', q],
+        ] as const).filter(([, v]) => v !== undefined && v !== '')
+        if (applied.length === 0) return null
+        return (
+          <p style={{ margin: '0.75rem 0 0', fontSize: '0.8125rem' }}>
+            <span style={{ color: '#78716c' }}>Filtered: </span>
+            {applied.map(([k, v]) => (
+              <Link
+                key={k}
+                href={qs({ [k]: undefined, page: '1' })}
+                title={`Remove the ${k} filter`}
+                style={{
+                  display: 'inline-block',
+                  border: '1px solid #d6d3d1',
+                  borderRadius: '999px',
+                  padding: '0.1rem 0.55rem',
+                  marginRight: '0.35rem',
+                  textDecoration: 'none',
+                  color: '#1c1917',
+                }}
+              >
+                {k}: {v} <span style={{ color: '#a8a29e' }}>&times;</span>
+              </Link>
+            ))}
+            <Link
+              href="/holdings"
+              style={{ color: '#78716c', marginLeft: '0.25rem' }}
+            >
+              clear all
+            </Link>
+          </p>
+        )
+      })()}
+
       <form method="get" action="/holdings" style={{ display: 'flex', gap: '0.5rem', margin: '0.75rem 0 1rem' }}>
         {source !== undefined && source !== '' && (
           <input type="hidden" name="source" value={source} />
+        )}
+        {ownerClass !== undefined && ownerClass !== '' && (
+          <input type="hidden" name="class" value={ownerClass} />
+        )}
+        {type !== undefined && type !== '' && (
+          <input type="hidden" name="type" value={type} />
+        )}
+        {holder !== undefined && holder !== '' && (
+          <input type="hidden" name="holder" value={holder} />
         )}
         <input
           type="search"

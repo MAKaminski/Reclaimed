@@ -34,8 +34,10 @@
  *   ATHENS CAPITAL PARTNERS LP  entity administratively dissolved  -> manual review
  *   MARIETTA PROPERTIES, INC    a sequence gap and an unreviewed link -> blocked
  *
- * Still fenced, because the transaction is open for the duration: refuses to run
- * outside rehearsal mode, and only touches FIXTURE-DEMO properties.
+ * Still fenced, because the transaction is open for the duration: it refuses to
+ * run outside rehearsal mode, it creates its own ephemeral properties rather than
+ * relying on seeded ones, and it refuses to touch any property_id that already
+ * exists.
  */
 
 import { getOperatingMode } from '@/lib/compliance/operatingMode'
@@ -148,15 +150,25 @@ async function main(): Promise<void> {
       let created = 0
 
       for (const chain of CHAINS) {
-        // Never touch a property that is not a fixture. A typo in a property_id
-        // must fail here, not attach synthetic authority to a real owner.
-        const [target] = await tx<Array<{ property_id: string }>>`
-          select property_id from properties
-          where property_id = ${chain.propertyId} and source_key = 'FIXTURE-DEMO'`
-        if (target === undefined) {
-          report.push(`  ✗ ${chain.propertyId} is not a FIXTURE-DEMO property — skipped`)
+        // The probe creates its own properties rather than depending on seeded
+        // ones. It used to require a FIXTURE-DEMO row, which quietly turned this
+        // into a no-op the moment the demo rows were deleted — a probe that
+        // silently stops probing is worse than no probe.
+        //
+        // Refusing to touch an EXISTING property is the safety property that
+        // matters, and it is stronger this way: if the id is already present,
+        // something real is there and we stop rather than attach synthetic
+        // authority evidence to it.
+        const [existing] = await tx<Array<{ property_id: string }>>`
+          select property_id from properties where property_id = ${chain.propertyId}`
+        if (existing !== undefined) {
+          report.push(`  ✗ ${chain.propertyId} already exists — skipped, will not touch a real record`)
           continue
         }
+
+        await tx`
+          insert into properties (property_id, owner_name, owner_class, source_key)
+          values (${chain.propertyId}, ${chain.label}, 'entity', ${'PROBE-EPHEMERAL'})`
 
         for (const link of chain.links) {
           let entityId: string | null = null
