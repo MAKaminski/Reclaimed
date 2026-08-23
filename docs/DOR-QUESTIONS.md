@@ -9,12 +9,54 @@ deliberate fail-safe.
 
 | # | Question | Code default while unanswered | Answer |
 | --- | --- | --- | --- |
-| 1 | **[HIGHEST VALUE]** Will the UCP Section honor an **out-of-state remote online notarization** on UP-CDR2/UP-CDR4, per Policy Bulletin ADMIN-2025-03? Does the claimant's own physical location matter? | `SIGNATURE_MODE=wet_ink`; RON built but shipped disabled behind `ENABLE_RON_SIGNATURE=false` | — |
+| 1 | **[HIGHEST VALUE]** Will the UCP Section honor an **out-of-state remote online notarization** on UP-CDR2/UP-CDR4, per Policy Bulletin ADMIN-2025-03? Does the claimant's own physical location matter? | `SIGNATURE_MODE=wet_ink`; RON built but shipped disabled behind `ENABLE_RON_SIGNATURE=false` | **Regulatory chain found — see below. Still unanswered operationally; flag stays off.** |
 | 2 | Does the **120-day unenforceability window** under § 44-12-220(d.1)(4) run from the agreement date, or from the holder's delivery/payment to the commissioner? | Anchored to delivery; unknown or year-precise dates treated as **inside** the window. `TODO(DOR-CONFIRM-120)` in `lib/compliance/windows.ts` | — |
 | 3 | What documentation is required for a claim by a **dissolved** entity? A **merged** entity? Is an unbroken chain-of-title through name changes required? | `entity_status ≠ active` blocks auto-progression and forces named-human review | — |
 | 4 | Does a **corporate resolution, secretary's certificate, or EIN letter (CP-575)** satisfy the "work ID card" requirement? | Evidence required for every authority link; no substitution assumed | — |
 | 5 | **Bulk file mechanics**: exact delimiter, encoding, header row, file count, and transport (SFTP vs HTTPS link vs attachment)? | Parser sniffs all four and records every inference on an `ingest_manifest` row | — |
-| 6 | Will DOR confirm in writing that a **specific named e-signature product** satisfies Rule 560-1-1-.14(1)(a)? | No product assumed compliant; wet ink only | — |
+| 6 | Will DOR confirm in writing that a **specific named e-signature product** satisfies Rule 560-1-1-.14(1)(a)? | No product assumed compliant; wet ink only | UP-CDR2 Rev. 04/09/2025 § VI names the rule but no product. Ask on the same call. |
+| 13 | Does the **§ 44-12-220(i) heir affidavit** still require notarisation? SB 403 waives the probate *order*; it does not obviously waive the notary. | Notary assumed required | — |
+| 14 | For an out-of-state RON, does the **claimant's own physical location** matter, or only the notary's commissioning state? | Assumed to matter; wet ink until answered | — |
+
+## Question 1 — the chain we found, and why the flag is still off
+
+Found 23 August 2026. **Nothing here has been confirmed by the Department**, and
+`ENABLE_RON_SIGNATURE` remains `false`.
+
+1. **Ga. Comp. R. & Regs. r. 560-1-1-.14(3)(a)** — filed 6 March 2025, effective
+   **26 March 2025**: the Department "will accept remote notarizations from notary
+   publics in states where remote notarization is permitted by law … authorized by the
+   Commissioner through … other documents accepted as Department guidance." The prior
+   version required a **Georgia-licensed attorney notary physically in Georgia**. That
+   requirement was deleted.
+2. **Form UP-CDR2, Rev. 04/09/2025 § VI** — "Where remote notarization is allowed by law,
+   an electronic signature is acceptable provided that it complies with Rule
+   560-1-1-.14(1)(a)". The form is the "other documents accepted as Department guidance"
+   hook the rule requires, which closes the chain.
+3. **Policy Bulletin ADMIN-2025-03**, 28 May 2025 — restates it, binding on DOR personnel.
+4. **O.C.G.A. § 44-12-224** requires a *manual signature*, with an electronic signature
+   sufficient under § 10-12-17. **Notarisation is a form requirement, not a statutory
+   one**, so DOR has discretion here and has already exercised it.
+
+Item 2 is verified **first-hand**, not taken on report: the pinned UP-CDR2 in
+`data/seed/form-hashes.json` (sha256 `2ba06b30…`, the same bytes `verify:forms` checks
+every run) stamps `Form UP-CDR2 (Rev 04/09/2025`, carries the remote-notarisation clause
+verbatim, and instructs filing **by email** to `ucp.cdr.claims@dor.ga.gov` with the
+warning that an incomplete agreement makes the claim void.
+
+**So why is the flag still off?** Because the regulatory reading and the operational
+reality are different questions. The Unclaimed Property Section is an operational unit
+that may not have internalised a March 2025 rule change, and nobody has published
+confirmation that a RON-notarised UP-CDR2 has actually been accepted. Georgia awards
+contested property to **whoever files a complete claim first** — so a rejected claim does
+not delay revenue, it hands the property to a competitor. A wrong assumption here is
+uniquely expensive.
+
+**One phone call resolves it:** DOR Office of General Counsel, **(404) 417-2225**, the
+contact printed on ADMIN-2025-03. Ask precisely: *"Will the Unclaimed Property Section
+accept a UP-CDR2 that is e-signed by the claimant and notarised by a Florida-commissioned
+RON notary, submitted as a PDF to ucp.cdr.claims@dor.ga.gov?"* Ask questions 6, 13 and 14
+on the same call.
 
 ## Why question 1 is worth the most
 

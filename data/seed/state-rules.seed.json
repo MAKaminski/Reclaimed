@@ -5,7 +5,17 @@
     "researchedBy": "Claude (Cowork) for Modular Equity",
     "warning": "Rules with status != 'verified' MUST throw when a workflow touches them. Never default silently. Aggregator sites publishing 51-row finder-fee tables (themissingmint.com, moneyfinderbiz.com, ungovr.org) were spot-checked and found MATERIALLY WRONG on GA, VA, MD, IN, CA and MI. Do not reseed from them.",
     "recheckCadence": "Every 6 months, and immediately on any legislative session close. GA changed twice in 24 months (SB 103 eff. 2024-07-01; SB 403 eff. 2026-07-01).",
-    "verifiedBy": "Adversarial re-verification pass 2026-08-20 against primary sources: 23 of 25 GA claims CONFIRMED, 6 citation corrections applied, 2 substantive gaps patched. Methodology caveat: law.justia.com is behind Cloudflare and blocks verbatim retrieval, so statutory text rests on targeted adversarial Q&A cross-checked against DOR official forms. BYTE-VERIFY the solicitation legend string against Lexis or the enrolled SB 103 act text before shipping it in code."
+    "verifiedBy": "Adversarial re-verification pass 2026-08-20 against primary sources: 23 of 25 GA claims CONFIRMED, 6 citation corrections applied, 2 substantive gaps patched. Methodology caveat: law.justia.com is behind Cloudflare and blocks verbatim retrieval, so statutory text rests on targeted adversarial Q&A cross-checked against DOR official forms. BYTE-VERIFY the solicitation legend string against Lexis or the enrolled SB 103 act text before shipping it in code.",
+    "expansionOrder": {
+      "order": [
+        "GA",
+        "PA",
+        "NJ",
+        "NY"
+      ],
+      "asOf": "2026-08-23",
+      "reasoning": "Georgia first because RON plus email filing makes it digital end to end. New York was previously sequenced second on economics - it is the largest fee pool in the country - and that was wrong on mechanics: wet ink, half the cap, and a Surrogate's Court step on estates. Pennsylvania and New Jersey ahead of it."
+    }
   },
   "states": {
     "GA": {
@@ -447,7 +457,48 @@
       "dataFieldsQualifier": "Every field in § 44-12-239.1(a) is qualified \"if provided by the holder\"; cash amount is further qualified \"if applicable.\" The file is guaranteed to exist; it is NOT guaranteed complete per field. Treat every field as nullable.",
       "esignGoverningAuthority": "DOR Rule 560-1-1-.14(1)(a) — this is what UP-CDR2/CDR4 actually cite. Policy Bulletin ADMIN-2025-03 is what accepts OUT-OF-STATE remote notarization. Cite the rule for signature validity, the bulletin for notary acceptance.",
       "wrongFormVoidsClaimNote": "Voids the REPRESENTATIVE’s claim, not the claimant’s own right to the property. Still total loss to us.",
-      "solicitationLegendVerification": "BYTE-VERIFY before shipping. Justia and similar publishers are behind Cloudflare and resist verbatim retrieval. Check against Lexis GA Code or the enrolled SB 103 (2023) act text. Store as a single exported constant with a verifiedAgainst comment and a test asserting byte length. One wrong word makes the notice non-compliant."
+      "solicitationLegendVerification": "BYTE-VERIFY before shipping. Justia and similar publishers are behind Cloudflare and resist verbatim retrieval. Check against Lexis GA Code or the enrolled SB 103 (2023) act text. Store as a single exported constant with a verifiedAgainst comment and a test asserting byte length. One wrong word makes the notice non-compliant.",
+      "ronEvidence": {
+        "status": "evidence_found_awaiting_written_confirmation",
+        "flagRemains": "ENABLE_RON_SIGNATURE=false; ronAvailable=false",
+        "whyStillFalse": "The regulatory chain below is clean, but no operational confirmation exists that the Unclaimed Property Section has actually accepted a RON-notarised UP-CDR2. Georgia awards contested property to whoever files a complete claim FIRST, so a rejected claim does not delay revenue - it forfeits it to a competitor. Phone DOR General Counsel on (404) 417-2225 and get it in writing before flipping either flag.",
+        "chain": [
+          {
+            "source": "Ga. Comp. R. & Regs. r. 560-1-1-.14(3)(a)",
+            "filed": "2025-03-06",
+            "effective": "2025-03-26",
+            "text": "The Department will accept remote notarizations from notary publics in states where remote notarization is permitted by law on documents that require a notary and are authorized by the Commissioner through Department regulations, publications, policy bulletins, or other documents accepted as Department guidance.",
+            "note": "The PRIOR version required the notary to be a Georgia-licensed attorney physically located in Georgia. That requirement was deleted."
+          },
+          {
+            "source": "Form UP-CDR2, Rev. 04/09/2025, section VI",
+            "text": "Where remote notarization is allowed by law, an electronic signature is acceptable provided that it complies with Rule 560-1-1-.14(1)(a) of the Department's regulations.",
+            "verifiedFirstHand": "2026-08-23 - extracted from the pinned PDF in data/seed/form-hashes.json, sha256 2ba06b30. The form is the 'other documents accepted as Department guidance' hook the rule requires, which closes the chain."
+          },
+          {
+            "source": "GA DOR Policy Bulletin ADMIN-2025-03",
+            "issued": "2025-05-28",
+            "note": "Restates the position and is binding on DOR personnel."
+          },
+          {
+            "source": "O.C.G.A. § 44-12-224",
+            "note": "Requires a MANUAL SIGNATURE, with an electronic signature sufficient so long as it complies with § 10-12-17 and uses a product authorised by the department. Notarisation is therefore a FORM requirement, not a statutory one - which means DOR has broad discretion here and has already exercised it in our favour."
+          }
+        ]
+      },
+      "filingChannel": {
+        "mechanism": "email",
+        "address": "ucp.cdr.claims@dor.ga.gov",
+        "citation": "Form UP-CDR2, Rev. 04/09/2025, filing instructions",
+        "verifiedFirstHand": "2026-08-23 - read out of the pinned PDF bytes.",
+        "note": "Georgia claims are filed by EMAIL, not paper mail. The same instructions warn that 'Claims that are submitted without this Agreement or with an incomplete Agreement are void.' Combined with RON this makes the whole pipeline digital end to end in a single session."
+      },
+      "contestedPropertyRule": {
+        "rule": "first_complete_claim_wins",
+        "tieBreak": "lowest_fee_on_same_day",
+        "commercialImplication": "Cycle time is a REVENUE variable in Georgia, not a margin variable. A slow claim is not a late claim, it is a forfeited one. This is the strongest argument for automating the Prove phase and the reason the RON question is the highest-value open item in DOR-QUESTIONS.",
+        "sourceQuality": "SECONDARY - from market analysis 'The Same-Day Claim', 2026-08-23. Confirm against § 44-12-222 and DOR practice before relying on it."
+      }
     },
     "CA": {
       "status": "researched_not_verified_for_build",
@@ -490,7 +541,10 @@
       "requiresNotary": true,
       "ownerMustSignPersonally": true,
       "disclosureFontPt": 12,
-      "note": "Agreement must be on a Comptroller-prescribed form, notarized. Search UI shows NO amount at all — deliberate anti-fraud policy. Free 'Owner Name File' on request but amounts and SSNs are withheld by law."
+      "note": "Agreement must be on a Comptroller-prescribed form, notarized. Search UI shows NO amount at all — deliberate anti-fraud policy. Free 'Owner Name File' on request but amounts and SSNs are withheld by law.",
+      "wetInkRequired": true,
+      "wetInkNote": "The Comptroller requires 'an original signed agreement' mailed to Albany. A remote notarisation produces an electronic record; there is no original. New York is therefore wet ink, at half Georgia's fee cap, with a Surrogate's Court filing step on every estate claim - despite N.Y. Exec. Law § 135-c permitting RON generally. Do not let New York's requirements contaminate the Georgia architecture.",
+      "sourceQuality": "SECONDARY - NY Comptroller APLSP requirements, via market analysis 2026-08-23."
     },
     "PA": {
       "status": "researched_not_verified_for_build",
