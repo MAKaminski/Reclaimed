@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Reclaimed">
+  <!--
+    The mark is a return path: up, over, and back down. Money going home.
+
+    What it deliberately is NOT: a shield, a seal, an eagle, a star, a laurel, or
+    anything else in the visual vocabulary of a state agency. O.C.G.A.
+    § 44-12-239(g) restricts a representative from holding out in a way that
+    suggests a government agency, and impersonating one is the most common fraud
+    pattern in this industry — the site has a whole page teaching people to spot
+    it. A crest would undercut that page at 16 pixels.
+
+    Teal, not the red used elsewhere in this product: red is reserved for
+    compliance semantics and means exactly one thing.
+  -->
+  <style>
+    .plate { fill: #00544d }
+    .stroke { stroke: #ffffff }
+    @media (prefers-color-scheme: dark) {
+      .plate { fill: #5fd3c4 }
+      .stroke { stroke: #05201d }
+    }
+  </style>
+  <rect class="plate" width="32" height="32" rx="7.5" />
+  <g class="stroke" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 22.5V16a7 7 0 0 1 14 0v4" />
+    <path d="M19 20l4 4.5 4-4.5" />
+  </g>
+</svg>

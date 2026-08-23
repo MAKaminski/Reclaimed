@@ -76,6 +76,42 @@ export function listStateRules(): StateRules[] {
     .map(([code, value]) => ({ code, ...value }) as StateRules)
 }
 
+export interface Jurisdiction {
+  code: string
+  status: RuleStatus
+  /** null means the state has NO statutory percentage cap. Never treat as zero. */
+  feeCapPct: number | null
+}
+
+/**
+ * All 51 jurisdictions with a status, for reporting surfaces.
+ *
+ * `listStateRules()` returns 24 — it filters `_`-prefixed keys, and the other 27
+ * live inside the `_UNVERIFIED_NO_DATA` bucket as a bare array of codes. A map
+ * built on `listStateRules()` alone silently omits half the country and reads as
+ * though those states did not exist rather than as though we had not looked at
+ * them. Those are very different claims to make in public.
+ */
+export function listAllJurisdictions(): Jurisdiction[] {
+  const researched = listStateRules().map((r) => ({
+    code: r.code,
+    status: r.status,
+    feeCapPct: r.feeCapPct,
+  }))
+
+  const bucket = RAW_STATES['_UNVERIFIED_NO_DATA'] as
+    | { status?: RuleStatus; states?: readonly string[] }
+    | undefined
+
+  const unresearched = (bucket?.states ?? []).map((code) => ({
+    code,
+    status: bucket?.status ?? ('blocked' as RuleStatus),
+    feeCapPct: null,
+  }))
+
+  return [...researched, ...unresearched].sort((a, b) => a.code.localeCompare(b.code))
+}
+
 /**
  * Fetch rules WITHOUT the verification gate. For admin/reporting surfaces only.
  * Never call this from a workflow that generates an agreement or sends anything.

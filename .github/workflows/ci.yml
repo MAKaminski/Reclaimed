@@ -37,6 +37,24 @@ jobs:
       - name: "§1.8 no public data surface — § 44-12-239.1(b)"
         run: pnpm verify:no-public-data
 
+      # The route architecture itself. This check existed but was never wired
+      # into CI, so the registry-to-filesystem bijection — the thing that stops a
+      # page being published without a sitemap entry, or the sitemap advertising
+      # a 404 — was only ever enforced on somebody's laptop.
+      - name: "Public route architecture and registry bijection"
+        run: pnpm verify:public-surface
+
+      # Comparative claims about named third parties. § 44-12-239.2(a)(5) reaches
+      # a false statement at $2,000 per act and the Georgia FBPA gives a named
+      # firm treble damages, so every row on a comparison page must carry a
+      # source and a recent observation date.
+      - name: "Comparative claims are sourced and current"
+        run: pnpm verify:comparison
+
+      # Machine-fetchability of data sources. One network door, no user-agent.
+      - name: "Acquisition permission model intact"
+        run: pnpm verify:acquisition
+
       # §1.2 — the legend still matches the enrolled act, byte for byte.
       - name: "§1.2 legend byte-verified against enrolled SB 103"
         run: pnpm verify:legend

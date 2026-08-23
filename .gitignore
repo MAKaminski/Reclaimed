@@ -24,3 +24,4 @@ next-env.d.ts
 # Claude Code personal instructions (not shared)
 CLAUDE.local.md
 .claude/settings.local.json
+.claude/index/

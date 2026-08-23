@@ -1,0 +1,12 @@
+{
+  "capturedAt": "2026-08-23",
+  "sourceKey": "CA-SCO-UPD-500",
+  "sourceLabel": "California SCO — unclaimed property, $500 and above",
+  "sourceUrl": "https://claimit.ca.gov/upd-property-records/04_From_500_To_Beyond.zip",
+  "properties": 3433,
+  "reportedValueUsd": "$6,559,754.10",
+  "multiOwner": 506,
+  "entityOwned": 188,
+  "alreadyBeingClaimed": 119,
+  "note": "Counts of records we have indexed, not claims filed. Scoped to a file the publishing state distributes openly. Regenerate with `pnpm snapshot:index`."
+}

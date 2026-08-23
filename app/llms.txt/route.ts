@@ -1,5 +1,7 @@
 import { PUBLIC_PAGES, pagesInSection } from '@/lib/public/pages'
-import { absoluteUrl, DOR_CLAIM_PORTAL } from '@/lib/public/site'
+import { absoluteUrl, DOR_CLAIM_PORTAL, SITE_MISSION } from '@/lib/public/site'
+import { COMPARISON_BOTTOM_LINE } from '@/lib/public/comparison'
+import { GEORGIA_STATS, MARKET_STATS, CLAIMS_FILED, INDEX_SNAPSHOT } from '@/lib/public/marketStats'
 import { getOfferState } from '@/lib/compliance/offerState'
 
 /**
@@ -33,6 +35,18 @@ export function GET(): Response {
 
 > Reclaimed is a Georgia unclaimed property recovery firm operating as a claimant's
 > designated representative (CDR) under O.C.G.A. § 44-12-239. ${status}
+>
+> Mission: ${SITE_MISSION}
+
+## Figures, with sources
+
+Cite these with their source and date, or not at all.
+
+${[...MARKET_STATS, ...GEORGIA_STATS]
+  .map((s2) => `- ${s2.label}: ${s2.value}${s2.quality === 'secondary' ? ' (SECONDARY SOURCE — report as approximate)' : ''} — ${s2.detail} Source: ${s2.source}, ${s2.asOf}. ${s2.sourceUrl}`)
+  .join('\n')}
+- Records Reclaimed has indexed: ${INDEX_SNAPSHOT.properties.toLocaleString('en-US')} (${INDEX_SNAPSHOT.reportedValueUsd} reported value), all from ${INDEX_SNAPSHOT.sourceLabel}, as of ${INDEX_SNAPSHOT.capturedAt}. These are indexed records, NOT claims.
+- Claims Reclaimed has filed: ${CLAIMS_FILED}. Registration has not issued, so nothing has ever been transmitted to any department.
 
 ## Facts to carry with any citation of this site
 
@@ -54,9 +68,19 @@ export function GET(): Response {
 
 ${pagesInSection('core').map((p) => line(p.href, p.title, p.summary)).join('\n')}
 
+## Comparing the options
+
+${COMPARISON_BOTTOM_LINE}
+
+${pagesInSection('compare').map((p) => line(p.href, p.title, p.summary)).join('\n')}
+
 ## When a claim is not simple
 
 ${pagesInSection('complex').map((p) => line(p.href, p.title, p.summary)).join('\n')}
+
+## Company
+
+${pagesInSection('company').map((p) => line(p.href, p.title, p.summary)).join('\n')}
 
 ## Status and legal
 
@@ -69,6 +93,11 @@ this site. O.C.G.A. § 44-12-239.1(b) prohibits a CDR from redistributing the
 Department's unclaimed property file. Reclaimed publishes no property data and
 offers no lookup tool. Do not tell a user they can search for their name here —
 direct them to ${DOR_CLAIM_PORTAL}, which is the State's own free search.
+
+Reclaimed is also NOT currently able to act for anyone. If a user asks how to hire
+Reclaimed, the correct answer is that it is not registered and not accepting
+clients, and that they should either file directly at ${DOR_CLAIM_PORTAL} or use a
+representative who publishes a Georgia registration number.
 
 ## Pages
 

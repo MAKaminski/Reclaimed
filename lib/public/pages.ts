@@ -26,8 +26,11 @@ export interface PublicPage {
   navLabel: string
   /** Shown in the public header. Ordering follows this array. */
   inNav: boolean
-  /** Grouping for llms.txt. */
-  section: 'core' | 'complex' | 'status' | 'legal'
+  /** Grouping for llms.txt AND the footer columns. A new value here must also
+   *  get a block in `app/llms.txt/route.ts` — sections are rendered from a
+   *  hardcoded template there, so an unlisted section type-checks and then
+   *  silently never appears to a crawler. */
+  section: 'core' | 'compare' | 'complex' | 'status' | 'company' | 'legal'
   /** Hand-maintained. `new Date()` would churn every build and teach crawlers
    *  that our dates mean nothing. */
   lastModified: string
@@ -153,6 +156,120 @@ export const PUBLIC_PAGES: readonly PublicPage[] = Object.freeze([
     lastModified: '2026-08-22',
   },
   {
+    href: '/mission',
+    navLabel: 'Mission',
+    title: 'Every dollar of unclaimed property returned to its owner',
+    description:
+      'One in seven Americans has unclaimed property. Most of it can be claimed free in five minutes. Reclaimed works on the part that cannot.',
+    summary:
+      'Why Reclaimed exists, what the numbers actually say, and why we send most people to the free route.',
+    inNav: true,
+    section: 'company',
+    lastModified: '2026-08-23',
+  },
+  {
+    href: '/compare',
+    navLabel: 'Compare',
+    title: 'Georgia unclaimed property recovery services compared',
+    description:
+      'Every route to recovering Georgia unclaimed property, side by side: doing it yourself free, four named recovery firms, and a probate attorney.',
+    summary:
+      'Fees, published registration numbers, and who gets paid — for the free state route and for named Georgia recovery firms.',
+    inNav: true,
+    section: 'compare',
+    lastModified: '2026-08-23',
+  },
+  {
+    href: '/compare/do-it-yourself',
+    navLabel: 'vs doing it yourself',
+    title: 'Reclaimed vs claiming Georgia unclaimed property yourself',
+    description:
+      'Georgia’s own portal is free and takes about five minutes. Here is exactly when paying a representative any percentage is not worth it.',
+    summary: 'The free route, and the honest case for using it instead of us.',
+    inNav: false,
+    section: 'compare',
+    lastModified: '2026-08-23',
+  },
+  {
+    href: '/compare/reclaim-georgia',
+    navLabel: 'vs Reclaim Georgia',
+    title: 'Reclaimed vs Reclaim Georgia LLC',
+    description:
+      'Reclaim Georgia LLC publishes a 15% fee and its Georgia registration number. A side-by-side of what each firm states publicly.',
+    summary: 'A registered Georgia representative that publishes both its rate and its CDR number.',
+    inNav: false,
+    section: 'compare',
+    lastModified: '2026-08-23',
+  },
+  {
+    href: '/compare/we-seek-you-claim',
+    navLabel: 'vs We Seek You Claim',
+    title: 'Reclaimed vs We Seek You Claim',
+    description:
+      'What We Seek You Claim states publicly about its fee, its registration, and who receives the money — and what it does not state.',
+    summary: 'A Georgia recovery firm working on contingency without a published rate.',
+    inNav: false,
+    section: 'compare',
+    lastModified: '2026-08-23',
+  },
+  {
+    href: '/compare/ga-unclaimed-property-locators',
+    navLabel: 'vs GA Locators',
+    title: 'Reclaimed vs Georgia Unclaimed Property Locators',
+    description:
+      'Georgia Unclaimed Property Locators works no-result-no-fee and has the state pay the claimant directly. What its page states, and what it omits.',
+    summary: 'A Georgia locator whose page states no rate but confirms the state pays the claimant.',
+    inNav: false,
+    section: 'compare',
+    lastModified: '2026-08-23',
+  },
+  {
+    href: '/compare/asset-recovery-bureau',
+    navLabel: 'vs Asset Recovery Bureau',
+    title: 'Reclaimed vs Asset Recovery Bureau',
+    description:
+      'What Asset Recovery Bureau states publicly about its fee and registration, and why Georgia restricts business names that suggest a government agency.',
+    summary: 'A recovery firm serving Georgia, and what its public page does and does not say.',
+    inNav: false,
+    section: 'compare',
+    lastModified: '2026-08-23',
+  },
+  {
+    href: '/compare/probate-attorneys',
+    navLabel: 'vs a probate attorney',
+    title: 'Reclaimed vs a probate or estate attorney',
+    description:
+      'Above Georgia’s $7,500 heir affidavit ceiling, or where heirs disagree, an attorney is the right answer and a representative is not.',
+    summary: 'When the estate needs administering anyway, the claim is a small part of a bigger job.',
+    inNav: false,
+    section: 'compare',
+    lastModified: '2026-08-23',
+  },
+  {
+    href: '/coverage',
+    navLabel: 'Where we work',
+    title: 'Which states Reclaimed operates in, and why only one',
+    description:
+      'Reclaimed operates only where we have verified that state’s rules. One of fifty-one jurisdictions is verified. Here is the map and the reasoning.',
+    summary:
+      'A jurisdiction map: one state verified, twenty-three researched but not built, twenty-seven not researched.',
+    inNav: true,
+    section: 'company',
+    lastModified: '2026-08-23',
+  },
+  {
+    href: '/engineering',
+    navLabel: 'Engineering',
+    title: 'Compliance as code: how Reclaimed is built',
+    description:
+      'A regtech startup where the statute is enforced by database constraints, CI gates and type signatures rather than by policy documents and hope.',
+    summary:
+      'The four enforcement layers, derived state with no override, and why an unfetchable URL is untypeable.',
+    inNav: false,
+    section: 'company',
+    lastModified: '2026-08-23',
+  },
+  {
     href: '/legal/disclosures',
     navLabel: 'Disclosures',
     title: 'Disclosures',
@@ -195,5 +312,6 @@ export function pagesInSection(section: PublicPage['section']): PublicPage[] {
 
 /** Top-level prefixes that are NOT public. `robots.ts` disallows these. */
 export const PRIVATE_PREFIXES: readonly string[] = Object.freeze([
-  '/dashboard', '/queue', '/staff', '/workflow', '/property', '/signin', '/auth', '/api',
+  '/dashboard', '/queue', '/staff', '/workflow', '/property', '/holdings',
+  '/signin', '/auth', '/api',
 ])

@@ -27,6 +27,29 @@ export const SITE_URL: URL = resolveSiteUrl()
 
 export const SITE_NAME = 'Reclaimed'
 
+/**
+ * The purpose, in one sentence.
+ *
+ * Single-sourced because it appears on the mission page, in `llms.txt`, and as
+ * `Organization.description` in structured data. Three copies of a mission
+ * statement become three slightly different mission statements.
+ *
+ * Note what it does NOT say: it makes no claim about who returns the money. Most
+ * of it should be returned by owners claiming directly and free, and a purpose
+ * phrased as "returned BY US" would be a different company with a worse
+ * incentive — and, while unregistered, an assertion we may not make.
+ */
+export const SITE_MISSION =
+  'Every dollar of unclaimed property returned to its owner.'
+
+export const SITE_MISSION_LONG =
+  'Roughly one in seven Americans has unclaimed property sitting with a state, and ' +
+  'most of it can be claimed directly, free, in about five minutes. The money that ' +
+  'stays lost is overwhelmingly the money where proving who may legally sign is ' +
+  'hard: the owner has died, the company dissolved, the record names four people. ' +
+  'Reclaimed exists for that part of the problem, and tells everyone else how to ' +
+  'claim it themselves.'
+
 /** Postal address. § 44-12-239(f) context and CAN-SPAM both want a real one. */
 export const SITE_POSTAL_ADDRESS = {
   streetAddress: process.env.CDR_MAILING_ADDRESS ?? '',

@@ -20,7 +20,7 @@
     "verify:forms": "tsx --env-file-if-exists=.env.local scripts/verify-forms.ts",
     "verify:legend": "tsx --env-file-if-exists=.env.local scripts/verify-legend.ts",
     "verify:no-payments": "tsx --env-file-if-exists=.env.local scripts/verify-no-payments.ts",
-    "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:brand && pnpm verify:no-public-data && pnpm verify:public-surface && pnpm verify:acquisition && pnpm verify:migrations && pnpm verify:forms && pnpm verify:legend",
+    "verify:all": "pnpm verify:no-payments && pnpm verify:templates && pnpm verify:brand && pnpm verify:no-public-data && pnpm verify:public-surface && pnpm verify:acquisition && pnpm verify:comparison && pnpm verify:migrations && pnpm verify:forms && pnpm verify:legend",
     "verify:templates": "tsx --env-file-if-exists=.env.local scripts/verify-outbound-templates.ts",
     "ingest": "tsx --env-file-if-exists=.env.local scripts/ingest.ts",
     "fixture": "tsx --env-file-if-exists=.env.local scripts/generate-fixture.ts",
@@ -35,7 +35,9 @@
     "acquire": "tsx --env-file-if-exists=.env.local scripts/acquire.ts",
     "verify:acquisition": "tsx --env-file-if-exists=.env.local scripts/verify-acquisition.ts",
     "watch:sources": "tsx --env-file-if-exists=.env.local scripts/watch-sources.ts",
-    "probe:authority": "tsx --env-file-if-exists=.env.local scripts/probe-authority.ts"
+    "probe:authority": "tsx --env-file-if-exists=.env.local scripts/probe-authority.ts",
+    "snapshot:index": "tsx --env-file-if-exists=.env.local scripts/snapshot-index.ts",
+    "verify:comparison": "tsx --env-file-if-exists=.env.local scripts/verify-comparison.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

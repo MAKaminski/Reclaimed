@@ -341,3 +341,116 @@ a.card:hover { border-color: var(--accent); transform: translateY(-2px); }
 }
 
 @media print { .no-print { display: none !important; } }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Statistics, coverage map, comparison tables.
+
+   Every colour here resolves to an existing token. Nothing introduces a new hue,
+   and in particular nothing introduces a second red: red is semantic in this
+   product and means a compliance stop, so the map's "not researched" state is a
+   neutral, not a warning. We have not looked at those states; that is an absence
+   of information, not a problem.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--grid-gap);
+  margin: var(--space-md) 0 0;
+}
+.stat-grid--two { grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
+
+.stat { border-top: 2px solid var(--ink); padding-top: var(--space-xs); }
+.stat__label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-dim);
+}
+.stat__value {
+  margin: 0.15rem 0 0;
+  font-size: var(--fs-h2);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+}
+.stat__flag {
+  font-size: var(--fs-small);
+  font-weight: 400;
+  color: var(--ink-faint);
+  letter-spacing: 0;
+}
+.stat__detail {
+  margin: 0.35rem 0 0;
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+  max-width: 34ch;
+}
+.stat__source {
+  margin: 0.35rem 0 0;
+  font-size: var(--fs-label);
+  color: var(--ink-faint);
+}
+.stat__source a { color: inherit; }
+
+/* Tile grid. 12 columns fixed, because the layout IS the geography. */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.25rem;
+  max-width: 40rem;
+  margin: var(--space-md) 0;
+}
+.tile {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0;
+  user-select: none;
+}
+.tile--empty { background: none; }
+.tile--verified { background: var(--accent); color: var(--bg); font-weight: 700; }
+.tile--researched { background: var(--bg-2); color: var(--ink-dim); border: 1px solid var(--line); }
+.tile--unresearched { background: none; color: var(--ink-faint); border: 1px dashed var(--line); }
+.tile--missing { background: var(--stop-bg); color: var(--stop-fg); border: 1px solid var(--stop-line); }
+
+.tile-legend {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-sm) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+}
+.tile-legend li { display: flex; align-items: center; gap: 0.45rem; }
+.tile--swatch { width: 1rem; height: 1rem; aspect-ratio: auto; }
+
+/* Comparison. `.fact-table` handles the rest; this is the us-vs-them column. */
+.compare-table th[scope='row'] { width: 32%; font-weight: 600; }
+.compare-table .col-us { background: var(--bg-2); }
+.compare-why {
+  display: block;
+  margin-top: 0.2rem;
+  font-weight: 400;
+  font-size: var(--fs-label);
+  color: var(--ink-faint);
+  max-width: 38ch;
+}
+.compare-value { display: block; }
+.compare-detail {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: var(--fs-label);
+  color: var(--ink-dim);
+}
+
+@media (max-width: 40rem) {
+  .tile { font-size: 0.5rem; }
+  .tile-grid { gap: 0.15rem; }
+}

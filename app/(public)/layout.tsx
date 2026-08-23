@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getOfferState } from '@/lib/compliance/offerState'
-import { SITE_NAME, SITE_URL } from '@/lib/public/site'
-import { navPages } from '@/lib/public/pages'
+import { SITE_MISSION, SITE_NAME, SITE_URL } from '@/lib/public/site'
+import { navPages, pagesInSection } from '@/lib/public/pages'
+import { Wordmark } from '@/components/public/Wordmark'
 import { OfferStateBanner } from '@/components/public/OfferStateBanner'
 import { StandingDisclosures } from '@/components/public/StandingDisclosures'
 import { JsonLd } from '@/components/public/JsonLd'
@@ -32,8 +33,25 @@ export async function generateMetadata(): Promise<Metadata> {
         }
       : { index: false, follow: false },
     openGraph: { type: 'website', locale: 'en_US', siteName: SITE_NAME },
+    // X/Twitter falls back to OG without this, which works but renders the small
+    // card. The OG image is 1200x630 and deserves the large one.
+    twitter: { card: 'summary_large_image', title: SITE_NAME },
   }
 }
+
+/**
+ * Footer columns, derived from the registry rather than hand-listed. A page
+ * added to `PUBLIC_PAGES` appears here automatically; one removed disappears.
+ * Hand-maintaining a second list of links is how a footer ends up advertising a
+ * 404 that the sitemap no longer knows about.
+ */
+const FOOTER_COLUMNS = [
+  { heading: 'Claim it', pages: pagesInSection('core') },
+  { heading: 'Compare', pages: pagesInSection('compare') },
+  { heading: 'Hard cases', pages: pagesInSection('complex') },
+  { heading: 'Company', pages: [...pagesInSection('company'), ...pagesInSection('status')] },
+  { heading: 'Legal', pages: pagesInSection('legal') },
+]
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -52,10 +70,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         }}>
           <div className="public-nav">
             <Link href="/" style={{
-              fontWeight: 600, textDecoration: 'none', marginRight: 'var(--space-sm)',
-              letterSpacing: '-0.02em', color: 'var(--ink)',
+              textDecoration: 'none', marginRight: 'var(--space-sm)',
+              color: 'var(--ink)',
             }}>
-              {SITE_NAME}
+              <Wordmark />
             </Link>
             {navPages().map((p) => (
               <Link key={p.href} href={p.href} style={{ fontSize: 'var(--fs-small)' }}>
@@ -83,6 +101,44 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           padding: 'var(--space-lg) var(--gutter)',
         }}>
           <StandingDisclosures />
+
+          <nav
+            aria-label="Footer"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, 1fr))',
+              gap: 'var(--grid-gap)',
+              marginTop: 'var(--space-lg)',
+              paddingTop: 'var(--space-md)',
+              borderTop: '1px solid var(--line)',
+            }}
+          >
+            {FOOTER_COLUMNS.map((col) => (
+              <div key={col.heading}>
+                <h3 className="t-label" style={{ marginBottom: '0.6rem' }}>{col.heading}</h3>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '0.35rem' }}>
+                  {col.pages.map((p) => (
+                    <li key={p.href}>
+                      <Link href={p.href} style={{ fontSize: 'var(--fs-small)' }}>
+                        {p.navLabel}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
+
+          <div style={{ marginTop: 'var(--space-lg)' }}>
+            <Wordmark size="lg" />
+            <p style={{
+              margin: '0.4rem 0 0', fontSize: 'var(--fs-small)',
+              color: 'var(--ink-dim)', maxWidth: '34ch',
+            }}>
+              {SITE_MISSION}
+            </p>
+          </div>
+
           <p className="source-line" style={{ marginTop: 'var(--space-md)' }}>
             {SITE_NAME} is not a government agency and is not affiliated with the State
             of Georgia or the Georgia Department of Revenue.{' '}

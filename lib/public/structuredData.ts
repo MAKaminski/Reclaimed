@@ -17,7 +17,9 @@
  */
 
 import { getOfferState } from '@/lib/compliance/offerState'
-import { SITE_NAME, SITE_URL, SITE_POSTAL_ADDRESS, absoluteUrl } from './site'
+import {
+  SITE_MISSION, SITE_MISSION_LONG, SITE_NAME, SITE_POSTAL_ADDRESS, SITE_URL, absoluteUrl,
+} from './site'
 import type { PublicPage } from './pages'
 
 const OFFER_IMPLYING_TYPES = [
@@ -57,10 +59,11 @@ export function organizationLd(): Record<string, unknown> {
     '@id': absoluteUrl('/#organization'),
     name: SITE_NAME,
     url: SITE_URL.toString(),
-    description:
-      'Reclaimed recovers Georgia unclaimed property in cases where proving legal ' +
-      'entitlement is genuinely difficult — deceased owners, dissolved businesses, ' +
-      'and multiple owners.',
+    // Single-sourced from lib/public/site.ts. A mission statement that exists in
+    // three places becomes three slightly different mission statements, and this
+    // is the copy a machine reads.
+    description: SITE_MISSION_LONG,
+    slogan: SITE_MISSION,
     address: { '@type': 'PostalAddress', ...SITE_POSTAL_ADDRESS },
     areaServed: { '@type': 'State', name: 'Georgia' },
     knowsAbout: [
