@@ -283,3 +283,34 @@ in the public tree. That is not stylistic tidiness: § 44-12-239(f) sizes the le
 at `max(12pt, largest font + 1)`, so **once registered, the legend is by
 construction the largest text on the page.** Raising the hero raises the legend. The
 tradeoff lives in one constant instead of being discovered at go-live.
+
+---
+
+## California data: loaded, queryable, deliberately not workable
+
+3,433 real California rows are in `properties` with `source_key = 'CA-SCO-UPD-500'`.
+**Zero of them reach `properties_workable`, and that is the correct outcome** — but
+the mechanism is accidental, and the distinction matters.
+
+`properties_workable` filters on
+`enforceable_on(delivery_precision, delivered_to_state_at, year_reported) <= current_date`.
+California's export carries no `year_reported` and no delivery date, so
+`delivery_precision` is `unknown`, `enforceable_on()` returns NULL, and
+`NULL <= current_date` is NULL rather than true. Every row is excluded.
+
+The right answer for the wrong reason. The **deliberate** reason CA rows must not be
+workable is that `states.CA.status` is `researched_not_verified_for_build`, and the
+seed's own rule is that an unverified state throws rather than silently defaulting.
+The 120-day window being applied at all is itself a category error: § 44-12-220(d.1)(4)
+is a *Georgia* statute, and California's equivalent under Cal. Civ. Proc. Code § 1582
+is a different mechanic with no fixed period.
+
+**So do not "fix" the NULL.** Making `enforceable_on()` fall back to a default date
+would unblock work on a state whose fee cap, disclosure wording and waiting period
+have never been verified — which is precisely what the rules engine exists to prevent.
+The correct fix, when California is worth operating in, is state-aware window logic
+driven by `state_rules`, gated on that state being `verified`.
+
+Until then California is what the plan called it: a free engineering testbed. The
+parser, the multi-owner collapse, the diff, the events and the source scoping are all
+exercised against real data at real scale, and nothing becomes solicitable by accident.

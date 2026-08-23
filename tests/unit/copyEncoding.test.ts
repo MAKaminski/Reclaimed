@@ -90,3 +90,41 @@ describe('COPY text encoding', () => {
     expect(fields[1]).toBe('GA001')
   })
 })
+
+describe('raw is JSONB, so the encoded value must be valid JSON', () => {
+  // Regression. `raw` was written as the bare delimited source line, which is
+  // not JSON, and Postgres rejected the COPY with "invalid input syntax for
+  // type json" partway through a live load. The dry run never encodes anything,
+  // so only a real write could surface it — hence this test.
+  function rawField(line: string | null): string {
+    const encoded = encodeCopyRow(RUN, row({ raw: line }))
+    // raw is the second-to-last column; source_key is last.
+    const fields = encoded.trimEnd().split('\t')
+    return fields[fields.length - 2]!
+  }
+
+  // Undo the COPY text-format escaping Postgres reverses on the way in.
+  //
+  // Must be ONE left-to-right pass. Sequential .replace() calls corrupt the
+  // result: unescaping \\n before \\\\ turns the two characters backslash-n,
+  // which the encoder wrote as \\\\n, into a real newline.
+  function unescapeCopy(v: string): string {
+    return v.replace(/\\(.)/g, (_m, c: string) =>
+      c === 'n' ? '\n' : c === 'r' ? '\r' : c === 't' ? '\t' : c)
+  }
+
+  it('encodes a plain source line as a parseable JSON string', () => {
+    const line = '"1031519745","SC12: SHARES","0.00","463.000000"'
+    expect(() => JSON.parse(unescapeCopy(rawField(line)))).not.toThrow()
+    expect(JSON.parse(unescapeCopy(rawField(line)))).toBe(line)
+  })
+
+  it('survives a line containing quotes, backslashes and delimiters', () => {
+    const line = 'A\\B\t"C,D"|E'
+    expect(JSON.parse(unescapeCopy(rawField(line)))).toBe(line)
+  })
+
+  it('writes NULL, not the string "null", when raw is absent', () => {
+    expect(rawField(null)).toBe('\\N')
+  })
+})

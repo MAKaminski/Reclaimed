@@ -68,7 +68,11 @@ export function encodeCopyRow(runId: string, row: ParsedProperty): string {
     row.year_reported,
     row.holder_name,
     row.holder_contact,
-    row.raw,
+    // properties.raw is JSONB, so the source line has to be a valid JSON value.
+    // Writing the bare delimited line put `invalid input syntax for type json`
+    // in the middle of a COPY — a bug that only a live load could surface,
+    // because the dry run never encodes anything.
+    row.raw === null || row.raw === undefined ? null : JSON.stringify(row.raw),
     row.source_key ?? null,
   ]
   return values.map(encodeCopyValue).join('\t') + '\n'

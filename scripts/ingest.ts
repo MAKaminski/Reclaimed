@@ -48,6 +48,15 @@ const SPEC = {
   manifest: { type: 'string', describe: 'acquisition.json written by `pnpm acquire`', placeholder: 'PATH' },
   'dry-run': { type: 'boolean', describe: 'Parse and report; write nothing' },
   'accept-mapping-change': { type: 'boolean', describe: 'Proceed despite a column-mapping change' },
+  'keep-raw': {
+    type: 'boolean',
+    describe: 'Persist the exact source line per row. Roughly doubles disk',
+  },
+  limit: {
+    type: 'number',
+    describe: 'Stop after N rows. For proving the live path on a small database',
+    placeholder: 'N',
+  },
 } as const
 
 function formatDuration(ms: number): string {
@@ -58,7 +67,23 @@ function formatDuration(ms: number): string {
 function reportInference(
   result: ParseResult,
   sizeBytes: number,
-  totals?: { rowsRead: number; rowsRejected: number; elapsedMs: number },
+  /**
+   * Totals across EVERY file in the run.
+   *
+   * Without these the summary printed the last file's numbers: a run over four
+   * California files reported "parsed 740,689 / rejected 2" when the truth was
+   * 3,740,689 and 32. That matters more than a cosmetic miscount — the dry run
+   * exists to catch a format change before it reaches the properties table, and
+   * a break confined to files 1-3 was being under-reported by the very check
+   * meant to catch it.
+   */
+  totals?: {
+    rowsRead: number
+    rowsParsed: number
+    rowsRejected: number
+    rejectSamples: ParseResult['rejectSamples']
+    elapsedMs: number
+  },
 ): void {
   const { inference, mapping } = result
 
@@ -103,13 +128,16 @@ function reportInference(
   console.log('\n── Rows ──────────────────────────────────────────────────────')
   if (totals !== undefined) console.log(`  read          ${totals.rowsRead.toLocaleString()}  (all files)`)
   else console.log(`  read          ${result.rowsRead.toLocaleString()}`)
-  console.log(`  parsed        ${result.rowsParsed.toLocaleString()}`)
-  console.log(`  rejected      ${result.rowsRejected.toLocaleString()}` +
-    (result.rowsRead > 0 ? `  (${((result.rowsRejected / result.rowsRead) * 100).toFixed(3)}%)` : ''))
+  const parsed = totals?.rowsParsed ?? result.rowsParsed
+  const rejected = totals?.rowsRejected ?? result.rowsRejected
+  console.log(`  parsed        ${parsed.toLocaleString()}`)
+  console.log(`  rejected      ${rejected.toLocaleString()}` +
+    (rowsRead > 0 ? `  (${((rejected / rowsRead) * 100).toFixed(3)}%)` : ''))
 
-  if (result.rejectSamples.length > 0) {
+  const samples = totals?.rejectSamples ?? result.rejectSamples
+  if (samples.length > 0) {
     console.log('\n  Reject samples (first few):')
-    for (const sample of result.rejectSamples.slice(0, 5)) {
+    for (const sample of samples.slice(0, 5)) {
       console.log(`    line ${sample.lineNumber}: ${sample.reason}`)
       console.log(`      ${sample.excerpt.slice(0, 110)}`)
     }
@@ -163,6 +191,23 @@ async function main(): Promise<void> {
 
   const sizeBytes = paths.reduce((n, p) => n + statSync(p).size, 0)
 
+  /**
+   * Row budget across the whole run.
+   *
+   * Exists because the free Supabase tier is a 500 MB database and the full
+   * California file needs roughly 5.7 GB once `raw` jsonb, the merge and nine
+   * indexes are counted — about 11x over. Hitting that mid-COPY puts the
+   * project into read-only and takes the staff and audit tables down with it.
+   *
+   * A bounded load proves the same code path — COPY, server-side diff, events,
+   * disappearance holds — at a size the tier can hold. The GA statutory file
+   * will need real capacity regardless; that is a spend decision, not a reason
+   * to leave the live path unexercised until then.
+   */
+  const rowLimit = args.limit ?? Infinity
+  const keepRaw = args['keep-raw']
+  let rowsBudgeted = 0
+
   // Registration gates the GEORGIA entitlement, not every source. § 44-12-239.1(a)
   // is what entitles us to DOR's file, so receiving it before registration is
   // § 44-12-239.2(a)(10) territory. California's file is public and carries no
@@ -174,7 +219,9 @@ async function main(): Promise<void> {
 
   console.log(`\nIngesting ${source.key} — ${source.label}`)
   console.log(`  ${paths.length} file(s) · ${(sizeBytes / 1e6).toFixed(1)} MB` +
-    `${dryRun ? '  · DRY RUN — nothing will be written' : ''}`)
+    `${dryRun ? '  · DRY RUN — nothing will be written' : ''}` +
+    `${Number.isFinite(rowLimit) ? `  · LIMIT ${rowLimit.toLocaleString()} rows` : ''}` +
+    `${keepRaw ? '  · keeping raw source lines' : ''}`)
   if (source.columnOverrides !== null) {
     console.log(`  column mapping: PINNED (${Object.keys(source.columnOverrides).length} fields)`)
   }
@@ -185,7 +232,9 @@ async function main(): Promise<void> {
   if (dryRun) {
     let result!: ParseResult
     let totalRows = 0
+    let totalParsed = 0
     let totalRejected = 0
+    const allSamples: ParseResult['rejectSamples'] = []
     const started = Date.now()
     for (const [i, file] of paths.entries()) {
       process.stdout.write(`  [${i + 1}/${paths.length}] ${basename(file)}\n`)
@@ -203,12 +252,17 @@ async function main(): Promise<void> {
       })
       process.stdout.write('\r' + ' '.repeat(70) + '\r')
       totalRows += result.rowsRead
+      totalParsed += result.rowsParsed
       totalRejected += result.rowsRejected
+      // Keep a few samples from EVERY file — last-file-only samples mean a
+      // malformed first file shows no evidence at all.
+      allSamples.push(...result.rejectSamples.slice(0, 3))
       console.log(`      ${result.rowsRead.toLocaleString()} rows · ${result.rowsRejected.toLocaleString()} rejected`)
     }
     console.log(`\n  TOTAL ${totalRows.toLocaleString()} rows across ${paths.length} file(s)`)
     reportInference(result, sizeBytes, {
-      rowsRead: totalRows, rowsRejected: totalRejected, elapsedMs: Date.now() - started,
+      rowsRead: totalRows, rowsParsed: totalParsed, rowsRejected: totalRejected,
+      rejectSamples: allSamples, elapsedMs: Date.now() - started,
     })
 
     if (sample.length > 0) {
@@ -246,14 +300,31 @@ async function main(): Promise<void> {
     let result!: ParseResult
     let staged = 0
     for (const [i, file] of paths.entries()) {
+      if (rowsBudgeted >= rowLimit) {
+        console.log(`  [${i + 1}/${paths.length}] ${basename(file)} — skipped, row limit reached`)
+        continue
+      }
       console.log(`  [${i + 1}/${paths.length}] ${basename(file)}`)
       result = await parseFile(file, {
         batchSize: 5_000,
         columnOverrides: source.columnOverrides,
         onBatch: async (rows) => {
+          if (rowsBudgeted >= rowLimit) return
+          const room = rowLimit - rowsBudgeted
+          const take = room < rows.length ? rows.slice(0, room) : rows
+          rowsBudgeted += take.length
           batches++
-          if (sample.length < 3) sample.push(...rows.slice(0, 3 - sample.length))
-          await loader.write(rows.map((r) => ({ ...r, source_key: source.key })))
+          if (sample.length < 3) sample.push(...take.slice(0, 3 - sample.length))
+          await loader.write(take.map((r) => ({
+            ...r,
+            // `raw` exists so a parser bug is recoverable without waiting a week
+            // for the next delivery — genuinely valuable on the Georgia
+            // entitlement file. It is also about half the storage: roughly
+            // 2.2 GB of the 5.7 GB a full California load would need. Off by
+            // default, on when the delivery is expensive to re-obtain.
+            raw: keepRaw ? r.raw : null,
+            source_key: source.key,
+          })))
         },
         progressEvery: 250_000,
         onProgress: (rows, bytes) => {

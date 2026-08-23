@@ -25,9 +25,13 @@ export function getSql(): Sql {
     throw new Error(
       'DATABASE_URL is not set.\n\n' +
         '  The >1GB weekly bulk file is COPY-loaded over a direct connection, not\n' +
-        '  through the REST API. Get the string from the Supabase dashboard:\n' +
-        '    Project Settings → Database → Connection string → Session pooler\n' +
-        '  and put it in .env.local as DATABASE_URL.',
+        '  through the REST API. Get the SESSION POOLER string (port 5432 — the\n' +
+        '  transaction pooler on 6543 cannot hold the session COPY needs, and the\n' +
+        '  direct db.<ref>.supabase.co host is IPv6-only, which fails on CI):\n' +
+        '    https://supabase.com/dashboard/project/_/settings/database\n\n' +
+        '  Put it in .env.local as DATABASE_URL. Every pnpm script loads that file\n' +
+        '  via --env-file-if-exists; if you are invoking a script directly with\n' +
+        '  tsx, pass the same flag or export the variable yourself.',
     )
   }
 

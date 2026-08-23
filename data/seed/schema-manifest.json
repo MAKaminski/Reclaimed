@@ -45,6 +45,7 @@
     "assert_submission_matches_claim",
     "chain_submittable",
     "classify_owner",
+    "classify_owner_with_count",
     "compliance_gates",
     "derive_delivery_precision",
     "enforceable_on",
