@@ -22,7 +22,17 @@ export default async function SignInPage({
   searchParams: Promise<{ error?: string }>
 }) {
   const { accountEmail, staff } = await getSessionState()
-  if (staff !== null) redirect('/')
+  // Already signed in and authorised? Go to the board, not the marketing site.
+  //
+  // `/signin` is what the public header's "Staff" link points at, and it has to
+  // stay that way: the public layout may not import `@/lib/db` (verify:templates
+  // holds it) and must stay statically renderable, so it cannot know whether a
+  // visitor is signed in. This route is dynamic and has already resolved the
+  // staff row, which makes it the only place the branch can correctly live.
+  //
+  // Redirecting to '/' sent authenticated staff back to the public home page,
+  // leaving the dashboard reachable only by typing the URL.
+  if (staff !== null) redirect('/dashboard')
 
   const { error } = await searchParams
   const errorMessage = error === undefined ? null : (LINK_ERRORS[error] ?? 'Sign-in failed.')

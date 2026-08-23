@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getSessionState } from '@/lib/db/auth'
 import {
   getStageRules, getStageBoard, getStageCounts, getPipelineSupply, getStuckItems,
-  resolveAvailability, getComplianceGates,
+  resolveAvailability, getComplianceGates, getHoldingsSummary,
 } from '@/lib/db/workflow'
 import { readRegistrationState, checkRegistration } from '@/lib/compliance/registration'
 import { getOperatingMode } from '@/lib/compliance/operatingMode'
@@ -30,9 +30,9 @@ export default async function DashboardPage() {
     return <p style={{ color: 'var(--muted)' }}>Staff access required.</p>
   }
 
-  const [rules, board, counts, supply, stuck, gates] = await Promise.all([
+  const [rules, board, counts, supply, stuck, gates, holdings] = await Promise.all([
     getStageRules(), getStageBoard(), getStageCounts(),
-    getPipelineSupply(), getStuckItems(12), getComplianceGates(),
+    getPipelineSupply(), getStuckItems(12), getComplianceGates(), getHoldingsSummary(),
   ])
 
   const stages = resolveAvailability(rules, counts, staff)
@@ -59,6 +59,23 @@ export default async function DashboardPage() {
 
       <NextActionCard action={action} />
       <SupplyMeter supply={supply} scoreAgeDays={scoreAgeDays} />
+
+      {/* Loaded is not workable, and the board only ever showed the second
+          number. Without this line a healthy system with a fully-loaded source
+          reads identically to one where the ingest failed. */}
+      <p style={{
+        margin: '0.5rem 0 0', fontSize: 'var(--fs-small)', color: 'var(--muted)',
+      }}>
+        <strong>{holdings.indexed.toLocaleString('en-US')}</strong> records indexed ·{' '}
+        <strong>{holdings.workable.toLocaleString('en-US')}</strong> workable
+        {holdings.heldBack > 0 && (
+          <>
+            {' · '}{holdings.heldBack.toLocaleString('en-US')} held back
+            {holdings.blockedBy !== null && <> — {holdings.blockedBy}</>}
+          </>
+        )}
+        {' · '}<Link href="/holdings">Holdings →</Link>
+      </p>
 
       <Section title="The pipeline, in five phases">
         <PhaseRail stages={stages} board={board} activePhase={action.phase} />

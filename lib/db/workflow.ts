@@ -211,3 +211,58 @@ export function resolveAvailability(
     }
   })
 }
+
+/**
+ * What we hold, beside what we may work.
+ *
+ * The board reads the WORKABLE tier, which is correct for "what should I do
+ * next" and actively misleading as a health check: a fully-loaded source can
+ * contribute zero workable rows, and the board then reads the same as a failed
+ * ingest. That ambiguity has now been reported three times against a working
+ * system, which is a design defect rather than a support problem.
+ *
+ * So the board states both numbers and names the predicate holding the rest
+ * back. `/holdings` has the detail.
+ */
+export interface HoldingsSummary {
+  indexed: number
+  workable: number
+  heldBack: number
+  /** The dominant blocking predicate across sources that have none workable. */
+  blockedBy: string | null
+}
+
+const BLOCKED_LABEL: Record<string, string> = {
+  no_delivery_date: 'no delivery date in the source file',
+  inside_dor_window: 'still inside the § 44-12-220(d.1)(4) window',
+  below_autopay_ceiling: 'below the auto-pay ceiling',
+  other_filter: 'held, under agreement, or suppressed',
+}
+
+export async function getHoldingsSummary(): Promise<HoldingsSummary> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('acquisition_inventory')
+    .select('live_rows,workable_rows,workable_blocked_by')
+    .returns<Array<Record<string, unknown>>>()
+
+  const rows = data ?? []
+  const indexed = rows.reduce((n, r) => n + Number(r.live_rows ?? 0), 0)
+  const workable = rows.reduce((n, r) => n + Number(r.workable_rows ?? 0), 0)
+
+  // Name the predicate blocking the largest single source, not the first one —
+  // "no delivery date" on six fixtures would be a footnote; on 3,433 rows it is
+  // the answer to the question the reader is actually asking.
+  const blocking = rows
+    .filter((r) => r.workable_blocked_by !== null && r.workable_blocked_by !== undefined)
+    .sort((a, b) => Number(b.live_rows ?? 0) - Number(a.live_rows ?? 0))[0]
+
+  const key = blocking?.workable_blocked_by as string | undefined
+
+  return {
+    indexed,
+    workable,
+    heldBack: indexed - workable,
+    blockedBy: key === undefined ? null : (BLOCKED_LABEL[key] ?? key),
+  }
+}
