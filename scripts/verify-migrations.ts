@@ -81,6 +81,35 @@ function main(): void {
     }
   }
 
+  // ── 3. Every view runs as the CALLER, not as its owner ────────────────
+  //
+  // A Postgres view without `security_invoker` executes with its OWNER's
+  // privileges, which silently bypasses RLS on every table it reads. Views here
+  // are built over `properties` and its derivatives, so an owner-executing view
+  // hands CDR-derived data to any authenticated user with no `staff` row —
+  // the § 44-12-239.1(b) line, crossed without a single application-code change.
+  //
+  // This shipped once, in 0025. The §1.8 gate could not catch it: that check
+  // reads application source and confirms a route ASKS for an identity, but the
+  // hole was in whether the database would HONOUR the answer. Different layer,
+  // different gate.
+  for (const name of manifest.views) {
+    const created = new RegExp(
+      `create\\s+(or\\s+replace\\s+)?view\\s+${name}\\b[\\s\\S]*?;`,
+    ).exec(all)
+    const invokerInline = created !== null && /security_invoker/.test(created[0])
+    const invokerAltered = new RegExp(
+      `alter\\s+view\\s+${name}\\s+set\\s*\\([^)]*security_invoker\\s*=\\s*true`,
+    ).test(all)
+    if (!invokerInline && !invokerAltered) {
+      failures.push(
+        `view "${name}" never sets security_invoker = true. Without it the view ` +
+        'runs as its owner and bypasses RLS on the tables it reads — CDR data ' +
+        'readable by any authenticated user (§ 44-12-239.1(b)).',
+      )
+    }
+  }
+
   if (failures.length > 0) {
     console.error('\n✗ MIGRATIONS DO NOT REPRODUCE THE DATABASE\n')
     for (const f of failures) console.error(`  · ${f}`)

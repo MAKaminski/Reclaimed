@@ -89,6 +89,19 @@ select
 from live l
 left join workable w on w.source_key = l.source_key;
 
+-- security_invoker is NOT optional here, and shipping without it was a real
+-- defect in the first cut of this migration. A Postgres view without it runs as
+-- its OWNER (postgres), which bypasses the `properties_staff_read` RLS policy
+-- entirely — so any authenticated Supabase user with no `staff` row could have
+-- read aggregate counts and total dollar values of CDR-derived data. That is
+-- exactly the § 44-12-239.1(b) boundary, and RLS is where it is enforced.
+--
+-- The §1.8 source gate did not catch it and could not: it statically checks that
+-- a route asks for an identity, not that the DATABASE would honour the answer.
+-- Every other view in this schema already sets this; verify-migrations.ts now
+-- fails the build if any view does not.
+alter view acquisition_inventory set (security_invoker = true);
+
 comment on view acquisition_inventory is
   'Holdings per source: what we have LOADED, which is not what we may WORK. '
   'Reports the workable count alongside, and names the predicate that blocks it. '

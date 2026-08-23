@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/db/supabase'
 import { getSessionState } from '@/lib/db/auth'
 import { cents, formatUsd } from '@/lib/compliance/money'
+import { lookupFor } from '@/lib/acquire/stateLookup'
+import { CopyId } from '@/components/CopyId'
 
 export const dynamic = 'force-dynamic'
 
@@ -300,6 +302,7 @@ export default async function HoldingsPage({ searchParams }: {
                   <th style={{ padding: '0.5rem 0.75rem', textAlign: 'right' }}>Reported</th>
                   <th style={{ padding: '0.5rem 0.75rem' }}>Type</th>
                   <th style={{ padding: '0.5rem 0.75rem' }}>Holder</th>
+                  <th style={{ padding: '0.5rem 0.75rem' }}>Verify</th>
                 </tr>
               </thead>
               <tbody>
@@ -308,7 +311,7 @@ export default async function HoldingsPage({ searchParams }: {
                     <td style={{ padding: '0.6rem 0.75rem 0.6rem 0' }}>
                       <div style={{ fontWeight: 500, color: '#1c1917' }}>{row.owner_name ?? '—'}</div>
                       <div style={{ color: '#a8a29e', fontSize: '0.75rem' }}>
-                        {row.property_id}
+                        <CopyId id={row.property_id} />
                         {row.last_known_city !== null &&
                           ` · ${row.last_known_city}, ${row.last_known_state ?? ''}`}
                       </div>
@@ -336,6 +339,9 @@ export default async function HoldingsPage({ searchParams }: {
                     </td>
                     <td style={{ padding: '0.6rem 0.75rem', color: '#57534e', maxWidth: '16rem' }}>
                       {row.holder_name ?? '—'}
+                    </td>
+                    <td style={{ padding: '0.6rem 0.75rem' }}>
+                      <StateLookupLink sourceKey={row.source_key} />
                     </td>
                   </tr>
                 ))}
@@ -377,5 +383,31 @@ function Stat({ label, value, emphasis = 'normal' }: {
         {value}
       </div>
     </div>
+  )
+}
+
+/**
+ * California publishes no per-property URL — verified by driving the real form
+ * (see lib/acquire/stateLookup.ts). So this links to the authority's search and
+ * says what to paste, rather than dressing a generic form up as a deep link.
+ */
+function StateLookupLink({ sourceKey }: { sourceKey: string | null }) {
+  const lookup = lookupFor(sourceKey)
+  if (lookup === null) {
+    return <span style={{ color: '#d6d3d1', fontSize: '0.75rem' }}>—</span>
+  }
+  return (
+    <a
+      href={lookup.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={
+        `Opens the ${lookup.authority} search. ${lookup.note} ` +
+        `Click the ID at left to copy it, then paste into "${lookup.idFieldLabel}".`
+      }
+      style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+    >
+      look up ↗
+    </a>
   )
 }

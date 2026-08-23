@@ -333,3 +333,40 @@ The view is deliberately not a queue and the page deliberately has no actions on
 `workable_blocked_by` is a diagnosis of the filter, never a licence to bypass it; the
 remedy for a blocked source is verifying that state's rules in `state_rules`, which
 is a research task, not a schema change.
+
+### Why there is no per-property hyperlink
+
+The natural request is a link from each row to that property's page on the state's
+site. **For California no such page exists.** Verified 2026-08-23 by driving the real
+form at `claimit.ca.gov/app/claim-search`: searching property `2113890` returned
+EATON VANCE INCOME FUND BOSTON — our row exactly — and `location.href` never changed.
+It is an Angular app with no addressable per-property URL. The form also carries a
+`cf-turnstile-response` field, so the search sits behind Cloudflare Turnstile.
+
+That is the same domain asymmetry `lib/acquire/challenge.ts` exists to police: the
+DATA host (`claimit.ca.gov/upd-property-records/*.zip`) is unchallenged and fetchable,
+while the SEARCH app on that domain is not. The acquisition layer targets the file,
+never the app — which is why the loader has never met a challenge.
+
+What survived the investigation is worth more than the link would have been: our
+`property_id` **is** the state's own ID, and it round-trips against their live system.
+So `/holdings` offers the ID as click-to-copy plus a link to the authority's search,
+and `lib/acquire/stateLookup.ts` returns `null` rather than a guess for any source
+whose lookup has not been verified this way. A wrong outbound link on a row of real
+owner data is worse than no link.
+
+### Why California cannot enter the queue, restated from the file itself
+
+California's export has **25 columns and not one of them is a date** — no delivery
+date, no year reported, no last-activity date, and no NAUPA relation code. So
+`enforceable_on()` returning NULL is a property of the source, not a gap in the
+column mapping, and no amount of remapping will produce the § 44-12-220(d.1)(4)
+input. Making CA workable requires state-aware window logic driven by `state_rules`
+and gated on CA being `verified` — research, not schema.
+
+Two columns in that header are unmapped and genuinely useful: `NUMBER_OF_PENDING_CLAIMS`
+(someone is already claiming it — a negative signal for outreach) and `NO_OF_OWNERS`.
+Cross-checking the latter against the owner_count derived from row multiplicity:
+**3,432 of 3,433 agree.** The one disagreement, property `10807126`, declares two
+owners and ships a single owner row in a file where no sibling row exists — a defect
+in California's own file, not in the multi-owner collapse.
