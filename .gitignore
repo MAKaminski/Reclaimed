@@ -20,3 +20,7 @@ next-env.d.ts
 /data/fixtures/
 .vercel
 .env*
+
+# Claude Code personal instructions (not shared)
+CLAUDE.local.md
+.claude/settings.local.json

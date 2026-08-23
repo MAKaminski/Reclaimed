@@ -370,3 +370,40 @@ Cross-checking the latter against the owner_count derived from row multiplicity:
 **3,432 of 3,433 agree.** The one disagreement, property `10807126`, declares two
 owners and ships a single owner row in a file where no sibling row exists — a defect
 in California's own file, not in the multi-owner collapse.
+
+## Authority to sign
+
+`/property/[id]` now renders the authority chain, closing the gap where
+`authority_links` and `chain_submittable()` existed in the database and zero files
+under `app/` referenced them. The chain sits **above** the actions on that page,
+not below: § 44-12-224(b) voids a representative's claim on a defective agreement,
+so "who may legally sign" is the precondition for asking anyone to sign, not an
+appendix to it.
+
+The verdict leads with reasons rather than the confidence number, because a score
+invites overriding and a named defect invites fixing. `chain_submittable()`
+returns `reasons text[]` for exactly that purpose.
+
+**The UI is read-only, and that is a schema decision rather than a scoping one.**
+`authority_links.evidence_document_id` is `NOT NULL`, so a link cannot be asserted
+without a document behind it; the authoring flow therefore belongs with document
+upload. More pointedly, both `authority_links` and `evidence_documents` carry
+`ON DELETE DO INSTEAD NOTHING` — authority evidence is **append-only**. You cannot
+un-assert a link, only reject it on review, and the rejection is itself a record.
+
+That property killed a fixture seeder mid-build. Synthetic "evidence of legal
+authority" written into these tables could never be removed, which makes seeding
+demo rows a one-way operation on the one table where ambiguity is least
+acceptable. `pnpm probe:authority` replaced it: it builds three chains inside a
+transaction, reads the verdicts back, and rolls back, then prints the row counts
+to prove nothing persisted. It refuses to run outside rehearsal mode and only
+touches `FIXTURE-DEMO` properties.
+
+The three chains are chosen to produce three different verdicts, since a fixture
+that only shows the happy path proves the least interesting thing:
+
+| Property | Verdict | Why |
+|---|---|---|
+| PEACHTREE VENTURES, LLC | **submittable** (0.93 ≥ 0.75) | every link evidenced, reviewed, contiguous |
+| ATHENS CAPITAL PARTNERS LP | blocked | entity `admin_dissolved` — DOR publishes no requirements for this case (DOR-QUESTIONS #3), so a named human must review |
+| MARIETTA PROPERTIES, INC | blocked | sequence gap, an unreviewed link, and 0.41 below threshold |

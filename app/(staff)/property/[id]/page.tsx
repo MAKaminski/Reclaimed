@@ -6,6 +6,8 @@ import { getStageRules, resolveAvailability, type WorkflowStage } from '@/lib/db
 import { getOperatingMode } from '@/lib/compliance/operatingMode'
 import { cents, formatUsd } from '@/lib/compliance/money'
 import { StageActions } from '@/components/StageActions'
+import { AuthorityChain } from '@/components/AuthorityChain'
+import { getChainLinks, getChainVerdict } from '@/lib/db/authority'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,11 +17,15 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   if (staff === null) return <p style={{ color: '#57534e' }}>Staff access required.</p>
 
   const supabase = await createClient()
-  const [{ data: property }, { data: score }, { data: flow }, rules] = await Promise.all([
+  const [
+    { data: property }, { data: score }, { data: flow }, rules, chainVerdict, chainLinks,
+  ] = await Promise.all([
     supabase.from('properties_priority').select('*').eq('property_id', id).maybeSingle(),
     supabase.from('property_scores_latest').select('*').eq('property_id', id).maybeSingle(),
     supabase.from('property_workflow').select('*').eq('property_id', id).maybeSingle(),
     getStageRules(),
+    getChainVerdict(id),
+    getChainLinks(id),
   ])
 
   if (property === null) notFound()
@@ -74,6 +80,14 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
             </ul>
           )}
         </div>
+      </Section>
+
+      {/* ── Who may sign ────────────────────────────────────────────── */}
+      {/* Placed BEFORE the actions deliberately. The chain is the precondition
+          for asking anyone to sign, not a footnote to it — § 44-12-224(b) voids
+          the claim if the signature turns out to be unauthorised. */}
+      <Section title="Authority to sign">
+        <AuthorityChain verdict={chainVerdict} links={chainLinks} />
       </Section>
 
       {/* ── Do something ────────────────────────────────────────────── */}

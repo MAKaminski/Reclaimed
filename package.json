@@ -34,7 +34,8 @@
     "verify:public-surface": "tsx --env-file-if-exists=.env.local scripts/verify-public-surface.ts",
     "acquire": "tsx --env-file-if-exists=.env.local scripts/acquire.ts",
     "verify:acquisition": "tsx --env-file-if-exists=.env.local scripts/verify-acquisition.ts",
-    "watch:sources": "tsx --env-file-if-exists=.env.local scripts/watch-sources.ts"
+    "watch:sources": "tsx --env-file-if-exists=.env.local scripts/watch-sources.ts",
+    "probe:authority": "tsx --env-file-if-exists=.env.local scripts/probe-authority.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
