@@ -30,6 +30,12 @@ export type PropertyField =
   | 'year_reported'
   | 'holder_name'
   | 'holder_contact'
+  // Present in California's file and nowhere in Georgia's. pending_claims is
+  // a NEGATIVE signal — a claim already in flight makes this the worst target
+  // on the list, not the best — and properties_workable excludes on it.
+  | 'pending_claims_count'
+  | 'paid_claims_count'
+  | 'declared_owner_count'
 
 /**
  * Header-name patterns, most specific first. Ordering matters: "owner name"
@@ -56,6 +62,12 @@ const HEADER_PATTERNS: Array<[PropertyField, RegExp]> = [
   ['year_reported', /(year[_\s-]*reported|report[_\s-]*year|reported)/i],
   ['holder_name', /holder[_\s-]*name|^holder$/i],
   ['holder_contact', /holder[_\s-]*(contact|phone|email|address)/i],
+  // Anchored, not loose: /claims/ alone would also swallow a holder's claims
+  // department column, and a phone number parsed as a claim count would
+  // silently suppress the property from the queue.
+  ['pending_claims_count', /^(number[_\s-]*of[_\s-]*)?pending[_\s-]*claims?$/i],
+  ['paid_claims_count', /^(number[_\s-]*of[_\s-]*)?paid[_\s-]*claims?$/i],
+  ['declared_owner_count', /^(no|num|number)[_\s-]*(of[_\s-]*)?owners?$/i],
 ]
 
 export type ColumnMapping = Partial<Record<PropertyField, number>>

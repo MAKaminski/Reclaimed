@@ -41,6 +41,9 @@ interface InventoryRow {
   last_seen_at: string | null
   workable_rows: number
   workable_blocked_by: string | null
+  contested_rows: number
+  previously_paid_rows: number
+  owner_count_disputes: number
 }
 
 interface PropertyRow {
@@ -226,11 +229,29 @@ export default async function HoldingsPage({ searchParams }: {
                 <Stat label="Multi-owner" value={num(inv.multi_owner_rows).toLocaleString()} />
                 <Stat label="Entity-owned" value={num(inv.entity_rows).toLocaleString()} />
                 <Stat
+                  label="Already claimed"
+                  value={num(inv.contested_rows).toLocaleString()}
+                  title="A claim is already in flight at the state. Excluded from the workable tier — the owner is engaged, possibly by a competing CDR holding a signed agreement."
+                  emphasis={num(inv.contested_rows) > 0 ? 'warn' : 'muted'}
+                />
+                <Stat
                   label="Workable"
                   value={num(inv.workable_rows).toLocaleString()}
                   emphasis={num(inv.workable_rows) === 0 ? 'muted' : 'normal'}
                 />
               </div>
+
+              {num(inv.owner_count_disputes) > 0 && (
+                <p style={{
+                  marginTop: '0.75rem', marginBottom: 0,
+                  fontSize: '0.75rem', color: '#a16207',
+                }}>
+                  {num(inv.owner_count_disputes).toLocaleString()} row(s) where the
+                  state&rsquo;s declared owner count disagrees with the count derived
+                  from the file&rsquo;s own rows. A defect in their export, not ours —
+                  but if this number jumps, suspect the multi-owner collapse first.
+                </p>
+              )}
 
               {explain !== undefined && explain !== null && (
                 <div
@@ -367,19 +388,17 @@ export default async function HoldingsPage({ searchParams }: {
   )
 }
 
-function Stat({ label, value, emphasis = 'normal' }: {
+function Stat({ label, value, emphasis = 'normal', title }: {
   label: string
   value: string
-  emphasis?: 'normal' | 'muted'
+  emphasis?: 'normal' | 'muted' | 'warn'
+  title?: string
 }) {
+  const colour = emphasis === 'muted' ? '#a8a29e' : emphasis === 'warn' ? '#a16207' : '#1c1917'
   return (
-    <div>
+    <div title={title}>
       <div style={{ color: '#78716c', fontSize: '0.75rem', textTransform: 'uppercase' }}>{label}</div>
-      <div style={{
-        fontWeight: 600,
-        color: emphasis === 'muted' ? '#a8a29e' : '#1c1917',
-        fontVariantNumeric: 'tabular-nums',
-      }}>
+      <div style={{ fontWeight: 600, color: colour, fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </div>
     </div>

@@ -166,6 +166,12 @@ export const SOURCES: Readonly<Record<SourceKey, DataSource>> = Object.freeze({
       cash_amount_cents: 'CURRENT_CASH_BALANCE',
       holder_name: 'HOLDER_NAME',
       cusip: 'CUSIP',
+      // Read from the real header 2026-08-23. NUMBER_OF_PENDING_CLAIMS is why
+      // this block grew: a property someone is already claiming is the worst
+      // target in the file, and we were discarding the column that says so.
+      pending_claims_count: 'NUMBER_OF_PENDING_CLAIMS',
+      paid_claims_count: 'NUMBER_OF_PAID_CLAIMS',
+      declared_owner_count: 'NO_OF_OWNERS',
     },
     notes:
       'The $500+ tier is 154MB — about 5% of the full 3.0GB dataset for effectively ' +

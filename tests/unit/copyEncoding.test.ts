@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { encodeCopyRow } from '@/lib/ingest/load'
+import { COPY_COLUMNS, encodeCopyRow } from '@/lib/ingest/load'
 import type { ParsedProperty } from '@/lib/ingest/parse'
 
 const RUN = '00000000-0000-0000-0000-0000000000ff'
@@ -38,6 +38,9 @@ function row(overrides: Partial<ParsedProperty> = {}): ParsedProperty {
     year_reported: null,
     holder_name: null,
     holder_contact: null,
+    pending_claims_count: null,
+    paid_claims_count: null,
+    declared_owner_count: null,
     ...overrides,
   }
 }
@@ -64,7 +67,7 @@ describe('COPY text encoding', () => {
     expect(field).toBe('A\\tB\\nC\\\\D\\rE')
     // Exactly one row terminator, and exactly the expected column count.
     expect(encoded.split('\n')).toHaveLength(2)
-    expect(encoded.trimEnd().split('\t')).toHaveLength(23)  // + raw, source_key
+    expect(encoded.trimEnd().split('\t')).toHaveLength(COPY_COLUMNS.length)
   })
 
   it('a delimiter hidden in a name cannot shift the column count', () => {
@@ -74,7 +77,7 @@ describe('COPY text encoding', () => {
       cash_amount_cents: 12345,
     }))
     const fields = encoded.trimEnd().split('\t')
-    expect(fields).toHaveLength(23)  // + raw, source_key (migration 0023)
+    expect(fields).toHaveLength(COPY_COLUMNS.length)
     expect(fields[12]).toBe('12345') // still the real amount, in the right slot
   })
 
@@ -126,5 +129,35 @@ describe('raw is JSONB, so the encoded value must be valid JSON', () => {
 
   it('writes NULL, not the string "null", when raw is absent', () => {
     expect(rawField(null)).toBe('\\N')
+  })
+
+  /**
+   * The encoder is POSITIONAL: COPY_COLUMNS and the value array must stay in
+   * lockstep. Adding three columns before `raw` shifts every later index, and
+   * nothing in the type system catches a mismatch — both sides are just lists.
+   * Pinning the indices means a future insertion in the wrong place fails here
+   * rather than writing claim counts into a JSONB column at 3am.
+   */
+  it('writes the claim counts at their COPY positions, ahead of raw', () => {
+    const encoded = encodeCopyRow(RUN, row({
+      pending_claims_count: 2,
+      paid_claims_count: 1,
+      declared_owner_count: 9,
+      holder_contact: 'x',
+      source_key: 'CA-SCO-UPD-500',
+    })).trimEnd().split('\t')
+
+    expect(encoded[21]).toBe('2')                 // pending_claims_count
+    expect(encoded[22]).toBe('1')                 // paid_claims_count
+    expect(encoded[23]).toBe('9')                 // declared_owner_count
+    expect(encoded[24]).toBe('\\N')               // raw, still NULL
+    expect(encoded[25]).toBe('CA-SCO-UPD-500')    // source_key
+  })
+
+  it('keeps "no claims reported" distinct from "zero claims"', () => {
+    const unknown = encodeCopyRow(RUN, row({ pending_claims_count: null })).split('\t')[21]
+    const none = encodeCopyRow(RUN, row({ pending_claims_count: 0 })).split('\t')[21]
+    expect(unknown).toBe('\\N')
+    expect(none).toBe('0')
   })
 })

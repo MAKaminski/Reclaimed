@@ -1,0 +1,85 @@
+name: Watch publishers
+
+# Quarterly is the stated business requirement — stay current on claim data at
+# least once a quarter. This runs WEEKLY because California reissues on a weekly
+# cadence (`expectedCadenceDays: 7`), and a quarterly check against a weekly
+# publisher means routinely working data up to 90 days stale. Checking costs one
+# HEAD request; the cost of being wrong is soliciting an owner whose property
+# was paid out two months ago.
+on:
+  schedule:
+    - cron: '17 11 * * 1'   # Mondays 11:17 UTC. Off the hour: :00 is heavily
+                            # contended on GitHub's scheduler and gets delayed.
+  workflow_dispatch:
+
+# THIS REPOSITORY IS PUBLIC, and that governs what may run here.
+#
+# Actions logs on a public repo are readable by anyone. An ingest prints reject
+# samples and row counts, and on an unhandled error can print fragments of the
+# rows it was parsing — names and addresses of real people. § 44-12-239.1(b)
+# permits distributing that file only to solicit the owners it names; publishing
+# it to an anonymous log reader is not that.
+#
+# So no database credential is referenced here and none is needed. This job does
+# HEAD requests against a public URL and compares three headers. The load runs on
+# a workstation over a direct connection, and this workflow's only job is to say
+# when it is worth running.
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    name: Has a publisher released new data?
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+
+      # The acquisition gate runs first. If the permission model has drifted —
+      # a source flipped to `open` without wire evidence, a User-Agent crept in —
+      # this job must not then go and touch the network.
+      - name: Acquisition permission model intact
+        run: pnpm verify:acquisition
+
+      - name: Check publishers
+        id: watch
+        run: pnpm watch:sources
+
+      # A changed file is not an emergency and must not read like one, but it is
+      # the only signal that the workstation load is due. An issue is the right
+      # shape: it persists, it can be assigned, and closing it records that the
+      # load happened.
+      - name: Raise an issue when data has moved
+        if: steps.watch.outputs.changed == 'true' || steps.watch.outputs.failed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title="Publisher data has moved — workstation load due"
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          body=$(
+            printf '%s\n' \
+              'The weekly publisher check found new or unreachable data.' \
+              '' \
+              'Run the load on a workstation — deliberately NOT in CI, because this' \
+              'repository is public and ingest output contains owner names and' \
+              'addresses (§ 44-12-239.1(b)).' \
+              '' \
+              '```bash' \
+              'pnpm acquire --source CA-SCO-UPD-500' \
+              'pnpm ingest --source CA-SCO-UPD-500 --manifest <path> --dry-run' \
+              '```' \
+              '' \
+              'Then commit the refreshed `data/source-watch.json`.' \
+              '' \
+              "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          )
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

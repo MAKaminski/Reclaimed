@@ -50,6 +50,9 @@ export interface ParsedProperty {
   year_reported: number | null
   holder_name: string | null
   holder_contact: string | null
+  pending_claims_count: number | null
+  paid_claims_count: number | null
+  declared_owner_count: number | null
   /**
    * The exact source line.
    *
@@ -179,6 +182,9 @@ export function parseRow(
     raw: rawLine ?? null,
     holder_name: coerceText(at(fields, mapping, 'holder_name')),
     holder_contact: coerceText(at(fields, mapping, 'holder_contact')),
+    pending_claims_count: coerceInteger(at(fields, mapping, 'pending_claims_count')),
+    paid_claims_count: coerceInteger(at(fields, mapping, 'paid_claims_count')),
+    declared_owner_count: coerceInteger(at(fields, mapping, 'declared_owner_count')),
   } }
 }
 

@@ -33,7 +33,8 @@
     "bootstrap:admin": "tsx --env-file-if-exists=.env.local scripts/bootstrap-admin.ts",
     "verify:public-surface": "tsx --env-file-if-exists=.env.local scripts/verify-public-surface.ts",
     "acquire": "tsx --env-file-if-exists=.env.local scripts/acquire.ts",
-    "verify:acquisition": "tsx --env-file-if-exists=.env.local scripts/verify-acquisition.ts"
+    "verify:acquisition": "tsx --env-file-if-exists=.env.local scripts/verify-acquisition.ts",
+    "watch:sources": "tsx --env-file-if-exists=.env.local scripts/watch-sources.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

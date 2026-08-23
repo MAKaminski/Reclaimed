@@ -16,13 +16,21 @@ import { Readable } from 'node:stream'
 import type { Sql } from '@/lib/db/client'
 import type { ParsedProperty, ParseResult } from './parse'
 
-/** Column order for the COPY. Must match the encoder below exactly. */
-const COPY_COLUMNS = [
+/**
+ * Column order for the COPY. Must match the encoder below exactly.
+ *
+ * Exported so the encoder test can assert the two lists agree in LENGTH.
+ * They are maintained independently — this array and the value array in
+ * encodeCopyRow — and nothing in the type system relates them, so a column
+ * added to one and not the other silently shifts every field after it.
+ */
+export const COPY_COLUMNS = [
   'ingest_run_id', 'property_id', 'owner_name', 'insured_name', 'beneficiary_name',
   'last_known_address_line1', 'last_known_address_line2', 'last_known_city',
   'last_known_state', 'last_known_postal', 'naupa_relation_code', 'naupa_property_type',
   'cash_amount_cents', 'share_count', 'issuer_name', 'cusip', 'safe_deposit_contents',
   'date_of_last_activity', 'year_reported', 'holder_name', 'holder_contact',
+  'pending_claims_count', 'paid_claims_count', 'declared_owner_count',
   'raw', 'source_key',
 ] as const
 
@@ -68,6 +76,9 @@ export function encodeCopyRow(runId: string, row: ParsedProperty): string {
     row.year_reported,
     row.holder_name,
     row.holder_contact,
+    row.pending_claims_count,
+    row.paid_claims_count,
+    row.declared_owner_count,
     // properties.raw is JSONB, so the source line has to be a valid JSON value.
     // Writing the bare delimited line put `invalid input syntax for type json`
     // in the middle of a COPY — a bug that only a live load could surface,
