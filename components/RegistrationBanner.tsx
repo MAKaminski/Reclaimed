@@ -73,6 +73,7 @@ export async function RegistrationBanner() {
             <Link href="/dashboard" style={linkStyle}>Board</Link>
             <Link href="/workflow" style={linkStyle}>Workflow</Link>
             <Link href="/queue" style={linkStyle}>Queue</Link>
+            <Link href="/holdings" style={linkStyle}>Holdings</Link>
             {staff.role === 'admin' && <Link href="/staff" style={linkStyle}>Staff</Link>}
             <span title={mayTouchClaims(staff)
               ? 'Designated agent under § 44-12-239, screened — may submit and process claims'

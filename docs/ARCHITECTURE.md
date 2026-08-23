@@ -314,3 +314,22 @@ driven by `state_rules`, gated on that state being `verified`.
 Until then California is what the plan called it: a free engineering testbed. The
 parser, the multi-owner collapse, the diff, the events and the source scoping are all
 exercised against real data at real scale, and nothing becomes solicitable by accident.
+
+### Seeing them: `/holdings`
+
+The gap in the paragraph above was not the filter — it was that no screen reported
+**loaded** as distinct from **workable**. The board, the workflow and the queue all
+descend from `properties_workable`, so with 3,433 real rows one table away every
+staff surface still read zero, and "the load failed" and "the load succeeded and is
+correctly not actionable" looked identical from the outside.
+
+`/holdings` (migration 0025, view `acquisition_inventory`) reports holdings per
+source: rows loaded, reported value, multi-owner and entity counts, the workable
+count beside them, and — when workable is zero — the name of the predicate doing the
+blocking. For California that is `no_delivery_date`, rendered with the warning above
+rather than as a defect to be repaired.
+
+The view is deliberately not a queue and the page deliberately has no actions on it.
+`workable_blocked_by` is a diagnosis of the filter, never a licence to bypass it; the
+remedy for a blocked source is verifying that state's rules in `state_rules`, which
+is a research task, not a schema change.

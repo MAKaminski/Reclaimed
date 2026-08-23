@@ -1,5 +1,5 @@
 {
-  "_note": "Every database object the migrations must create. Generated from the deployed schema of project cuaeplfeignnlptfugcv and checked by scripts/verify-migrations.ts. Supabase's own storage/auth objects are excluded. Regenerate deliberately when the schema changes \u2014 this file is what makes the repo's claim to reproduce the database checkable.",
+  "_note": "Every database object the migrations must create. Generated from the deployed schema of project cuaeplfeignnlptfugcv and checked by scripts/verify-migrations.ts. Supabase's own storage/auth objects are excluded. Regenerate deliberately when the schema changes — this file is what makes the repo's claim to reproduce the database checkable.",
   "tables": [
     "acquisitions",
     "agreements",
@@ -29,6 +29,7 @@
     "suppressions"
   ],
   "views": [
+    "acquisition_inventory",
     "authority_chain_state",
     "claim_clocks",
     "pipeline_board",
