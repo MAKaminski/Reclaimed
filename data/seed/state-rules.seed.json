@@ -494,10 +494,12 @@
         "note": "Georgia claims are filed by EMAIL, not paper mail. The same instructions warn that 'Claims that are submitted without this Agreement or with an incomplete Agreement are void.' Combined with RON this makes the whole pipeline digital end to end in a single session."
       },
       "contestedPropertyRule": {
-        "rule": "first_complete_claim_wins",
+        "rule": "first COMPLETE claim wins",
         "tieBreak": "lowest_fee_on_same_day",
-        "commercialImplication": "Cycle time is a REVENUE variable in Georgia, not a margin variable. A slow claim is not a late claim, it is a forfeited one. This is the strongest argument for automating the Prove phase and the reason the RON question is the highest-value open item in DOR-QUESTIONS.",
-        "sourceQuality": "SECONDARY - from market analysis 'The Same-Day Claim', 2026-08-23. Confirm against § 44-12-222 and DOR practice before relying on it."
+        "commercialImplication": "Cycle time is a REVENUE variable, not a margin variable - a slow claim is a forfeited one. But \"complete\" means entitlement ESTABLISHED, not submitted, so a fast incomplete filing loses to a slower complete one. Optimise the evidence step, not the submit button.",
+        "sourceQuality": "PRIMARY - § 44-12-220(g), already recorded in BUILD-SPEC section 7.5. A market-analysis note of 2026-08-23 restated this less precisely; the statute is the authority and \"complete\" is the operative word.",
+        "citation": "O.C.G.A. § 44-12-220(g)",
+        "detail": "Same day: claimant beats CDR; buyer beats claimant or CDR. Buyer vs buyer, earliest executed agreement. CDR vs CDR, LOWEST FEE wins; tie broken by earliest executed agreement."
       }
     },
     "CA": {

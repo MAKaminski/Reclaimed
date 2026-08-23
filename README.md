@@ -7,6 +7,21 @@ Find high-value property held by the Georgia Department of Revenue, identify the
 person legally able to sign for it, generate the state-mandated agreement, and
 track the claim to payment.
 
+## The goal
+
+**Every dollar of unclaimed property returned to its owner.**
+
+Note what that does not say. It does not say "returned *by us*". Roughly one in
+seven Americans has unclaimed property sitting with a state, the median claim paid
+is **$144.30**, and almost all of it should be claimed directly and free in about
+five minutes — which is why the first thing the public site does is show you how.
+
+The money that stays lost is concentrated in the tail, and it stays there for one
+reason: nobody could prove who was entitled to sign for it. The owner died, the
+company dissolved, four people are named on one record. That is the part this
+product is built for, and it is a much smaller group than the number of people with
+unclaimed property.
+
 ## The compliance layer is the product
 
 O.C.G.A. § 44-12-239.2 makes twelve specific acts sanctionable at up to **$2,000

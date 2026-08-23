@@ -440,16 +440,81 @@ The statute does not require notarization; **the forms do.** UP-CDR2 §VI:
 > public. … *Where remote notarization is allowed by law*, an electronic
 > signature is acceptable provided that it complies with Rule 560-1-1-.14(1)(a)."
 
-Georgia has **not** enacted general remote online notarization. HB 289 died when
-the 2026 session adjourned on 2026-04-02. Rule 560-1-1-.14's "remote
-notarization" is the narrow attorney-supervised COVID-era model — the notary must
-be a Georgia-licensed attorney (or supervised by one) and physically in Georgia.
+> **CORRECTED 2026-08-23.** The paragraph that stood here described Rule
+> 560-1-1-.14 as "the narrow attorney-supervised COVID-era model — the notary must
+> be a Georgia-licensed attorney (or supervised by one) and physically in
+> Georgia." **That was the rule before 26 March 2025 and is no longer current
+> law.** The amendment was filed 6 Mar 2025 and took effect 26 Mar 2025. Anyone
+> planning against the old text would have built the wrong signature pipeline.
 
-DOR Policy Bulletin **ADMIN-2025-03** (2025-05-28) says DOR will "accept remote
-notarizations from notary publics in states where remote notarization is
-permitted by law." **That out-of-state-RON path is the most promising digital
-route and it is UNVERIFIED for UP-CDR2/CDR4.** It is the single highest-value
-question to put to DOR in writing.
+Georgia has **not** enacted a general remote online notarization statute of its
+own — HB 289 died when the 2026 session adjourned on 2026-04-02. **It does not
+matter**, because DOR defers to the notary's commissioning state.
+
+Rule 560-1-1-.14 as amended defines "Remote Notarization" as a notarization
+"performed remotely in compliance with the laws of a state which permits remote
+notarization by the notary publics of that state," and § (3)(a) provides that the
+Department "will accept remote notarizations from notary publics in states where
+remote notarization is permitted by law on documents that require a notary and are
+authorized by the Commissioner through Department regulations, publications,
+policy bulletins, or other documents accepted as Department guidance."
+
+Verified against a clean reproduction of the rule on 2026-08-23: **no requirement
+that the notary be a Georgia-licensed attorney, no requirement that the notary be
+in Georgia, and no clause limiting the rule to particular tax types.** So a
+Florida-commissioned RON notary serving a Georgia signer produces an acceptable
+notarization.
+
+**The chain closes on our own form.** UP-CDR2 is the "other documents accepted as
+Department guidance" the rule requires, and Rev. 04/09/2025 — issued two weeks
+after the amendment — invokes 560-1-1-.14(1)(a) by name. That revision is the one
+already pinned in `data/seed/form-hashes.json`; its bytes were read directly on
+2026-08-23 and carry the clause verbatim. DOR Policy Bulletin **ADMIN-2025-03**
+(2025-05-28) restates the position and binds DOR personnel.
+
+**And it is still UNVERIFIED for UP-CDR2/CDR4 operationally, which is why
+`ENABLE_RON_SIGNATURE` remains false.** The regulatory reading is clean; whether
+the Unclaimed Property Section — an operational unit that may not have
+internalised a March 2025 rule change — has actually accepted a RON-notarised
+UP-CDR2 is a different question, and nobody has published an answer. Under
+§ 44-12-220(g) a rejected claim does not merely delay revenue, it hands the
+property to whoever files a complete claim next. This remains the single
+highest-value question to put to DOR in writing, and it now costs one phone call
+rather than a research project.
+
+### 6.3a Knowledge-based authentication will fail on our exact population
+
+Remote notarization statutes require dynamic knowledge-based authentication —
+typically five out-of-wallet questions drawn from credit-header data, 80% correct,
+one retry. It fails legitimate users at a material rate: thin credit files, recent
+movers, frozen credit, and people who have not opened a credit line in decades.
+
+**That list is a description of our customer.** A dormant-property owner is by
+definition someone with no recent financial event at their address of record, and
+estate claimants skew elderly. The population most likely to hold a large unclaimed
+balance is the population most likely to fail KBA.
+
+Consequences to build for, not to discover:
+
+- A **dispatched mobile notary fallback** (~$50–150 all-in) is a day-one path, not
+  a contingency. Without it a KBA failure is a dead claim rather than a slower one.
+- **Instrument the failure rate from the first claim.** Above roughly 15% it
+  dominates cycle time on its own and invalidates any throughput estimate.
+- The fallback is also the answer for a signer who simply will not use video.
+
+### 6.3b The notary's commissioning state is a single point of failure
+
+The whole same-day thesis depends on the RON notary being commissioned in a state
+that permits RON **and** permits its notaries to serve signers located elsewhere.
+Florida is the conventional choice for exactly that reason.
+
+Get it in writing from the vendor before integrating. If an on-demand pool routes
+a signer to a notary in a state that restricts signer location, the notarization
+is defective and § 44-12-224(b) voids the claim — after the work is done. Verify
+too that the filled PDF and the platform's tamper-evident seal compose cleanly,
+since 560-1-1-.14(1)(a) requires the signature be tamper-proof and
+non-transferable. That is a build-time integration risk rather than a legal one,
+and it is cheap to test with one real claim before any volume.
 
 Note the attribution carefully, because it matters for which document you cite in
 an argument with DOR: **the forms themselves point to DOR Rule 560-1-1-.14(1)(a)**,
@@ -579,6 +644,36 @@ Two consequences to encode:
 2. **Fee level is literally determinative against a competing CDR.** Make
    `fee_pct` a per-claim strategic variable with a documented floor, not a global
    constant pinned at 30%.
+
+### 7.6 The outreach channel is mail, and that is a constraint not a preference
+
+**Cold calling is a solicitation, and Georgia has already said so in capitals.**
+§ 44-12-239(f) requires every CDR solicitation to carry "THIS IS A SOLICITATION" —
+the State has characterised the conduct, so "we are only informing them" is not
+available as a theory. The Telemarketing Sales Rule reaches any campaign conducted
+to induce the purchase of services, and a 30% recovery fee is a service.
+
+The compliant lane is narrow and cheap: **manual dial only, DNC-scrubbed within 31
+days, and no texting at all.** The registry is roughly $82 per area code with the
+first five free — about $410 a year for Georgia's ten. The established-business-
+relationship exception does not help: it needs a purchase within 18 months or an
+inquiry within three, and a cold prospect is neither. Owners scatter nationwide, so
+Florida's, Washington's and Oklahoma's mini-TCPA statutes come with them —
+Oklahoma caps three calls per 24 hours *even with consent*, at $500 a violation
+trebled for wilful.
+
+**Mail is therefore the channel, and the postage class is a data decision.** Send
+First-Class with *Return Service Requested*, not Marketing Mail. Marketing Mail is
+about 26 cents cheaper and is neither forwarded nor returned — with decades-stale
+addresses, forwarding and return are the entire point. A returned piece comes back
+carrying the new address from the USPS change-of-address file. Budget the
+difference as enrichment, not postage: the bounces are the best address data in
+the pipeline.
+
+One sequencing trap worth naming: **run address hygiene AFTER skip tracing, never
+before.** Change-of-address data covers filed moves in roughly the last 18–48
+months, so running it against a 1987 address returns essentially nothing. Its value
+is on the current addresses a skip trace returns.
 
 ---
 

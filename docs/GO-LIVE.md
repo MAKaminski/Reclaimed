@@ -10,6 +10,43 @@ weeks) and starts with a step that costs nothing — do that first, today.
 
 ## ⚠ Track A — Registration. Start with step 0.
 
+### 00. Make one phone call first — it is free and it de-risks the build
+
+**GA DOR Office of General Counsel, (404) 417-2225** — the contact printed on Policy
+Bulletin ADMIN-2025-03.
+
+Ask precisely:
+
+> *"Will the Unclaimed Property Section accept a UP-CDR2 that is e-signed by the
+> claimant and notarised by a Florida-commissioned remote online notary, submitted
+> as a PDF to `ucp.cdr.claims@dor.ga.gov`?"*
+
+**Why this is above the screening step:** it costs nothing, it takes ten minutes, and
+the answer decides the shape of the entire signature and submission pipeline. Rule
+560-1-1-.14 was amended effective 26 March 2025 to accept out-of-state remote
+notarisation, and UP-CDR2 Rev. 04/09/2025 invokes it by name — the regulatory chain
+is clean (BUILD-SPEC §6.3). What is unknown is whether the Unclaimed Property
+Section, an operational unit, has internalised a rule change from March 2025.
+
+Under § 44-12-220(g) a rejected claim does not delay revenue; it hands the property
+to whoever files a complete claim next. Building a same-day digital pipeline on an
+unconfirmed reading is the expensive way to find out.
+
+Ask these on the same call — they are DOR-QUESTIONS 6, 13 and 14:
+
+- [ ] Does the claimant's own physical location matter, or only the notary's
+      commissioning state?
+- [ ] Will DOR confirm a **specific named e-signature product** satisfies
+      560-1-1-.14(1)(a)? (No published allow-list was found, so there is no safe
+      harbour today.)
+- [ ] Does the § 44-12-220(i) heir affidavit still require notarisation? SB 403
+      waives the probate *order*; it does not obviously waive the notary. If it also
+      permits an unnotarised affidavit, the sub-$7,500 decedent claim becomes the
+      highest-margin segment we have — it removes the largest software cost and the
+      KBA failure risk in one stroke.
+- [ ] Get the answer **in writing**, then record it in `docs/DOR-QUESTIONS.md` and
+      only then consider `ENABLE_RON_SIGNATURE`.
+
 ### 0. Screen everyone BEFORE spending a cent
 
 **O.C.G.A. § 44-12-239(d)** disqualifies the CDR, or any **officer, owner, or

@@ -407,3 +407,51 @@ that only shows the happy path proves the least interesting thing:
 | PEACHTREE VENTURES, LLC | **submittable** (0.93 ≥ 0.75) | every link evidenced, reviewed, contiguous |
 | ATHENS CAPITAL PARTNERS LP | blocked | entity `admin_dissolved` — DOR publishes no requirements for this case (DOR-QUESTIONS #3), so a named human must review |
 | MARIETTA PROPERTIES, INC | blocked | sequence gap, an unreviewed link, and 0.41 below threshold |
+
+### Holdings: composition, sorting, and why those three fields
+
+`/holdings` reports three dimensions beside the counts — owner class, NAUPA property
+type, and holder — served by `holdings_composition` (migration 0031). They are there
+because each decides something, and the page says which rather than leaving the
+reader to guess:
+
+- **class** decides whether the *state* pays it out without us. SB 403 auto-pay under
+  § 44-12-220(d.1)(1) reaches sole-owner natural-person cash only, so joint and
+  entity-owned records sit structurally outside it. Georgia is draining the tier we
+  cannot serve and leaving the tier we can — the class mix **is** the addressable
+  market. On the California file, 723 of 3,433 records are outside auto-pay.
+- **type** decides the documentary burden and whether it is cash at all. Securities
+  carry a CUSIP and may already have been sold, so what arrives is proceeds rather
+  than shares. Type is also the only route by which a record with no reported value
+  becomes workable, through `is_material_non_cash()`.
+- **holder** is leverage. One holder with hundreds of records is one documentation
+  practice to learn rather than hundreds. MetLife alone reported **407 of 3,433** on
+  the California file. It cuts the other way too: a dissolved or merged holder is a
+  chain-of-title problem before any owner-side work begins.
+
+Aggregation is server-side because a page showing 100 rows cannot count 3,433.
+
+Column sorting is an **allowlist**, `SORTABLE` in `lib/db/holdings.ts`, not a
+pass-through. PostgREST's `.order()` takes a column *name*, so an unvalidated
+parameter lets a visitor order by any column on the table — including ones
+deliberately absent from the select list. RLS still bounds what comes back, but
+ordering by a column you cannot read leaks it by inference, one page at a time.
+
+The first version used `raw in SORTABLE`, which is a bug worth remembering: `in`
+walks the prototype chain, so `?sort=toString` passes the check, resolves to an entry
+that does not exist, and reaches `.order(undefined)`. `Object.hasOwn` instead, pinned
+by `tests/unit/holdingsSort.test.ts`.
+
+### The board shows real records, not only fixtures
+
+`/dashboard` reads the *workable* tier, which is correct for "what do I do next" and
+useless as a picture of what we hold — a fully-loaded source contributing zero
+workable rows reads identically to a failed ingest. It now carries the indexed count
+beside the workable count, names the predicate holding the rest back, and lists the
+highest-value **real** records with links to their property pages and to their source
+in `/holdings`. They are labelled indexed-not-workable rather than blurred into the
+pipeline.
+
+A second, independent reason the queue reads low: `work_queue` INNER JOINs
+`property_scores_latest`, so a newly workable property must still be scored before it
+appears at all.

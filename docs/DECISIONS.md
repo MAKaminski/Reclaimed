@@ -442,3 +442,165 @@ Also: **nothing may appear on the site that is not also true on the filed UP-CDR
 
 Six questions covering this were added to `docs/DOR-QUESTIONS.md` for the UP-CDR1
 package.
+
+---
+
+## ADR-0011 — Named-competitor comparison pages
+
+**Status:** accepted, 2026-08-23. **Carries residual risk the owner has accepted,
+on top of ADR-0010's.**
+
+### Context
+
+The public tree needed comparison pages for search coverage — "X vs Y" is among the
+highest-intent queries in this category. The choice was between comparing
+*categories* of provider and comparing *named firms*.
+
+Naming firms is the higher-risk option and it was chosen deliberately. Two exposures
+sit on it: § 44-12-239.2(a)(5) reaches a false or misleading statement at $2,000 per
+act, and Georgia's Fair Business Practices Act gives a named firm a private right of
+action with treble damages.
+
+There is a second problem specific to this site. ADR-0010 holds that publishing while
+unregistered is lawful because the site **expressly refuses to accept an agreement**.
+A page arguing why to choose us cuts against that argument.
+
+### Decision
+
+Publish named comparisons, built so the ADR-0010 position is *strengthened* rather
+than undermined.
+
+1. **Every claim carries a source URL and an observation date**, non-optional in the
+   type and enforced by `scripts/verify-comparison.ts`. Observations older than 190
+   days fail the build — a live website changes, and a stale observation makes *our*
+   page the false one.
+2. **Claims are attributes, never adjectives.** "Publishes its fee: no" is something a
+   reader can verify in ten seconds. "Not transparent" is a characterisation. The gate
+   denylists pejoratives *and* superlatives; the second category is ours, since
+   unfalsifiable puffery is itself reachable under (a)(5).
+3. **Tables must be complete.** A missing row exactly where a rival does well is a lie
+   by omission and the easiest one to tell by accident. "Not stated on the page
+   reviewed" is the required value.
+4. **We lose rows, and the gate keeps it that way.** Reclaimed is not registered;
+   Reclaim Georgia LLC is and publishes CDR #202400088. That row shows them winning.
+   `verify:comparison` fails the build if our own `registration_published` value stops
+   saying so, with a message distinguishing "registration issued" from "the row was
+   embarrassing".
+5. **Every page keeps the declination banner, the standing disclosures, and the
+   self-file callout.** A comparison page that still routes most readers to the free
+   state route is evidence of non-solicitation, not decoration around it.
+
+### Why this strengthens rather than weakens ADR-0010
+
+The strongest fact about these pages is that the honest answer on most of them is
+"do it yourself, free, in five minutes" — and the site says so, at the top, on every
+one. A page that argues against its own commercial interest for the median reader is
+poor evidence of an invitation to enter an agreement.
+
+### Consequences
+
+- Comparative research decays. The 190-day limit forces a re-read rather than letting
+  an assertion sit; that is deliberate recurring work.
+- A search-engine summary disagreed with a primary page on one firm's fee during the
+  first pass. Only directly fetched sources are recorded, which is slower and is the
+  only defensible method.
+- We now publish observations about named third parties. If a firm changes its page,
+  our page can become wrong before the staleness window closes. The mitigation is the
+  window, the "as of" date rendered on every row, and the standing note that not
+  publishing a rate is lawful and not required.
+
+---
+
+## ADR-0012 — The reference architecture, recorded and not built
+
+**Status:** accepted as a *record of decisions*, 2026-08-23. **No vendor here is
+integrated. Nothing in this ADR is a commitment to spend.**
+
+### Context
+
+A costed build plan arrived covering entity resolution, document extraction, identity,
+PDF fill, notarisation, orchestration and mail. Recording it matters because the
+reasoning decays faster than the prices, and because two of its conclusions are
+architectural rather than procurement decisions.
+
+### Decision — what to buy
+
+| Stage | Choice | Order of magnitude |
+| --- | --- | --- |
+| Entity resolution | **Splink 4 on DuckDB** (MIT, UK Ministry of Justice) | free |
+| Document extraction | **Extend** — per-field confidence with source citations | ~$0.06/page |
+| Identity | **Stripe Identity** | ~$2/claimant |
+| PDF fill | **Anvil** — fills *flat* PDFs, which is what UP-CDR2 is | ~$1.60/packet |
+| Notarisation | RON vendor, negotiated | $10–25 |
+| Orchestration | **Inngest** | $0 → ~$99/mo |
+| Mail | **Lob**, First-Class + Return Service Requested | ~$0.72/piece |
+
+Fully loaded, roughly **$48–49 per closed claim** including human review. That number
+is what moved the workable floor from $500 to $250 in migration 0030 — break-even at
+the 30% cap is a $163 claim.
+
+### The three decisions that are not procurement
+
+**1. Entity resolution is a margin decision disguised as a technical one.** Mail is
+roughly 75% of the data budget. Splink's job is to collapse property rows into
+distinct owner entities so we buy *one* skip trace and send *one* letter per person
+rather than one per property. Every duplicate owner we fail to collapse is a wasted
+letter. It also implements Fellegi–Sunter with term-frequency adjustment, which
+scores a match on a common surname as weak evidence and a rare one as strong — on
+1980s name data that is the whole game, not a nicety.
+
+It runs as a scheduled **Python** job, not on Vercel. Accept the one polyglot boundary
+with a Parquet interface on each side rather than reimplementing Fellegi–Sunter in
+TypeScript. Use a model only as a tie-breaker on the ambiguous band, never as the
+primary matcher — pairwise LLM matching is quadratic and impractical at this size.
+
+**2. Extraction and sufficiency are different problems and must not share a
+component.** "What does this death certificate say" is a vendor purchase at six cents
+a page. "Does this satisfy Georgia's rule for this claim type at this amount" is a
+legal judgment, versioned per state, and **nobody sells it**. The rules engine in
+`lib/compliance/stateRules.ts` is already the right shape; point it at sufficiency,
+not only fee caps. This is the moat, and it is the one line that must stay ours.
+
+**3. Never let a model decide sufficiency.** It extracts facts; deterministic code
+applies state rules. Death certificates are the highest-variance document class in
+American recordkeeping — they differ by state, county and decade, and the old ones
+are typewritten on coloured security paper under overlapping seals. The failure mode
+of a modern model on a degraded scan is not low accuracy, it is **silent
+fabrication**, and a hallucinated date of death produces no visible error: it
+produces a claim rejected months later, or paid to the wrong person.
+
+Four mitigations, all cheap: require a **source citation for every field** (a
+fabricated value has nowhere to point, which is why citations beat a competitor's
+higher self-reported accuracy); use the document's **internal redundancy** as a free
+tripwire, since age at death must reconcile with date of birth and date of death;
+**double-extract the four fields that matter** — decedent name, date of death,
+certificate number, issuing jurisdiction — and route disagreement to a human; and
+route review **by field confidence rather than by document**, because confirming two
+uncertain fields takes forty seconds where re-reading a packet takes fifteen minutes.
+
+Run our own bake-off on real vital records before committing. Every published
+benchmark in this category is vendor-self-reported on a self-selected corpus, and
+none tested vital records.
+
+### What NOT to build
+
+- **A claim-filing API integration.** There isn't one, anywhere. NAUPA's standardised
+  format is for *holder reporting* — companies reporting property *to* states — and
+  has nothing to do with filing claims. Every state is a bespoke document-and-email
+  workflow, and any vendor claiming a universal claim-filing API deserves suspicion.
+- **Temporal**, for this workload. It runs a worker fleet continuously, and the
+  majority of our wall-clock is waiting on postal mail. Inngest bills a sleep as a
+  step.
+- Licensing address-hygiene or death-master data directly at four- and five-figure
+  annual minimums before volume justifies it.
+
+### Consequences
+
+- These are decisions, not integrations. Each vendor needs an account and a key, and
+  none has been created.
+- Notarisation at $10–25 is **10× the entire document pipeline** and is the only line
+  worth negotiating hard. Both leading vendors gate their API tier behind sales, so
+  the published $25 should not be modelled as the price.
+- The $48–49 figure is an estimate built from published pricing plus a loaded review
+  rate. It already moved a threshold in the database, so it should be revisited
+  against real cost as soon as one claim has actually closed.
