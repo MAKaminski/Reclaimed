@@ -4,6 +4,7 @@ import { PUBLIC_PAGES } from '@/lib/public/pages'
 import { JsonLd } from '@/components/public/JsonLd'
 import { webPageLd, faqLd } from '@/lib/public/structuredData'
 import { computeFee } from '@/lib/compliance/computeFee'
+import { FeeBar } from '@/components/public/FeeBar'
 import { dollarsToCents, formatUsd } from '@/lib/compliance/money'
 import { getStateRules } from '@/lib/compliance/stateRules'
 import { SelfFileCallout } from '@/components/public/SelfFileCallout'
@@ -88,6 +89,13 @@ export default function FeesPage() {
         recoverable costs, at the statutory maximum:
       </p>
       <div className="scroll-x">
+        <FeeBar
+          claim={EXAMPLE.capBasis}
+          feeExcludingCosts={EXAMPLE.feeExcludingCosts}
+          costs={EXAMPLE.costs}
+          netToClaimant={EXAMPLE.netToClaimant}
+        />
+
         <table className="fact-table">
           <tbody>
             <tr><td>Amount claimed</td><td>{formatUsd(EXAMPLE.capBasis)}</td></tr>

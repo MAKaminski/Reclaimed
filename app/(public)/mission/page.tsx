@@ -5,6 +5,7 @@ import { JsonLd } from '@/components/public/JsonLd'
 import { webPageLd, faqLd } from '@/lib/public/structuredData'
 import { SelfFileCallout } from '@/components/public/SelfFileCallout'
 import { StatGrid } from '@/components/public/StatGrid'
+import { ClaimSpread } from '@/components/public/FeeBar'
 import { MARKET_STATS, INDEX_STATS, CLAIMS_FILED, INDEX_SNAPSHOT } from '@/lib/public/marketStats'
 import { SITE_MISSION, SITE_MISSION_LONG } from '@/lib/public/site'
 
@@ -38,6 +39,9 @@ export default function MissionPage() {
       <StatGrid stats={MARKET_STATS} />
 
       <h2>The two numbers that set our strategy</h2>
+
+      <ClaimSpread medianUsd={144.30} meanUsd={1780} feePct={30} />
+
       <p>
         The median claim paid across all state programmes is <strong>$144.30</strong>.
         The average is <strong>$1,780</strong>. A gap that wide between the middle and

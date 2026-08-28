@@ -94,13 +94,20 @@ export function HoldingsComposition({ classes, types, holders, hrefFor, active }
                     <th style={{ padding: '0.4rem 0.75rem 0.4rem 0' }}>{d.labelHeading}</th>
                     <th style={{ padding: '0.4rem 0.75rem', textAlign: 'right' }}>Records</th>
                     <th style={{ padding: '0.4rem 0.75rem', textAlign: 'right' }}>Reported value</th>
+                    <th style={{ padding: '0.4rem 0.75rem' }}><span className="sr-only">Share</span></th>
                     <th style={{ padding: '0.4rem 0.75rem', textAlign: 'right' }}>
                       {d.key === 'holder' ? 'Outside auto-pay' : 'Joint'}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Share is computed against the LARGEST row in this
+                      dimension, not against the grand total. The question a
+                      reader has looking at a top-ten list is "how does this
+                      compare to the biggest one", and scaling to a total that
+                      is mostly off-screen makes every bar a stub. */}
                   {d.rows.map((r) => {
+                    const widest = Math.max(...d.rows!.map((x) => x.totalCents), 1)
                     // For a holder, the commercially interesting subset is
                     // everything SB 403 cannot reach, which is joint PLUS
                     // entity-owned. For class and type the joint count alone is
@@ -143,6 +150,17 @@ export function HoldingsComposition({ classes, types, holders, hrefFor, active }
                           fontWeight: 600, fontVariantNumeric: 'tabular-nums',
                         }}>
                           {formatUsd(cents(r.totalCents))}
+                        </td>
+                        <td style={{ padding: '0.5rem 0.75rem', width: '9rem' }}>
+                          <span
+                            className="share-track"
+                            title={`${formatUsd(cents(r.totalCents))} — ${((r.totalCents / widest) * 100).toFixed(0)}% of the largest ${d.labelHeading.toLowerCase()}`}
+                          >
+                            <span
+                              className="share-fill"
+                              style={{ width: `${Math.max(2, (r.totalCents / widest) * 100)}%` }}
+                            />
+                          </span>
                         </td>
                         <td style={{
                           padding: '0.5rem 0.75rem', textAlign: 'right',

@@ -454,3 +454,85 @@ a.card:hover { border-color: var(--accent); transform: translateY(-2px); }
   .tile { font-size: 0.5rem; }
   .tile-grid { gap: 0.15rem; }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Chart ramp.
+
+   ORDINAL, not categorical: every chart here shows parts of a whole that have an
+   inherent order (what the owner keeps → the fee → the costs; median → mean), so
+   the right encoding is ONE hue in monotone lightness steps rather than a set of
+   distinct hues. That also sidesteps the colour-blind separation problem entirely,
+   because the reader is meant to see an ORDER, not tell identities apart — and
+   every segment carries a direct label regardless, so identity is never colour
+   alone.
+
+   Steps computed, not eyeballed: hue held at the brand teal (OKLCH H 185.2°),
+   lightness stepped inside the 0.43–0.77 band for light mode and 0.48–0.67 for
+   dark, chroma at 0.105 to clear the 0.10 "reads as grey" floor. Every step
+   clears 2:1 against its own surface.
+
+   Deliberately NOT the semantic reds and ambers: those mean a compliance stop and
+   a hold, and a chart is not the place to spend them.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --viz-1: #006a60;   /* darkest  — the largest / most important share */
+  --viz-2: #049489;
+  --viz-3: #4dc0b4;   /* lightest — the smallest share */
+  --viz-track: #f2f1ee;
+}
+
+@media (prefers-color-scheme: dark) {
+  .public-shell:not([data-theme='light']) {
+    --viz-1: #007c71;
+    --viz-2: #049489;
+    --viz-3: #32aa9e;
+    --viz-track: #23252f;
+  }
+}
+
+/* A bar whose share is read at a glance, next to a table row. */
+.share-track {
+  display: block;
+  width: 100%;
+  min-width: 3rem;
+  height: 0.5rem;
+  border-radius: 0.25rem;
+  background: var(--viz-track);
+  overflow: hidden;
+}
+.share-fill {
+  display: block;
+  height: 100%;
+  border-radius: 0.25rem;
+  background: var(--viz-1);
+}
+
+figure.chart {
+  margin: var(--space-md) 0;
+  padding: 0;
+  border: 0;
+}
+figure.chart figcaption {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 0.6rem;
+}
+figure.chart svg { display: block; width: 100%; height: auto; }
+.chart-note {
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+  margin: 0.5rem 0 0;
+  max-width: var(--measure);
+}
+
+/* Visually hidden but present for a screen reader. A share bar's column header
+   is meaningless read aloud as "blank", and meaningless drawn as text. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; border: 0;
+}
