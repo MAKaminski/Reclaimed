@@ -2,8 +2,9 @@
   "name": "reclaimed",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.22.0",
   "type": "module",
-  "description": "Georgia Unclaimed Property CDR platform \u2014 compliance-first",
+  "description": "Georgia Unclaimed Property CDR platform — compliance-first",
   "engines": {
     "node": ">=20"
   },
