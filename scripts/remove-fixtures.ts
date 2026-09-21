@@ -14,9 +14,11 @@
  * Scoped by `source_key = 'FIXTURE-DEMO'` and nothing else. This script cannot
  * touch a real record, because a real record carries a real source key.
  *
- * Order matters: children before parents, or the foreign keys refuse. There is no
- * ON DELETE CASCADE on these relations by design — cascade deletion of claim-
- * adjacent data is exactly what you do not want to be one typo away from.
+ * Children are deleted before parents. Note there are currently NO foreign keys
+ * from these tables to `properties` (ARCHITECTURE.md §9) — the relationship lives
+ * only in code, so the database would NOT stop an orphaning delete. This script's
+ * ordering is the only thing preventing one. Once the FKs land, keep them
+ * `on delete restrict`, never cascade.
  */
 
 import { closeSql, getSql } from '@/lib/db/client'
